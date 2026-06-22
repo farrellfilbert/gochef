@@ -43,25 +43,22 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundDark,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppTheme.backgroundDark,
-                    AppTheme.fuchsiaPrimary.withOpacity(0.2),
-                    AppTheme.backgroundDark,
-                  ],
-                ),
-              ),
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.backgroundDark,
+              AppTheme.fuchsiaPrimary.withOpacity(0.2),
+              AppTheme.backgroundDark,
+            ],
           ),
-          SafeArea(
-            child: SingleChildScrollView(
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -134,7 +131,7 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
