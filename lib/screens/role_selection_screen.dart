@@ -22,8 +22,13 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     ref.listen(authProvider, (previous, next) {
+      if (next.isLoading) return;
+      if (next.hasError) return;
+
       final user = next.value;
-      if (user != null) {
+      final prevUser = previous?.value;
+      
+      if (user != null && user.role != prevUser?.role) {
         if (user.role == 'pending_role') {
           // Show role selection bottom sheet
           Future.microtask(() => _showRoleSelectionBottomSheet(context));
