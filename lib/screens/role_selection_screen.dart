@@ -132,7 +132,6 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 
