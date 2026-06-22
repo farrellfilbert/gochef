@@ -14,6 +14,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/kitchen_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/cart_provider.dart';
 
 class ExploreKitchensScreen extends ConsumerStatefulWidget {
   const ExploreKitchensScreen({super.key});
@@ -146,6 +147,25 @@ class _ExploreKitchensScreenState extends ConsumerState<ExploreKitchensScreen> {
           ],
         ),
       ),
+      floatingActionButton: Consumer(
+        builder: (context, ref, child) {
+          final cartItems = ref.watch(cartProvider);
+          if (cartItems.isEmpty) return const SizedBox.shrink();
+
+          return FloatingActionButton.extended(
+            onPressed: () {
+              final firstItem = cartItems.values.first.menuItem;
+              final kitchen = ref.read(kitchenProvider).value?.firstWhere((k) => k.id == firstItem.kitchenId);
+              if (kitchen != null) {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => KitchenProfileScreen(kitchen: kitchen)));
+              }
+            },
+            label: Text('View Cart (${cartItems.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
+            icon: const Icon(Icons.shopping_cart),
+            backgroundColor: AppTheme.fuchsiaPrimary,
+          );
+        },
+      ),
     );
   }
 
@@ -200,6 +220,43 @@ class _ExploreKitchensScreenState extends ConsumerState<ExploreKitchensScreen> {
           icon: const Icon(Icons.search, color: AppTheme.fuchsiaPrimary),
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Search clicked!')));
+          },
+        ),
+        Consumer(
+          builder: (context, ref, child) {
+            final cartItems = ref.watch(cartProvider);
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.fuchsiaPrimary),
+                  onPressed: () {
+                    if (cartItems.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Your cart is empty')));
+                      return;
+                    }
+                    final firstItem = cartItems.values.first.menuItem;
+                    final kitchen = ref.read(kitchenProvider).value?.firstWhere((k) => k.id == firstItem.kitchenId);
+                    if (kitchen != null) {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => KitchenProfileScreen(kitchen: kitchen)));
+                    }
+                  },
+                ),
+                if (cartItems.isNotEmpty)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                      child: Text(
+                        '${cartItems.length}',
+                        style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+              ],
+            );
           },
         ),
         IconButton(
