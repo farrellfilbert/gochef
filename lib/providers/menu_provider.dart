@@ -22,6 +22,7 @@ class MenuNotifier extends AsyncNotifier<List<MenuItem>> {
         'id': item.id,
         'kitchen_id': item.kitchenId,
         'name': item.name,
+        'description': item.description,
         'price': item.price,
         'category': item.category,
         'cuisine': item.cuisine,
@@ -32,8 +33,8 @@ class MenuNotifier extends AsyncNotifier<List<MenuItem>> {
       final currentState = state.value ?? [];
       state = AsyncData([...currentState, item]);
     } catch (e) {
-      // Handle error visually if necessary
       print('Error saving to Supabase: $e');
+      rethrow;
     }
   }
 

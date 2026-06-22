@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui' as ui;
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
@@ -588,61 +593,151 @@ class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen> {
     final nameController = TextEditingController();
     final descController = TextEditingController();
     final priceController = TextEditingController();
+    String? selectedImagePath;
+    Uint8List? selectedImageBytes;
+    bool isUploading = false;
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppTheme.chefSurface,
-          title: const Text('Add Menu Item', style: TextStyle(color: AppTheme.chefTextPrimary)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Dish Name', labelStyle: TextStyle(color: Colors.white70)),
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: AppTheme.chefSurface,
+              title: const Text('Add Menu Item', style: TextStyle(color: AppTheme.chefTextPrimary)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        final picker = ImagePicker();
+                        final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+                        if (image != null) {
+                          if (kIsWeb) {
+                            final bytes = await image.readAsBytes();
+                            setStateDialog(() {
+                              selectedImageBytes = bytes;
+                              selectedImagePath = image.name;
+                            });
+                          } else {
+                            setStateDialog(() {
+                              selectedImagePath = image.path;
+                            });
+                          }
+                        }
+                      },
+                      child: Container(
+                        height: 120,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: AppTheme.chefSurfaceVariant,
+                          borderRadius: BorderRadius.circular(12),
+                          image: selectedImageBytes != null
+                              ? DecorationImage(image: MemoryImage(selectedImageBytes!), fit: BoxFit.cover)
+                              : selectedImagePath != null && !kIsWeb
+                                  ? DecorationImage(image: FileImage(File(selectedImagePath!)), fit: BoxFit.cover)
+                                  : null,
+                        ),
+                        child: selectedImageBytes == null && selectedImagePath == null
+                            ? const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_a_photo, color: AppTheme.chefPrimary, size: 32),
+                                  SizedBox(height: 8),
+                                  Text('Upload Photo', style: TextStyle(color: Colors.white70)),
+                                ],
+                              )
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: nameController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(labelText: 'Dish Name', labelStyle: TextStyle(color: Colors.white70)),
+                    ),
+                    TextField(
+                      controller: descController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(labelText: 'Description', labelStyle: TextStyle(color: Colors.white70)),
+                    ),
+                    TextField(
+                      controller: priceController,
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Price', labelStyle: TextStyle(color: Colors.white70)),
+                    ),
+                  ],
                 ),
-                TextField(
-                  controller: descController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'Description', labelStyle: TextStyle(color: Colors.white70)),
-                ),
-                TextField(
-                  controller: priceController,
-                  style: const TextStyle(color: Colors.white),
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Price', labelStyle: TextStyle(color: Colors.white70)),
-                ),
+              ),
+              actions: [
+                if (!isUploading)
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                  ),
+                isUploading
+                    ? const CircularProgressIndicator(color: AppTheme.chefPrimary)
+                    : ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: AppTheme.chefPrimary),
+                        onPressed: () async {
+                          if (nameController.text.isEmpty || priceController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill name and price')));
+                            return;
+                          }
+
+                          setStateDialog(() { isUploading = true; });
+
+                          try {
+                            final myKitchen = await ref.read(myKitchenProvider.future);
+                            if (myKitchen == null) throw Exception('Kitchen not found');
+
+                            String imageUrl = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500';
+                            
+                            // Upload Image
+                            if (selectedImagePath != null) {
+                              final fileExt = kIsWeb ? selectedImagePath!.split('.').last : File(selectedImagePath!).path.split('.').last;
+                              final fileName = '${DateTime.now().toIso8601String()}.$fileExt';
+                              final filePath = 'menu_images/$fileName';
+
+                              if (kIsWeb && selectedImageBytes != null) {
+                                await Supabase.instance.client.storage.from('avatars').uploadBinary(filePath, selectedImageBytes!);
+                              } else {
+                                await Supabase.instance.client.storage.from('avatars').upload(filePath, File(selectedImagePath!));
+                              }
+                              
+                              imageUrl = Supabase.instance.client.storage.from('avatars').getPublicUrl(filePath);
+                            }
+
+                            final newItem = MenuItem(
+                              id: const Uuid().v4(),
+                              kitchenId: myKitchen.id,
+                              name: nameController.text,
+                              description: descController.text,
+                              price: double.tryParse(priceController.text) ?? 0.0,
+                              imageUrl: imageUrl,
+                            );
+                            
+                            await ref.read(menuProvider.notifier).addMenuItem(newItem);
+                            
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menu item added successfully!')));
+                            }
+                          } catch (e) {
+                            setStateDialog(() { isUploading = false; });
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add menu: $e')));
+                            }
+                          }
+                        },
+                        child: const Text('Save', style: TextStyle(color: Colors.white)),
+                      ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.chefPrimary),
-              onPressed: () async {
-                final myKitchen = await ref.read(myKitchenProvider.future);
-                if (myKitchen != null) {
-                  final newItem = MenuItem(
-                    id: const Uuid().v4(),
-                    kitchenId: myKitchen.id,
-                    name: nameController.text,
-                    description: descController.text,
-                    price: double.tryParse(priceController.text) ?? 0.0,
-                    imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
-                  );
-                  ref.read(menuProvider.notifier).addMenuItem(newItem);
-                }
-                Navigator.pop(context);
-              },
-              child: const Text('Save', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+            );
+          }
         );
       },
     );
