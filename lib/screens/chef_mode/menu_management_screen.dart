@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui' as ui;
+import 'package:uuid/uuid.dart';
 import '../../core/theme.dart';
+import '../../models/models.dart';
+import '../../providers/menu_provider.dart';
+import '../../providers/kitchen_provider.dart';
 import '../../widgets/premium/glass_card.dart';
 import '../../widgets/chef_bottom_nav.dart';
 
-class MenuManagementScreen extends StatefulWidget {
+class MenuManagementScreen extends ConsumerStatefulWidget {
   const MenuManagementScreen({super.key});
 
   @override
-  State<MenuManagementScreen> createState() => _MenuManagementScreenState();
+  ConsumerState<MenuManagementScreen> createState() => _MenuManagementScreenState();
 }
 
-class _MenuManagementScreenState extends State<MenuManagementScreen> {
+class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen> {
   int _currentIndex = 1; // Kitchen/Menu is index 1 in our bottom nav
   int _selectedCategoryIndex = 0;
   final List<String> _categories = ['All Items', 'Mains', 'Sides', 'Desserts'];
@@ -80,7 +85,9 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
             bottom: 100,
             right: 24,
             child: FloatingActionButton(
-              onPressed: () {},
+              onPressed: () {
+                _showAddMenuDialog(context, ref);
+              },
               backgroundColor: AppTheme.chefPrimaryContainer,
               foregroundColor: Colors.white,
               child: const Icon(Icons.add, size: 28),
@@ -340,39 +347,45 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
   }
 
   Widget _buildMenuGrid() {
-    return Column(
-      children: [
-        _buildDishCard(
-          imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAH1g1tuVqF0wK1YoAmwrTf5igYIh5-6VPkZjMCbC7tUZ23pucVrYdzLklHpfpPlrjdGVfb836B7iHoucPk2b5RXUQ4Rp6Ek5avNDZtDbiapswLz5QDQ2oUiw-TTBNdagerpMVh0ymeeq00jH4oF8vgnloHFBgG9xtDksmBsW57l5cIQSvd4D3L0BGwmT6ugnTRiWjCZnl5jJic7QKOUlF-4iE2-fEUhGOXgrKeCQoGlZfgc_gYBgNjQSUep3iq-I-4gZVJ9FA5hbiz',
-          title: 'Truffle Wagyu Burger',
-          desc: 'Caramelized onions, truffle aioli, aged gruyère.',
-          price: '\$24.00',
-          isChefPick: true,
-          isAvailable: true,
-        ),
-        const SizedBox(height: 24),
-        _buildDishCard(
-          imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlJ3T0V2E5h8NtW919fQOpPWq_q16b8decEHpQxPe-E3Ou7HKg_Kpmjb26ZN5m32xzJVmDnHgJBYCCWgfgVGPlkFRAG40efCsCSKgX56RZclE0b6KwdRANnpmRYpA_65ezOB8tuJoeedGpcRnFWfEVCDTHiGJHw4w3xI69f6hwFUuiWipceS1Vz41NzC1QlTT9CxELeow0XKOfO_UnEmjpXJTg3u_K8uLyhyay_JZKlPIKwTUVmZfR6Z0laU4w2q37j-ad6HmT5iq6',
-          title: 'Hokkaido Sea Scallops',
-          desc: 'Pea purée, crispy pancetta, lemon oil.',
-          price: '\$32.00',
-          isChefPick: false,
-          isAvailable: false,
-        ),
-        const SizedBox(height: 24),
-        _buildDishCard(
-          imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAReaAN3d-dWoMtaD1TYegh24DfCuIbGhnL7aSwVlpmJ6gQk7zCffBxXwLzJHv-N8uhMPpk5LHZRr5HVomopa4sUyioZ8CNkttxJJtFrB2dAtruA3P3AiuHsipG90wzRPOb8v5LTml_qz3ujW1uyj7kbweOS49W_1fFjN001-Co7yS_XFhgWaSZzBA5YA9SWOA5c19GXI3g-29lCT2g3Qc_0ELk-5JKvxgaF3O3RucJ2Zl4Nh5m5xY80TaieD0bEtrwDvQdy0f_3GoN',
-          title: 'Gold Leaf Lava Cake',
-          desc: '70% Dark cocoa, raspberry infusion.',
-          price: '\$18.00',
-          isChefPick: false,
-          isAvailable: true,
-        ),
-      ],
+    final menuAsync = ref.watch(menuProvider);
+    final myKitchenAsync = ref.watch(myKitchenProvider);
+
+    return myKitchenAsync.when(
+      data: (myKitchen) {
+        if (myKitchen == null) return const Center(child: Text('Kitchen not found', style: TextStyle(color: Colors.white)));
+        
+        return menuAsync.when(
+          data: (allItems) {
+            final items = allItems.where((i) => i.kitchenId == myKitchen.id).toList();
+            if (items.isEmpty) {
+              return const Center(child: Text('No menu items yet. Add one!', style: TextStyle(color: Colors.white54)));
+            }
+            return Column(
+              children: items.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: _buildDishCard(
+                  id: item.id,
+                  imageUrl: item.imageUrl ?? 'https://via.placeholder.com/150',
+                  title: item.name,
+                  desc: item.description ?? '',
+                  price: '\$${item.price.toStringAsFixed(2)}',
+                  isChefPick: false,
+                  isAvailable: item.isAvailable,
+                ),
+              )).toList(),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, st) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.white))),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, st) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.white))),
     );
   }
 
   Widget _buildDishCard({
+    required String id,
     required String imageUrl,
     required String title,
     required String desc,
@@ -537,7 +550,9 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {},
+                          onPressed: () {
+                            ref.read(menuProvider.notifier).toggleAvailability(id);
+                          },
                           icon: Icon(
                             isAvailable ? Icons.block : Icons.check_circle, 
                             size: 18,
@@ -566,6 +581,70 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showAddMenuDialog(BuildContext context, WidgetRef ref) {
+    final nameController = TextEditingController();
+    final descController = TextEditingController();
+    final priceController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.chefSurface,
+          title: const Text('Add Menu Item', style: TextStyle(color: AppTheme.chefTextPrimary)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(labelText: 'Dish Name', labelStyle: TextStyle(color: Colors.white70)),
+                ),
+                TextField(
+                  controller: descController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(labelText: 'Description', labelStyle: TextStyle(color: Colors.white70)),
+                ),
+                TextField(
+                  controller: priceController,
+                  style: const TextStyle(color: Colors.white),
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Price', labelStyle: TextStyle(color: Colors.white70)),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.chefPrimary),
+              onPressed: () async {
+                final myKitchen = await ref.read(myKitchenProvider.future);
+                if (myKitchen != null) {
+                  final newItem = MenuItem(
+                    id: const Uuid().v4(),
+                    kitchenId: myKitchen.id,
+                    name: nameController.text,
+                    description: descController.text,
+                    price: double.tryParse(priceController.text) ?? 0.0,
+                    imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
+                  );
+                  ref.read(menuProvider.notifier).addMenuItem(newItem);
+                }
+                Navigator.pop(context);
+              },
+              child: const Text('Save', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
     );
   }
 }

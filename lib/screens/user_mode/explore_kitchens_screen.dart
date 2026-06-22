@@ -565,8 +565,7 @@ class _ExploreKitchensScreenState extends ConsumerState<ExploreKitchensScreen> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: GestureDetector(
                         onTap: () {
-                          // TODO: Pass kitchen.id to profile screen
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const KitchenProfileScreen()));
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => KitchenProfileScreen(kitchen: kitchen)));
                         },
                         child: _buildKitchenCard(
                           kitchen.name,

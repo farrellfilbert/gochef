@@ -1,17 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
+import '../../models/models.dart';
+import '../../providers/menu_provider.dart';
+import '../../providers/cart_provider.dart';
+import '../../providers/order_provider.dart';
 import '../../widgets/premium/glass_card.dart';
 import 'recipe_details_screen.dart';
 import 'dart:math' as math;
 
-class KitchenProfileScreen extends StatelessWidget {
-  const KitchenProfileScreen({super.key});
+class KitchenProfileScreen extends ConsumerWidget {
+  final Kitchen kitchen;
+  const KitchenProfileScreen({super.key, required this.kitchen});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cart = ref.watch(cartProvider);
+    final total = ref.read(cartProvider.notifier).totalCartPrice;
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundDark,
+      floatingActionButton: cart.isNotEmpty ? FloatingActionButton.extended(
+        onPressed: () async {
+          final items = cart.values.toList();
+          try {
+            await ref.read(orderProvider.notifier).placeOrder(
+              kitchen.id,
+              'Dummy Address 123', // Hardcoded for now
+              items,
+              total,
+            );
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Order placed successfully!')));
+            Navigator.pop(context); // Go back to explore
+          } catch(e) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to place order: $e')));
+          }
+        },
+        backgroundColor: AppTheme.fuchsiaPrimary,
+        icon: const Icon(Icons.shopping_cart, color: Colors.white),
+        label: Text('Checkout - \$${total.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ) : null,
       body: CustomScrollView(
         slivers: [
           // Hero App Bar
@@ -56,7 +85,7 @@ class KitchenProfileScreen extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   Image.network(
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuAooa_6Otp4bv9mi8oMO1jEJmSpu98sfj83EnWZANii4K14-Ls-VhefSKglfvj0zfYyEgco9PLNlmvJviK6AQAzwDbE3z2_ItskellUdO6u508eWOAjoz_kXgk4o750mNgy_BXlGd_624f0uwwAC5eiVG6TwPtZYJXDeiDeYvId-mn5Dgw-rrRqo2p0BKrkMXLa652Q4QE5xY0xRBHOo3OmBXMBz_Mnx4bi5hUw7bRYKephdWRRiMgvsofqdw5lnZ0fvVXMf-uDGv3b',
+                    kitchen.coverImageUrl ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuAooa_6Otp4bv9mi8oMO1jEJmSpu98sfj83EnWZANii4K14-Ls-VhefSKglfvj0zfYyEgco9PLNlmvJviK6AQAzwDbE3z2_ItskellUdO6u508eWOAjoz_kXgk4o750mNgy_BXlGd_624f0uwwAC5eiVG6TwPtZYJXDeiDeYvId-mn5Dgw-rrRqo2p0BKrkMXLa652Q4QE5xY0xRBHOo3OmBXMBz_Mnx4bi5hUw7bRYKephdWRRiMgvsofqdw5lnZ0fvVXMf-uDGv3b',
                     fit: BoxFit.cover,
                   ),
                   Container(
@@ -103,16 +132,16 @@ class KitchenProfileScreen extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Text('Isabella Martinez', style: GoogleFonts.montserrat(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
-                        Text('"The GRUB Next Door" — Authentic Oaxacan Flavors', style: GoogleFonts.inter(fontSize: 14, fontStyle: FontStyle.italic, color: AppTheme.fuchsiaPrimary)),
+                        Text(kitchen.name, style: GoogleFonts.montserrat(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+                        Text('"${kitchen.description ?? 'Authentic Flavors'}"', style: GoogleFonts.inter(fontSize: 14, fontStyle: FontStyle.italic, color: AppTheme.fuchsiaPrimary)),
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            _buildStat('4.9', 'Ratings', Icons.star),
+                            _buildStat(kitchen.rating.toString(), 'Ratings', Icons.star),
                             const SizedBox(width: 16),
                             Container(height: 30, width: 1, color: Colors.white24),
                             const SizedBox(width: 16),
-                            _buildStat('1.2k', 'Reviews', null),
+                            _buildStat('0', 'Reviews', null),
                             const SizedBox(width: 16),
                             Container(height: 30, width: 1, color: Colors.white24),
                             const SizedBox(width: 16),
@@ -152,43 +181,42 @@ class KitchenProfileScreen extends StatelessWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionHeader('Signature Dishes', 'Isabella\'s hand-crafted masterpieces.'),
-                  const SizedBox(height: 16),
-                  _buildDishCard(
-                    context,
-                    'Chicken Tortilla Soup',
-                    '\$18.50',
-                    'Slow-cooked for 12 hours with authentic Oaxacan spices and hand-shredded chicken.',
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuC1mvK9h6bTs8YCn4QiBzmNmvmThOn7oBNu6blrNGOm2UV7qs8ApCJrXB3fALMML2pukphYSiKl6hk457n0Fha_Zeyag_3HaiCXKe1Ens_F2dhaMmZqCmONfILAE9RLBlD01EspN9m1wQe7ByStyFB04pFu6fj7LdAEW5gKREWs99Ls8xwgMubdvyXZGdDyN5D1THamaYU1EoQ6zAaAU-Zly9H-VMzYus3N_4E051e0fxg60hOoW2qpPMTXLryxOhwZQY2Xk1aw3wgl',
-                    ['Gluten Free', 'Spicy'],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildDishCard(
-                    context,
-                    'Trio de Al Pastor',
-                    '\$16.00',
-                    'Guajillo-marinated pork with grilled pineapple and house-made salsa verde.',
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuCc5L1WeiwOJunK4nus2pC7ggt4_8pHDTrVVdLVZEiSsJd9VYYkwKiH052fXeV-pUGMgCMQEDRZd6rw9AmO9J5HX76LrVmyRiCIqOIPmW3AaWC53wV6gJod8pMU_7o4zLitiabQ6RO7bucJK1TsAJwu8Kv5GYDCdaX6gMhyuB7R2KCy_mw65HbrQQUp-Ph-k5oGE4FLQ8ME0s51SiB9uij5PUMFFQ9RC8RrkFfNF1qVZzJLj1bcgosJcjP9XWaGssVsvvFpXW1gHtUV',
-                    ['Chef\'s Pick'],
-                  ),
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final menuAsync = ref.watch(menuProvider);
                   
-                  const SizedBox(height: 32),
-                  _buildSectionHeader('Daily Specials', 'Limited availability items for today.'),
-                  const SizedBox(height: 16),
-                  _buildDailySpecialHero(),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(child: _buildStoryCard()),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildPairingsCard()),
-                    ],
-                  ),
-                  const SizedBox(height: 100), // padding for bottom nav
-                ],
+                  return menuAsync.when(
+                    data: (allItems) {
+                      final items = allItems.where((i) => i.kitchenId == kitchen.id).toList();
+                      if (items.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 64),
+                          child: Center(
+                            child: Text('This chef hasn\'t added any menu items yet.', style: TextStyle(color: AppTheme.textSecondary)),
+                          ),
+                        );
+                      }
+                      
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader('Menu Items', 'Fresh from ${kitchen.name}.'),
+                          const SizedBox(height: 16),
+                          ...items.map((item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildDishCard(
+                              context,
+                              ref,
+                              item,
+                            ),
+                          )).toList(),
+                        ],
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.fuchsiaPrimary)),
+                    error: (e, st) => Center(child: Text('Error: $e')),
+                  );
+                },
               ),
             ),
           ),
@@ -247,13 +275,15 @@ class KitchenProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDishCard(BuildContext context, String title, String price, String desc, String imgUrl, List<String> tags) {
+  Widget _buildDishCard(BuildContext context, WidgetRef ref, MenuItem item) {
+    final tags = item.category != null ? [item.category!] : [];
+    
     return GestureDetector(
       onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => RecipeDetailsScreen(
-          dishName: title,
-          heroImage: imgUrl,
-          chefName: 'Isabella Martinez',
+          dishName: item.name,
+          heroImage: item.imageUrl ?? 'https://via.placeholder.com/150',
+          chefName: kitchen.name,
         )));
       },
       child: Container(
@@ -266,7 +296,7 @@ class KitchenProfileScreen extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), bottomLeft: Radius.circular(16)),
-              child: Image.network(imgUrl, width: 120, height: 120, fit: BoxFit.cover),
+              child: Image.network(item.imageUrl ?? 'https://via.placeholder.com/150', width: 120, height: 120, fit: BoxFit.cover),
             ),
             Expanded(
               child: Padding(
@@ -277,12 +307,12 @@ class KitchenProfileScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(child: Text(title, style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary))),
-                        Text(price, style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.fuchsiaPrimary)),
+                        Expanded(child: Text(item.name, style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary))),
+                        Text('\$${item.price.toStringAsFixed(2)}', style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.fuchsiaPrimary)),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(desc, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(item.description ?? '', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -295,10 +325,16 @@ class KitchenProfileScreen extends StatelessWidget {
                             child: Text(t.toUpperCase(), style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.bold, color: AppTheme.textSecondary)),
                           )).toList(),
                         ),
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(color: AppTheme.fuchsiaPrimary, shape: BoxShape.circle),
-                          child: const Icon(Icons.add, size: 16, color: Colors.white),
+                        GestureDetector(
+                          onTap: () {
+                            ref.read(cartProvider.notifier).addItem(item);
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${item.name} added to cart!')));
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(color: AppTheme.fuchsiaPrimary, shape: BoxShape.circle),
+                            child: const Icon(Icons.add, size: 16, color: Colors.white),
+                          ),
                         ),
                       ],
                     ),
