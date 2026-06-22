@@ -34,7 +34,7 @@ class FoodieProfileScreen extends ConsumerWidget {
               const SizedBox(height: 24),
               _buildStreakCard(context),
               const SizedBox(height: 24),
-              _buildManagementSection(context),
+              _buildManagementSection(context, ref),
             ],
           ),
         ),
@@ -127,17 +127,24 @@ class FoodieProfileScreen extends ConsumerWidget {
             _buildDrawerItem(context, Icons.workspace_premium, 'Loyalty Status'),
             const Divider(color: Colors.white10),
             _buildDrawerItem(context, Icons.help, 'Help Center'),
-            _buildDrawerItem(context, Icons.logout, 'Sign Out', isDestructive: true),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
+              title: Text('Sign Out', style: GoogleFonts.inter(color: Colors.redAccent)),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                ref.read(authProvider.notifier).logout();
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDrawerItem(BuildContext context, IconData icon, String title, {bool isDestructive = false}) {
+  Widget _buildDrawerItem(BuildContext context, IconData icon, String title) {
     return ListTile(
-      leading: Icon(icon, color: isDestructive ? Colors.redAccent : AppTheme.textSecondary),
-      title: Text(title, style: GoogleFonts.inter(color: isDestructive ? Colors.redAccent : AppTheme.textSecondary)),
+      leading: Icon(icon, color: AppTheme.textSecondary),
+      title: Text(title, style: GoogleFonts.inter(color: AppTheme.textSecondary)),
       onTap: () {
         Navigator.pop(context); // Close drawer
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Navigating to $title')));
@@ -314,7 +321,7 @@ class FoodieProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildManagementSection(BuildContext context) {
+  Widget _buildManagementSection(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -346,8 +353,7 @@ class FoodieProfileScreen extends ConsumerWidget {
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () {
-              // Usually we'd pop back to login
-              Navigator.of(context, rootNavigator: true).pop();
+              ref.read(authProvider.notifier).logout();
             },
             icon: const Icon(Icons.logout, color: Colors.redAccent),
             label: const Text('Sign Out', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
