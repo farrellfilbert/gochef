@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../widgets/premium/glass_card.dart';
+import '../../providers/order_provider.dart';
 
-class ChefOrderHistoryScreen extends StatelessWidget {
+class ChefOrderHistoryScreen extends ConsumerWidget {
   const ChefOrderHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundDark,
       body: SafeArea(
@@ -16,11 +19,11 @@ class ChefOrderHistoryScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(ref),
               const SizedBox(height: 24),
               _buildFilterAndSearchBar(),
               const SizedBox(height: 24),
-              _buildOrderList(),
+              _buildOrderList(ref),
               const SizedBox(height: 32),
               _buildPagination(),
               const SizedBox(height: 100), // padding for bottom nav
@@ -31,7 +34,18 @@ class ChefOrderHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(WidgetRef ref) {
+    final ordersAsync = ref.watch(orderProvider);
+    double lifetimeEarnings = 0.0;
+    
+    if (ordersAsync.hasValue) {
+      for (final order in ordersAsync.value!) {
+        if (order.status == 'completed' || order.status == 'delivered') {
+          lifetimeEarnings += order.totalAmount;
+        }
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -54,7 +68,7 @@ class ChefOrderHistoryScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text('Lifetime Earnings', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
-                      Text('\$14,280.50', style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
+                      Text('\$${lifetimeEarnings.toStringAsFixed(2)}', style: GoogleFonts.montserrat(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
                     ],
                   ),
                   const SizedBox(width: 12),
@@ -130,31 +144,66 @@ class ChefOrderHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderList() {
-    return Column(
-      children: [
-        _buildOrderItem(
-          '#ORD-8821', 'Delivered', Colors.greenAccent,
-          'Margherita Pizza x 2', 'Customer: Julian Casablancas',
-          'Oct 24, 2023', '07:45 PM', 'Payout', '+\$42.00',
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuA1wodKrPD3NR1ZkemQKCedksJWZyL6t9i5Tr84_qREtUbvOvNvDhDVjdOoAzv4jG7515KK-0r93gzVMirvN5Ae7J8xeE6goxqVqfgn-C_df0Iih9YrRQyKuRlcbA6rVQee44LmcYjOA4HFbUlLJrwotkVIyYW7aOIBcW4DQsmnV5wDzG5ddR0UxhKEuqWiIbQicUqZwvaOnWhoPD4rwcz5x6fefek5GD1Ac8Qg8A0Q5WBc9erIpUyd2oTSnEBAa597mOGwrBeSqZcT',
-        ),
-        const SizedBox(height: 16),
-        _buildOrderItem(
-          '#ORD-8819', 'Cancelled', Colors.redAccent,
-          'Omakase Special', 'Customer: Sarah Jenkins',
-          'Oct 23, 2023', '01:12 PM', 'Refunded', '\$0.00',
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuAbcqxUmvzX8CdWa3ICxhNbaOUuu50utfPVEhcUmD10jwQqFe2XaLNJzJbCivPJR7L85JKYSl11QNZyk_ClZXoDr5ccDdTCio1LGWuCyheDe5xKeBRV19pGXcfs8XSYUee8aI-Xf0z0ZLquEgDDxaWF3npdNT02bg-7lVyghMK0wDPyby8bAQ3vH3YYwpWhMiE7m-1zC5PNcsP0qosTmrkcK7pOAlR4NjmFCjLbIsvTW4lJADhTNtatOEho8h4tCuxRCVI5z-mZNV0s',
-          isDimmed: true,
-        ),
-        const SizedBox(height: 16),
-        _buildOrderItem(
-          '#ORD-8815', 'Delivered', Colors.greenAccent,
-          'Prime Ribeye Set', 'Customer: Michael Scott',
-          'Oct 22, 2023', '09:05 PM', 'Payout', '+\$128.50',
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuBEZj70C9wyXemhnmFK3y7VgjfICjK_ArnUkcCYAzCLpMCrDpbW_R05eJNps_MTXnw-MUyKsdMJdzbN9MD8jq1d0fAWhpUkroez2JFjE8VshVg60mQqYPZbu6gKtHuY0Fy_l5HVG8hISk_XvfRt_0ROzLo_Bc7jctY6KtBVJiBxj6RYbSIRt00jLh9ynnKAPX6U2ENaYMApW0S4qavmi_h2wPPVU1e7jDYUQ5ZMWmkAeIzafxvLs2ilXNHkVlOOhp8QUkwGhnIModpp',
-        ),
-      ],
+  Widget _buildOrderList(WidgetRef ref) {
+    final ordersAsync = ref.watch(orderProvider);
+    
+    return ordersAsync.when(
+      data: (orders) {
+        if (orders.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(
+              child: Text('No orders found yet.', style: TextStyle(color: Colors.white70)),
+            ),
+          );
+        }
+
+        return Column(
+          children: orders.map((order) {
+            String title = 'Order #${order.id.substring(0, 5)}';
+            String imageUrl = 'https://via.placeholder.com/150';
+            if (order.items.isNotEmpty && order.items.first.menuItem != null) {
+              title = '${order.items.first.quantity}x ${order.items.first.menuItem!.name}';
+              imageUrl = order.items.first.menuItem!.imageUrl ?? imageUrl;
+              if (order.items.length > 1) {
+                title += ' & ${order.items.length - 1} more';
+              }
+            }
+
+            Color statusColor = AppTheme.fuchsiaPrimary;
+            if (order.status == 'completed' || order.status == 'delivered') {
+              statusColor = Colors.greenAccent;
+            } else if (order.status == 'cancelled') {
+              statusColor = Colors.redAccent;
+            } else if (order.status == 'pending') {
+              statusColor = AppTheme.chefTertiary;
+            }
+
+            final isDimmed = order.status == 'cancelled';
+            final amountLabel = order.status == 'cancelled' ? 'Refunded' : 'Payout';
+            final amountPrefix = order.status == 'cancelled' ? '' : '+';
+            
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildOrderItem(
+                '#ORD-${order.id.substring(0, 5).toUpperCase()}', 
+                order.status, 
+                statusColor,
+                title, 
+                'Customer: ${order.foodie?.fullName ?? "Foodie"}',
+                DateFormat('MMM dd, yyyy').format(order.createdAt), 
+                DateFormat('hh:mm a').format(order.createdAt), 
+                amountLabel, 
+                '$amountPrefix\$${order.totalAmount.toStringAsFixed(2)}',
+                imageUrl,
+                isDimmed: isDimmed,
+              ),
+            );
+          }).toList(),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.fuchsiaPrimary)),
+      error: (e, st) => Center(child: Text('Error: $e')),
     );
   }
 
