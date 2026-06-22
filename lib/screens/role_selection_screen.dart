@@ -113,6 +113,23 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
                       );
                     },
                   ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // Google Login Button on first screen
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      await ref.read(authProvider.notifier).loginWithGoogle();
+                    },
+                    icon: const Icon(LucideIcons.chrome, color: Colors.white),
+                    label: const Text('Continue with Google', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      backgroundColor: AppTheme.surfaceColor.withOpacity(0.5),
+                    ),
+                  ),
                 ],
               ),
             ),
