@@ -5,15 +5,18 @@ import 'main_screen.dart';
 import 'register_screen.dart';
 import '../widgets/premium/gradient_button.dart';
 import '../widgets/premium/glass_container.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_provider.dart';
+import 'chef_mode/chef_dashboard_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -29,12 +32,51 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
 
-  void _handleLogin() {
-    // Default to user mode
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const MainScreen()),
-    );
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    try {
+      await ref.read(authProvider.notifier).login(email, password);
+      
+      if (!mounted) return;
+      
+      final user = ref.read(authProvider).value;
+      if (user != null) {
+        if (user.role == 'chef') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ChefDashboardScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed. Invalid credentials.')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<void> _handleGoogleLogin() async {
+    await ref.read(authProvider.notifier).loginWithGoogle();
+    // For Web, this will redirect. For mobile, we handle state changes via auth provider listener in RoleSelectionScreen.
   }
 
   @override
@@ -110,6 +152,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 text: 'Login',
                 onPressed: _handleLogin,
               ),
+              const SizedBox(height: 16),
+              
+              // Google Login
+              OutlinedButton.icon(
+                onPressed: _handleGoogleLogin,
+                icon: const Icon(LucideIcons.chrome, color: Colors.white),
+                label: const Text('Continue with Google', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  backgroundColor: AppTheme.surfaceColor.withOpacity(0.5),
+                ),
+              ),
               const SizedBox(height: 24),
               
               // Register Link
@@ -162,6 +218,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              const Center(
+                child: Text(
+                  'Tip: Try "Continue with Google". First time will register you.\nSecond time will log you in automatically.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppTheme.fuchsiaPrimary, fontSize: 12, fontStyle: FontStyle.italic),
+                ),
               ),
             ],
           ),

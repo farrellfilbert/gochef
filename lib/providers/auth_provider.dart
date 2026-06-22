@@ -9,7 +9,18 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
   Future<AppUser?> build() async {
     final session = supabaseClient.auth.currentSession;
     if (session == null) return null;
-    return _fetchProfile(session.user.id);
+    
+    final profile = await _fetchProfile(session.user.id);
+    if (profile == null) {
+      // User is authenticated via Google but has no profile yet!
+      return AppUser(
+        id: session.user.id,
+        role: 'pending_role',
+        fullName: session.user.userMetadata?['full_name'] ?? 'Google User',
+        email: session.user.email ?? '',
+      );
+    }
+    return profile;
   }
 
   Future<AppUser?> _fetchProfile(String uid) async {
@@ -36,6 +47,59 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
       } else {
         state = const AsyncValue.data(null);
       }
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      rethrow;
+    }
+  }
+
+  AppUser? _pendingGoogleUser;
+  AppUser? get pendingGoogleUser => _pendingGoogleUser;
+  String? _pendingGooglePassword;
+
+  Future<bool> loginWithGoogle() async {
+    state = const AsyncValue.loading();
+    try {
+      final success = await supabaseClient.auth.signInWithOAuth(
+        OAuthProvider.google,
+      );
+      return success;
+    } catch (e, stack) {
+      print('Google Login Error: $e');
+      state = AsyncValue.error(e, stack);
+      return false;
+    }
+  }
+
+  Future<void> completeGoogleRegistration(String role) async {
+    final session = supabaseClient.auth.currentSession;
+    if (session == null) return;
+
+    state = const AsyncValue.loading();
+    try {
+      final uid = session.user.id;
+      final email = session.user.email ?? '';
+      final fullName = session.user.userMetadata?['full_name'] ?? 'Google User';
+
+      // Insert into profiles
+      await supabaseClient.from('profiles').insert({
+        'id': uid,
+        'email': email,
+        'full_name': fullName,
+        'role': role,
+      });
+
+      // If chef, also create a dummy kitchen
+      if (role == 'chef') {
+        await supabaseClient.from('kitchens').insert({
+          'chef_id': uid,
+          'name': "$fullName's Kitchen",
+          'is_open': true,
+        });
+      }
+
+      final profile = await _fetchProfile(uid);
+      state = AsyncValue.data(profile);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
       rethrow;
