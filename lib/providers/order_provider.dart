@@ -20,7 +20,7 @@ class OrderNotifier extends AsyncNotifier<List<OrderModel>> {
       // Fetch orders for this kitchen
       final response = await supabaseClient
           .from('orders')
-          .select('*, order_items(*, menu_items(*)), profiles(*)')
+          .select('*, order_items(*, menu_items(*))')
           .eq('kitchen_id', myKitchen.id)
           .order('created_at', ascending: false);
       
@@ -29,7 +29,7 @@ class OrderNotifier extends AsyncNotifier<List<OrderModel>> {
       // Fetch orders for this foodie
       final response = await supabaseClient
           .from('orders')
-          .select('*, order_items(*, menu_items(*)), profiles(*)')
+          .select('*, order_items(*, menu_items(*))')
           .eq('foodie_id', user.id)
           .order('created_at', ascending: false);
       
@@ -115,7 +115,7 @@ final activeOrdersStreamProvider = StreamProvider.autoDispose<List<OrderModel>>(
     // We need to fetch the joined data for each update since stream only returns the base table
     final response = await supabaseClient
           .from('orders')
-          .select('*, order_items(*, menu_items(*)), profiles(*)')
+          .select('*, order_items(*, menu_items(*))')
           .eq('kitchen_id', myKitchen.id)
           .order('created_at', ascending: false);
           

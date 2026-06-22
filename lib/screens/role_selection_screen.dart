@@ -7,7 +7,7 @@ import '../widgets/premium/glass_container.dart';
 import '../widgets/premium/bouncing_tap.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
-import 'chef_mode/chef_dashboard_screen.dart';
+import 'chef_mode/chef_main_screen.dart';
 import 'main_screen.dart';
 
 class RoleSelectionScreen extends ConsumerStatefulWidget {
@@ -35,7 +35,7 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
         } else if (user.role == 'chef') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const ChefDashboardScreen()),
+            MaterialPageRoute(builder: (context) => const ChefMainScreen()),
           );
         } else {
           Navigator.pushReplacement(

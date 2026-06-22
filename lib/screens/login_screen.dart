@@ -7,7 +7,7 @@ import '../widgets/premium/gradient_button.dart';
 import '../widgets/premium/glass_container.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
-import 'chef_mode/chef_dashboard_screen.dart';
+import 'chef_mode/chef_main_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -53,7 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (user.role == 'chef') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const ChefDashboardScreen()),
+            MaterialPageRoute(builder: (context) => const ChefMainScreen()),
           );
         } else {
           Navigator.pushReplacement(

@@ -198,11 +198,15 @@ class _ExploreKitchensScreenState extends ConsumerState<ExploreKitchensScreen> {
       actions: [
         IconButton(
           icon: const Icon(Icons.search, color: AppTheme.fuchsiaPrimary),
-          onPressed: () {},
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Search clicked!')));
+          },
         ),
         IconButton(
           icon: const Icon(Icons.notifications_outlined, color: AppTheme.fuchsiaPrimary),
-          onPressed: () {},
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notifications clicked!')));
+          },
         ),
         const SizedBox(width: 8),
       ],
