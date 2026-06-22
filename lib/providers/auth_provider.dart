@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
 import '../models/models.dart';
 
 final supabaseClient = Supabase.instance.client;
@@ -63,6 +64,7 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
     try {
       final success = await supabaseClient.auth.signInWithOAuth(
         OAuthProvider.google,
+        redirectTo: kIsWeb ? null : 'io.supabase.gochef://login-callback',
       );
       return success;
     } catch (e, stack) {
