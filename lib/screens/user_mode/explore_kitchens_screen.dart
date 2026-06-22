@@ -13,6 +13,7 @@ import 'package:geolocator/geolocator.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/kitchen_provider.dart';
+import '../../providers/auth_provider.dart';
 
 class ExploreKitchensScreen extends ConsumerStatefulWidget {
   const ExploreKitchensScreen({super.key});

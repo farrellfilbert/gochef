@@ -21,8 +21,8 @@ class FoodieProfileScreen extends ConsumerWidget {
     
     return Scaffold(
       backgroundColor: AppTheme.backgroundDark,
-      appBar: _buildAppBar(),
-      drawer: _buildDrawer(context),
+      appBar: _buildAppBar(user),
+      drawer: _buildDrawer(context, user),
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
@@ -42,7 +42,7 @@ class FoodieProfileScreen extends ConsumerWidget {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(dynamic user) {
     return AppBar(
       backgroundColor: AppTheme.backgroundDark.withValues(alpha: 0.8),
       elevation: 0,
@@ -79,7 +79,7 @@ class FoodieProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDrawer(BuildContext context) {
+  Widget _buildDrawer(BuildContext context, dynamic user) {
     return Drawer(
       backgroundColor: AppTheme.surfaceColor,
       child: SafeArea(
