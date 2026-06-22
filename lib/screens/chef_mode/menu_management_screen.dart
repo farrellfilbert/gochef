@@ -666,8 +666,13 @@ class _MenuManagementScreenState extends ConsumerState<MenuManagementScreen> {
                     TextField(
                       controller: priceController,
                       style: const TextStyle(color: Colors.white),
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Price', labelStyle: TextStyle(color: Colors.white70)),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(
+                        labelText: 'Price',
+                        labelStyle: TextStyle(color: Colors.white70),
+                        prefixText: '\$ ',
+                        prefixStyle: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
                 ),

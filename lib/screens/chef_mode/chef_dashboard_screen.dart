@@ -107,17 +107,34 @@ class _ChefDashboardScreenState extends ConsumerState<ChefDashboardScreen> {
                   }
                 }
               },
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppTheme.chefPrimary.withValues(alpha: 0.2), width: 2),
-                  image: DecorationImage(
-                    image: NetworkImage(user?.avatarUrl ?? 'https://ui-avatars.com/api/?name=${user?.fullName ?? "Chef"}&background=ff3366&color=fff'),
-                    fit: BoxFit.cover,
+              child: Stack(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.chefPrimary.withValues(alpha: 0.2), width: 2),
+                      image: DecorationImage(
+                        image: NetworkImage(user?.avatarUrl ?? 'https://ui-avatars.com/api/?name=${user?.fullName ?? "Chef"}&background=ff3366&color=fff'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.chefPrimaryContainer,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppTheme.chefBackground, width: 1.5),
+                      ),
+                      child: const Icon(Icons.edit, color: Colors.white, size: 10),
+                    ),
+                  ),
+                ],
               ),
             ),
               const SizedBox(width: 12),
@@ -212,6 +229,22 @@ class _ChefDashboardScreenState extends ConsumerState<ChefDashboardScreen> {
                   color: AppTheme.chefSurfaceVariant.withValues(alpha: 0.4),
                 ),
                 child: const Icon(Icons.notifications_outlined, color: AppTheme.chefTextPrimary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: () async {
+                  await ref.read(authProvider.notifier).logout();
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.redAccent.withValues(alpha: 0.1),
+                    border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+                  ),
+                  child: const Icon(Icons.logout, color: Colors.redAccent, size: 20),
+                ),
               ),
             ],
           ),
