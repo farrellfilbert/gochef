@@ -71,7 +71,7 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
     }
   }
 
-  Future<void> completeGoogleRegistration(String role) async {
+  Future<void> completeGoogleRegistration(String role, String name, String address) async {
     final session = supabaseClient.auth.currentSession;
     if (session == null) return;
 
@@ -79,21 +79,21 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
     try {
       final uid = session.user.id;
       final email = session.user.email ?? '';
-      final fullName = session.user.userMetadata?['full_name'] ?? 'Google User';
 
       // Insert into profiles
       await supabaseClient.from('profiles').insert({
         'id': uid,
         'email': email,
-        'full_name': fullName,
+        'full_name': name,
         'role': role,
+        'address': address,
       });
 
       // If chef, also create a dummy kitchen
       if (role == 'chef') {
         await supabaseClient.from('kitchens').insert({
           'chef_id': uid,
-          'name': "$fullName's Kitchen",
+          'name': "$name's Kitchen",
           'is_open': true,
         });
       }

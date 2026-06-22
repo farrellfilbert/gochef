@@ -214,55 +214,91 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
       isScrollControlled: true,
       isDismissible: false,
       enableDrag: false,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: AppTheme.backgroundDark,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceLight,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Icon(LucideIcons.userPlus, size: 48, color: AppTheme.fuchsiaPrimary),
-            const SizedBox(height: 16),
-            const Text(
-              'Complete Registration',
-              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'It looks like you are new here! How would you like to join?',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-            ),
-            const SizedBox(height: 32),
-            _buildRoleOptionSheet(
-              title: 'Join as a Foodie',
-              description: 'Order delicious food from home chefs',
-              icon: LucideIcons.user,
-              onTap: () => _completeGoogleReg('user'),
-            ),
-            const SizedBox(height: 16),
-            _buildRoleOptionSheet(
-              title: 'Join as a Chef',
-              description: 'Start cooking and earning money',
-              icon: LucideIcons.utensilsCrossed,
-              onTap: () => _completeGoogleReg('chef'),
-              isPrimary: true,
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: const _GoogleRegistrationSheet(),
       ),
+    );
+  }
+}
+
+class _GoogleRegistrationSheet extends ConsumerStatefulWidget {
+  const _GoogleRegistrationSheet();
+
+  @override
+  ConsumerState<_GoogleRegistrationSheet> createState() => _GoogleRegistrationSheetState();
+}
+
+class _GoogleRegistrationSheetState extends ConsumerState<_GoogleRegistrationSheet> {
+  late final TextEditingController _nameController;
+  final TextEditingController _addressController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final user = ref.read(authProvider).value;
+    _nameController = TextEditingController(text: user?.fullName ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _completeGoogleReg(String role) async {
+    final name = _nameController.text.trim();
+    final address = _addressController.text.trim();
+
+    if (name.isEmpty || address.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Name and Address are required')),
+      );
+      return;
+    }
+
+    Navigator.pop(context); // close bottom sheet
+    try {
+      await ref.read(authProvider.notifier).completeGoogleRegistration(role, name, address);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: AppTheme.textSecondary.withOpacity(0.8),
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GlassContainer(
+          padding: EdgeInsets.zero,
+          borderRadius: BorderRadius.circular(16),
+          child: TextField(
+            controller: controller,
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+            decoration: InputDecoration(
+              prefixIcon: Icon(icon, color: AppTheme.textSecondary, size: 20),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -301,15 +337,80 @@ class _RoleSelectionScreenState extends ConsumerState<RoleSelectionScreen> {
     );
   }
 
-  Future<void> _completeGoogleReg(String role) async {
-    Navigator.pop(context); // close bottom sheet
-    try {
-      await ref.read(authProvider.notifier).completeGoogleRegistration(role);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
-    }
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: AppTheme.backgroundDark,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceLight,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Icon(LucideIcons.userCheck, size: 48, color: AppTheme.fuchsiaPrimary),
+            const SizedBox(height: 16),
+            const Text(
+              'Complete Your Profile',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Please confirm your details before joining.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+            ),
+            const SizedBox(height: 32),
+            _buildTextField(
+              label: 'Full Name',
+              controller: _nameController,
+              icon: LucideIcons.user,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              label: 'Delivery Address / Location',
+              controller: _addressController,
+              icon: LucideIcons.mapPin,
+            ),
+            const SizedBox(height: 32),
+            const Text(
+              'How would you like to join?',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            _buildRoleOptionSheet(
+              title: 'Join as a Foodie',
+              description: 'Order delicious food from home chefs',
+              icon: LucideIcons.user,
+              onTap: () => _completeGoogleReg('user'),
+            ),
+            const SizedBox(height: 12),
+            _buildRoleOptionSheet(
+              title: 'Join as a Chef',
+              description: 'Start cooking and earning money',
+              icon: LucideIcons.utensilsCrossed,
+              onTap: () => _completeGoogleReg('chef'),
+              isPrimary: true,
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
   }
 }
