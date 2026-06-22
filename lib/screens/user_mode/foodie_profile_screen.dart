@@ -9,13 +9,16 @@ import '../payment_methods_screen.dart';
 import '../account_detail_screen.dart';
 import '../loyalty_screen.dart';
 import '../help_center_screen.dart';
-import '../account_detail_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/auth_provider.dart';
 
-class FoodieProfileScreen extends StatelessWidget {
+class FoodieProfileScreen extends ConsumerWidget {
   const FoodieProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authProvider).value;
+    
     return Scaffold(
       backgroundColor: AppTheme.backgroundDark,
       appBar: _buildAppBar(),
@@ -27,7 +30,7 @@ class FoodieProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildProfileHeader(context),
+              _buildProfileHeader(context, ref, user),
               const SizedBox(height: 24),
               _buildStreakCard(context),
               const SizedBox(height: 24),
@@ -66,8 +69,8 @@ class FoodieProfileScreen extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: AppTheme.fuchsiaPrimary.withValues(alpha: 0.3), width: 2),
-            image: const DecorationImage(
-              image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuBaDj-f6HlzdRckLog9NZVjpGogJxbVvdD1lGkjlpxabckdI8rvIHjwBpVcqZ7kz1JcMIo4vu3iXyw7PsQERxOdXL3N9gBGJDXuNDNCHnChryS491gfkOLrw8ySC7maGmghMB6dIA2fFfSA_NxtIIONUukr865AkBkrKxUbCPXxSoAAkHkvyyaW4PHD2Rqrk3IbM_JyZAiaPCi0hexXrLZtT_9TI-hWcl4oF4JxYLjCfhNBbDGw_bKj5GRstRdSpuEcuadMm8Toih0y'),
+            image: DecorationImage(
+              image: NetworkImage(user?.avatarUrl ?? 'https://ui-avatars.com/api/?name=${user?.fullName ?? "User"}&background=ff3366&color=fff'),
               fit: BoxFit.cover,
             ),
           ),
@@ -92,8 +95,8 @@ class FoodieProfileScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                      image: const DecorationImage(
-                        image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuCZLdcU8voqJF-8X82CU2PCOxwJpH2DdmUD5uhBG-HKfsVr9pMxEIAu_ygqnQ1vcnRvxRUDHHLAXLVOik80XD8to4bs368YNlzmqSyIfmGBcoVcIUHYcUnsT07iH8Qqw46sTBqwOdN8p0Q6LUH-ZVmjedWiUc69Wr42dBDn0fO7DLA4nI5JAjNp-GKyXz7EIqzC2vtQe_CG1E5BhzfqknLAlnjPOJMuWKmzjiZa4Dc60aud9moIX8GR4_WgtUnt6DeAldU2mTVcPQAz'),
+                      image: DecorationImage(
+                        image: NetworkImage(user?.avatarUrl ?? 'https://ui-avatars.com/api/?name=${user?.fullName ?? "User"}&background=ff3366&color=fff'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -103,7 +106,7 @@ class FoodieProfileScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Alex Thompson', style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.fuchsiaPrimary)),
+                        Text(user?.fullName ?? 'Foodie', style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.fuchsiaPrimary)),
                         Text('Gold Spatula Member', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
                         const SizedBox(height: 4),
                         Container(
@@ -142,7 +145,7 @@ class FoodieProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
+  Widget _buildProfileHeader(BuildContext context, WidgetRef ref, dynamic user) {
     return GlassCard(
       padding: const EdgeInsets.all(24),
       child: Stack(
@@ -180,8 +183,8 @@ class FoodieProfileScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(color: AppTheme.fuchsiaPrimary, width: 4),
-                      image: const DecorationImage(
-                        image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuAyHmSfThMmezFE_W38ltsDKj5-Qbii9iaBCgFcJJ4Oj4_F-P9JSNp1Ey4zOECLhRNHV23xoqyfQmEm8TSuKUMn9bzyAOQ6GnF9Lk25QAeWDZ9STqorCLmSCCClFT2AEX3EuX7QN-yIy8Fa3DNZdM5Ah0FwjX-Xf8Q3pywtsJ3LSMPUr7LCHQgmLgXji92di0q1pLXpcdak-km9oVyaxo3pIGvKHr0LS7H9yKI8ReLuFiNP-AwOL5-Sr7mzr-Fzv5YYq0qBa9Sc9eH8'),
+                      image: DecorationImage(
+                        image: NetworkImage(user?.avatarUrl ?? 'https://ui-avatars.com/api/?name=${user?.fullName ?? "User"}&background=ff3366&color=fff'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -189,20 +192,34 @@ class FoodieProfileScreen extends StatelessWidget {
                   Positioned(
                     bottom: 0,
                     right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.fuchsiaPrimary,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppTheme.surfaceColor, width: 2),
+                    child: GestureDetector(
+                      onTap: () async {
+                        try {
+                          await ref.read(authProvider.notifier).uploadProfileImage();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile image updated!')));
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update image: $e')));
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.fuchsiaPrimary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppTheme.surfaceColor, width: 2),
+                        ),
+                        child: const Icon(Icons.edit, color: Colors.white, size: 16),
                       ),
-                      child: const Icon(Icons.edit, color: Colors.white, size: 16),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              Text('Alex Thompson', style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+              Text(user?.fullName ?? 'Foodie', style: GoogleFonts.montserrat(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
               const SizedBox(height: 8),
               Row(
                 mainAxisSize: MainAxisSize.min,

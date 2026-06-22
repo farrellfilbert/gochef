@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/models.dart';
 
 final supabaseClient = Supabase.instance.client;
@@ -147,6 +148,42 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
     state = const AsyncValue.loading();
     await supabaseClient.auth.signOut();
     state = const AsyncValue.data(null);
+  }
+
+  Future<void> uploadProfileImage() async {
+    final session = supabaseClient.auth.currentSession;
+    if (session == null) return;
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image == null) return;
+
+      final bytes = await image.readAsBytes();
+      final fileExt = image.name.split('.').last;
+      final fileName = '${session.user.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+      final filePath = '${session.user.id}/$fileName';
+
+      // Upload to Supabase Storage
+      await supabaseClient.storage.from('avatars').uploadBinary(
+        filePath,
+        bytes,
+        fileOptions: FileOptions(contentType: 'image/$fileExt', upsert: true),
+      );
+
+      // Get public URL
+      final publicUrl = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
+
+      // Update profiles table
+      await supabaseClient.from('profiles').update({'avatar_url': publicUrl}).eq('id', session.user.id);
+
+      // Refresh state
+      final profile = await _fetchProfile(session.user.id);
+      state = AsyncValue.data(profile);
+    } catch (e) {
+      print('Error uploading profile image: $e');
+      rethrow; // Rethrow to be caught by the UI
+    }
   }
 }
 

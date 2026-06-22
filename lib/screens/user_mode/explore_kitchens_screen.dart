@@ -149,6 +149,8 @@ class _ExploreKitchensScreenState extends ConsumerState<ExploreKitchensScreen> {
   }
 
   Widget _buildAppBar() {
+    final user = ref.watch(authProvider).value;
+    
     return SliverAppBar(
       backgroundColor: AppTheme.backgroundDark.withValues(alpha: 0.8),
       elevation: 0,
@@ -161,8 +163,8 @@ class _ExploreKitchensScreenState extends ConsumerState<ExploreKitchensScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: AppTheme.fuchsiaPrimary, width: 2),
-              image: const DecorationImage(
-                image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuDFdoasnFuNqJYcimxW6FDtpR1ynulVhUDizLn2L8VMiGkd81vvnaGXwgm7NmVysHdm_tfe4wf8Ha4QjmFMBAtF_9vb-VTZ8fg9pKkrRhbSnFg2ZDcBDpB4-_GjEhdG9uxkbYE9VJqmi1fNUE39Iv1paHoVgD71gSYav9QIx85qiF5Tss6r9RVhEwQ6ZCPrzM3xGYNvwdFrwZUOJC09uRtREUB4MHxpMs367SldvKnVsXEWXD2v3zLlxY98m0nIYm1CrAN7WzxXs5Af'),
+              image: DecorationImage(
+                image: NetworkImage(user?.avatarUrl ?? 'https://ui-avatars.com/api/?name=${user?.fullName ?? "User"}&background=ff3366&color=fff'),
                 fit: BoxFit.cover,
               ),
             ),

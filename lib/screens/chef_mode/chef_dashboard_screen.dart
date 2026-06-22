@@ -94,18 +94,32 @@ class _ChefDashboardScreenState extends ConsumerState<ChefDashboardScreen> {
         children: [
           Row(
             children: [
-              Container(
+            GestureDetector(
+              onTap: () async {
+                try {
+                  await ref.read(authProvider.notifier).uploadProfileImage();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile image updated!')));
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update image: $e')));
+                  }
+                }
+              },
+              child: Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: AppTheme.chefPrimary.withValues(alpha: 0.2), width: 2),
-                  image: const DecorationImage(
-                    image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuCv-ZOofXJcMAshQ6syetVmJwPNFfZKCUTEIcpq99P6WorcDLLq1lP_CfcthcYZUuMhQZ5wrJ_spy21I7V3i0eY3Pvp73_7zfBKon_LoLB7reN6pAdqYKHiiWHQyFCMp-YRMWf6Q3P1fJghh_XrdH-E1dp0dSF8EG-Z48TTn7fF9K7_hDo2aqV7yHq3ZOlb2rKt8jW6-yf5DlymFdjwfphs8zqASWq2Ked5T0UIKG7s9WZvpWiKcCPhsXeZz0n_KKIVNBwgIQyNlf39'),
+                  image: DecorationImage(
+                    image: NetworkImage(user?.avatarUrl ?? 'https://ui-avatars.com/api/?name=${user?.fullName ?? "Chef"}&background=ff3366&color=fff'),
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
+            ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
