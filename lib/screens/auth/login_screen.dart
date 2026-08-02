@@ -1,8 +1,12 @@
 import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../main.dart';
+import '../../services/api_service.dart';
 import 'login_phone_otp_screen.dart';
 import 'sign_up_screen.dart';
 
@@ -16,9 +20,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
-  final _emailController = TextEditingController();
-  final _emailFocusNode = FocusNode();
+  final TextEditingController _emailController = TextEditingController();
+  final FocusNode _emailFocusNode = FocusNode();
+  final TextEditingController _passwordController = TextEditingController();
+  final FocusNode _passwordFocusNode = FocusNode();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   late AnimationController _floatController;
   late Animation<double> _floatAnimation;
@@ -34,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen>
       CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
     );
     _emailFocusNode.addListener(() => setState(() {}));
+    _passwordFocusNode.addListener(() => setState(() {}));
   }
 
   @override
@@ -41,22 +49,110 @@ class _LoginScreenState extends State<LoginScreen>
     _floatController.dispose();
     _emailController.dispose();
     _emailFocusNode.dispose();
+    _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
   void _onContinue() async {
-    if (_emailController.text.isEmpty) return;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email and password cannot be empty')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    // Navigate to home or next step
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const MainNavigation(),
+    
+    try {
+      final response = await http.post(
+        Uri.parse('https://astroboomin.co/api/login.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success']) {
+          await ApiService.saveUserId(data['user']['id'].toString());
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MainNavigation(),
+            ),
+          );
+        } else {
+          _showError(data['error'] ?? 'Login failed');
+        }
+      } else {
+        _showError('Invalid email or password');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _showError('Connection error. Please try again.');
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
       ),
     );
+  }
+
+  Future<void> _onGoogleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId: '1055253793767-as9i19kkmka2ootv8rublt7qvo31ovrb.apps.googleusercontent.com',
+      );
+      final GoogleSignInAccount? account = await googleSignIn.signIn();
+      
+      if (account != null) {
+        final response = await http.post(
+          Uri.parse('https://astroboomin.co/api/login_google.php'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'email': account.email,
+            'name': account.displayName ?? 'Google User',
+            'google_id': account.id,
+          }),
+        );
+        
+        if (!mounted) return;
+        
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data['success']) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MainNavigation()),
+            );
+          } else {
+            _showError(data['error'] ?? 'Login failed');
+          }
+        } else {
+          _showError('Server error during Google login');
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showError('Google sign in failed or cancelled');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -152,11 +248,13 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
               ],
             ),
-            child: const Center(
-              child: Icon(
-                Icons.restaurant_menu,
-                color: Colors.white,
-                size: 32,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                'assets/images/GoCheflogo.png',
+                width: 64,
+                height: 64,
+                fit: BoxFit.cover,
               ),
             ),
           ),
@@ -217,9 +315,23 @@ class _LoginScreenState extends State<LoginScreen>
               // ─── Social Login Buttons ───
               Row(
                 children: [
-                  Expanded(child: _buildSocialButton('Google', _buildGoogleIcon())),
+                  Expanded(
+                    child: _buildSocialButton(
+                      'Google',
+                      _buildGoogleIcon(),
+                      onTap: _isLoading ? null : _onGoogleLogin,
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildSocialButton('Apple', _buildAppleIcon())),
+                  Expanded(
+                    child: _buildSocialButton(
+                      'Apple',
+                      _buildAppleIcon(),
+                      onTap: () {
+                        _showError("Apple Sign-In coming soon!");
+                      },
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -230,11 +342,13 @@ class _LoginScreenState extends State<LoginScreen>
 
               // ─── Email Input ───
               _buildEmailLabel(),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               _buildEmailInput(),
-              const SizedBox(height: 24),
-
-              // ─── Continue Button ───
+              const SizedBox(height: 16),
+              _buildPasswordLabel(),
+              const SizedBox(height: 8),
+              _buildPasswordInput(),
+              const SizedBox(height: 32),
               _buildContinueButton(),
               const SizedBox(height: 48),
 
@@ -247,11 +361,11 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildSocialButton(String label, Widget icon) {
+  Widget _buildSocialButton(String label, Widget icon, {VoidCallback? onTap}) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -489,6 +603,76 @@ class _LoginScreenState extends State<LoginScreen>
           letterSpacing: 2,
         ),
         textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildPasswordLabel() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        'Password',
+        style: AppTextStyles.labelMono(color: AppColors.onSurfaceVariant),
+      ),
+    );
+  }
+
+  Widget _buildPasswordInput() {
+    return AnimatedScale(
+      scale: _passwordFocusNode.hasFocus ? 1.01 : 1.0,
+      duration: const Duration(milliseconds: 200),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: _passwordFocusNode.hasFocus
+                ? AppColors.primary
+                : AppColors.outlineVariant.withValues(alpha: 0.5),
+          ),
+          boxShadow: _passwordFocusNode.hasFocus
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                  ),
+                ]
+              : null,
+        ),
+        child: TextField(
+          controller: _passwordController,
+          focusNode: _passwordFocusNode,
+          obscureText: _obscurePassword,
+          style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+          decoration: InputDecoration(
+            hintText: '••••••••',
+            hintStyle: AppTextStyles.bodyMd(
+              color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
+            ),
+            prefixIcon: Icon(
+              Icons.lock_outline,
+              size: 20,
+              color: _passwordFocusNode.hasFocus
+                  ? AppColors.primary
+                  : AppColors.onSurfaceVariant,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                size: 20,
+                color: AppColors.onSurfaceVariant,
+              ),
+              onPressed: () {
+                setState(() => _obscurePassword = !_obscurePassword);
+              },
+            ),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 16,
+            ),
+          ),
+        ),
       ),
     );
   }

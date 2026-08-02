@@ -1,0 +1,82 @@
+<?php
+// register.php - GoChef Register API
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['error' => 'Method not allowed']);
+    exit();
+}
+
+$input = json_decode(file_get_contents('php://input'), true);
+if (!$input) {
+    $input = $_POST;
+}
+
+$name = $input['name'] ?? '';
+$email = $input['email'] ?? '';
+$password = $input['password'] ?? '';
+
+if (empty($name) || empty($email) || empty($password)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Name, email, and password are required']);
+    exit();
+}
+
+if (strlen($password) < 6) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Password must be at least 6 characters']);
+    exit();
+}
+
+// Database Connection
+$db_host = 'localhost';
+$db_user = 'gochefmy_api';
+$db_pass = 'GochefApiPassword123!';
+$db_name = 'gochefmy_app';
+
+try {
+    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    // Check if email already exists
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+    $stmt->execute([$email]);
+    if ($stmt->fetch()) {
+        http_response_code(409); // Conflict
+        echo json_encode(['success' => false, 'error' => 'Email is already registered']);
+        exit();
+    }
+    
+    // Hash password
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    
+    // Insert new user
+    $insert = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
+    $insert->execute([$name, $email, $hashed_password]);
+    
+    $user_id = $pdo->lastInsertId();
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Registration successful',
+        'user' => [
+            'id' => $user_id,
+            'name' => $name,
+            'email' => $email
+        ]
+    ]);
+
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Database connection failed']);
+}
+?>

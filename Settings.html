@@ -1,0 +1,341 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>GoChef - Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&amp;family=Karla:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#31353f",
+                    "on-tertiary": "#620639",
+                    "primary-container": "#ff4a90",
+                    "on-secondary-container": "#b4b5b5",
+                    "tertiary": "#ffb0cd",
+                    "outline": "#a98890",
+                    "surface-tint": "#ffb1c6",
+                    "on-surface": "#dfe2ef",
+                    "outline-variant": "#5a4046",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "on-background": "#dfe2ef",
+                    "secondary-container": "#454747",
+                    "surface-container-high": "#262a34",
+                    "surface-container": "#1c2029",
+                    "primary-fixed": "#ffd9e1",
+                    "inverse-on-surface": "#2c303a",
+                    "surface-container-highest": "#31353f",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "tertiary-container": "#db6c9b",
+                    "secondary": "#c6c6c7",
+                    "surface-container-lowest": "#0a0e17",
+                    "inverse-primary": "#ba005e",
+                    "secondary-fixed": "#e2e2e2",
+                    "primary": "#ffb1c6",
+                    "on-tertiary-container": "#570032",
+                    "error-container": "#93000a",
+                    "background": "#0f131c",
+                    "tertiary-fixed-dim": "#ffb0cd",
+                    "surface-container-low": "#181b25",
+                    "on-tertiary-fixed-variant": "#7f2250",
+                    "on-surface-variant": "#e2bdc5",
+                    "on-secondary-fixed-variant": "#454747",
+                    "on-primary-fixed-variant": "#8e0046",
+                    "primary-fixed-dim": "#ffb1c6",
+                    "surface-bright": "#353943",
+                    "on-tertiary-fixed": "#3e0021",
+                    "tertiary-fixed": "#ffd9e4",
+                    "error": "#ffb4ab",
+                    "on-primary-container": "#590029",
+                    "on-secondary": "#2f3131",
+                    "on-error-container": "#ffdad6",
+                    "on-primary": "#650030",
+                    "surface": "#0f131c",
+                    "on-error": "#690005",
+                    "on-primary-fixed": "#3f001b",
+                    "inverse-surface": "#dfe2ef",
+                    "surface-dim": "#0f131c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "12px",
+                    "stack-md": "24px",
+                    "baseline": "8px",
+                    "stack-xs": "4px",
+                    "margin-desktop": "64px",
+                    "stack-lg": "48px",
+                    "gutter-mobile": "20px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Montserrat"],
+                    "display-lg-mobile": ["Montserrat"],
+                    "label-sm": ["Karla"],
+                    "headline-md": ["Montserrat"],
+                    "headline-lg-mobile": ["Montserrat"],
+                    "body-md": ["Karla"],
+                    "body-lg": ["Karla"],
+                    "label-mono": ["Karla"],
+                    "display-lg": ["Montserrat"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0f131c;
+            color: #dfe2ef;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(28, 32, 41, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(169, 136, 144, 0.1);
+        }
+        .ios-toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            appearance: none;
+            background: #31353f;
+            outline: none;
+            border-radius: 20px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .ios-toggle:checked {
+            background: #ff4a90;
+        }
+        .ios-toggle:before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            background: white;
+            transition: 0.3s;
+        }
+        .ios-toggle:checked:before {
+            left: 22px;
+        }
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md pb-24">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-outline-variant/20 shadow-sm flex items-center justify-between px-gutter-mobile h-16">
+<button class="active:scale-95 duration-300 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-on-surface">Settings</h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</header>
+<main class="mt-20 px-gutter-mobile space-y-stack-md">
+<!-- Account Settings Section -->
+<section class="space-y-stack-sm">
+<h2 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant/60 px-2">Account Settings</h2>
+<div class="glass-card rounded-xl overflow-hidden">
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">person</span>
+<span class="font-body-md">Personal Information</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">security</span>
+<span class="font-body-md">Password &amp; Security</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">share</span>
+<span class="font-body-md">Social Accounts</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error">no_accounts</span>
+<span class="font-body-md text-error">Deactivate Account</span>
+</div>
+<span class="material-symbols-outlined text-error/40">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Preferences Section -->
+<section class="space-y-stack-sm">
+<h2 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant/60 px-2">Preferences</h2>
+<div class="glass-card rounded-xl overflow-hidden">
+<!-- Notifications -->
+<div class="p-4 border-b border-outline-variant/10">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">notifications</span>
+<span class="font-body-md font-semibold">Notification Settings</span>
+</div>
+<div class="space-y-4 pl-9">
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Push Notifications</span>
+<input checked="" class="ios-toggle" type="checkbox">
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">Email Notifications</span>
+<input checked="" class="ios-toggle" type="checkbox">
+</div>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant">SMS Alerts</span>
+<input class="ios-toggle" type="checkbox">
+</div>
+</div>
+</div>
+<!-- Privacy -->
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">lock</span>
+<span class="font-body-md">Privacy &amp; Data</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+<!-- Language -->
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">language</span>
+<span class="font-body-md">Language</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-primary font-body-md">English</span>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+</div>
+<!-- Appearance -->
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">dark_mode</span>
+<span class="font-body-md">Appearance</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-primary font-body-md">Dark</span>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<!-- App Settings Section -->
+<section class="space-y-stack-sm">
+<h2 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant/60 px-2">App Settings</h2>
+<div class="glass-card rounded-xl overflow-hidden">
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">storage</span>
+<span class="font-body-md">Storage &amp; Cache</span>
+</div>
+<span class="text-on-surface-variant/60 font-label-mono">124 MB</span>
+</div>
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">info</span>
+<span class="font-body-md">Version Info</span>
+</div>
+<span class="text-on-surface-variant/60 font-label-mono">v2.4.0</span>
+</div>
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">history</span>
+<span class="font-body-md">Clear Search History</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">delete</span>
+</div>
+</div>
+</section>
+<!-- Legal & Support Section -->
+<section class="space-y-stack-sm">
+<h2 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant/60 px-2">Legal &amp; Support</h2>
+<div class="glass-card rounded-xl overflow-hidden">
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer border-b border-outline-variant/10">
+<span class="font-body-md">Terms of Service</span>
+<span class="material-symbols-outlined text-on-surface-variant/40">open_in_new</span>
+</div>
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer border-b border-outline-variant/10">
+<span class="font-body-md">Privacy Policy</span>
+<span class="material-symbols-outlined text-on-surface-variant/40">open_in_new</span>
+</div>
+<div class="flex items-center justify-between p-4 active:bg-white/5 transition-colors cursor-pointer">
+<span class="font-body-md">Licenses</span>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Logout CTA -->
+<div class="pt-4 pb-8">
+<button class="w-full h-14 rounded-full border border-primary/30 text-primary font-bold flex items-center justify-center gap-2 active:scale-95 duration-300 hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined">logout</span>
+                Log Out
+            </button>
+<p class="text-center mt-6 text-on-surface-variant/40 text-label-sm">GoChef Gourmet v2.4.0 build 4829</p>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface-container/90 backdrop-blur-2xl rounded-t-xl border-t border-outline-variant/10 shadow-[0_-4px_20px_rgba(255,74,144,0.1)] flex justify-around items-center pt-2 pb-safe px-4 h-20">
+<div class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary/80 active:scale-90 transition-transform duration-300 cursor-pointer">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary/80 active:scale-90 transition-transform duration-300 cursor-pointer">
+<span class="material-symbols-outlined">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary/80 active:scale-90 transition-transform duration-300 cursor-pointer">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary/80 active:scale-90 transition-transform duration-300 cursor-pointer">
+<span class="material-symbols-outlined">favorite</span>
+<span class="font-label-sm text-label-sm">Favorites</span>
+</div>
+<!-- ACTIVE TAB: Profile (Settings is under Profile) -->
+<div class="flex flex-col items-center gap-1 text-primary transition-all duration-300 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</div>
+</nav>
+<script>
+        // Simple tactile feedback for all interactive elements
+        document.querySelectorAll('div[active], button').forEach(el => {
+            el.addEventListener('touchstart', () => {
+                el.style.opacity = '0.7';
+            });
+            el.addEventListener('touchend', () => {
+                el.style.opacity = '1';
+            });
+        });
+    </script>
+</body></html>

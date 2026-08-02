@@ -1,0 +1,289 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GoChef - Order History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&amp;family=Karla:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#620639",
+                    "on-error-container": "#ffdad6",
+                    "on-error": "#690005",
+                    "primary": "#ffb1c6",
+                    "error-container": "#93000a",
+                    "on-primary-container": "#590029",
+                    "on-secondary": "#2f3131",
+                    "on-tertiary-container": "#570032",
+                    "error": "#ffb4ab",
+                    "tertiary-container": "#db6c9b",
+                    "on-primary-fixed": "#3f001b",
+                    "tertiary": "#ffb0cd",
+                    "surface-container-low": "#181b25",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "secondary": "#c6c6c7",
+                    "inverse-surface": "#dfe2ef",
+                    "tertiary-fixed": "#ffd9e4",
+                    "tertiary-fixed-dim": "#ffb0cd",
+                    "surface-container": "#1c2029",
+                    "secondary-container": "#454747",
+                    "surface-container-lowest": "#0a0e17",
+                    "surface": "#0f131c",
+                    "on-tertiary-fixed-variant": "#7f2250",
+                    "on-primary-fixed-variant": "#8e0046",
+                    "background": "#0f131c",
+                    "primary-fixed": "#ffd9e1",
+                    "surface-bright": "#353943",
+                    "surface-dim": "#0f131c",
+                    "on-surface-variant": "#e2bdc5",
+                    "primary-container": "#ff4a90",
+                    "outline-variant": "#5a4046",
+                    "inverse-on-surface": "#2c303a",
+                    "on-primary": "#650030",
+                    "surface-container-high": "#262a34",
+                    "surface-tint": "#ffb1c6",
+                    "on-tertiary-fixed": "#3e0021",
+                    "on-secondary-fixed-variant": "#454747",
+                    "on-background": "#dfe2ef",
+                    "surface-variant": "#31353f",
+                    "outline": "#a98890",
+                    "secondary-fixed": "#e2e2e2",
+                    "inverse-primary": "#ba005e",
+                    "on-surface": "#dfe2ef",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "on-secondary-container": "#b4b5b5",
+                    "surface-container-highest": "#31353f",
+                    "primary-fixed-dim": "#ffb1c6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "48px",
+                    "gutter-mobile": "20px",
+                    "margin-desktop": "64px",
+                    "stack-md": "24px",
+                    "stack-xs": "4px",
+                    "stack-sm": "12px",
+                    "baseline": "8px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Montserrat"],
+                    "display-lg-mobile": ["Montserrat"],
+                    "headline-lg-mobile": ["Montserrat"],
+                    "label-mono": ["Karla"],
+                    "headline-md": ["Montserrat"],
+                    "headline-lg": ["Montserrat"],
+                    "label-sm": ["Karla"],
+                    "body-lg": ["Karla"],
+                    "body-md": ["Karla"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "label-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0f131c;
+            color: #dfe2ef;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: rgba(49, 53, 63, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(169, 136, 144, 0.1);
+        }
+        .electric-gradient {
+            background: linear-gradient(135deg, #ff4a90 0%, #db6c9b 100%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-tab {
+            background-color: #ffb1c6;
+            color: #650030;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #31353f; border-radius: 10px; }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm flex items-center justify-between px-gutter-mobile h-16">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-primary/20">
+<img class="w-full h-full object-cover" data-alt="A high-end editorial portrait of a professional chef wearing a clean white coat, set against a dark, moody metropolitan kitchen background with warm ambient lighting. The style is sophisticated and premium, matching an urban gourmet marketplace aesthetic with soft focus on the background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZMoYO7wf8gvDE28myrFAGo5stcscD096feok4IbDsGydgEkamUrKgJh0x2HoW2YQ6o905fcAAOr-UTZU54MXcTMi3vHvnfpfV1fbotdC2EExFxhUlUK3bXX7gDvfb14LG4A0986jNBo2QxfHkrkv03qSESjCZ2GIDfgnTBJCpOTyPtWIum_BfAgzOirM6cNl1beMcwb3AuxtZcsycxq6Vkfph5EBnbtDvdpz4X551OaKyZj43dEkbBQ">
+</div>
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">GoChef</span>
+</div>
+<button class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform duration-300">notifications</button>
+</header>
+<main class="pt-24 pb-32 px-gutter-mobile max-w-2xl mx-auto">
+<!-- Header & Search -->
+<section class="mb-stack-md">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-background mb-stack-sm">Order History</h1>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full h-12 pl-12 pr-4 bg-surface-container rounded-xl border border-outline-variant/20 focus:border-primary/50 focus:ring-0 transition-all text-on-surface placeholder:text-on-surface-variant/50" placeholder="Search past orders" type="text">
+</div>
+</section>
+<!-- Categories / Tabs -->
+<nav class="flex gap-3 overflow-x-auto pb-4 no-scrollbar mb-stack-md">
+<button class="active-tab px-6 py-2 rounded-full font-label-sm text-label-sm font-bold transition-all whitespace-nowrap">All</button>
+<button class="bg-surface-container text-on-surface-variant px-6 py-2 rounded-full font-label-sm text-label-sm transition-all hover:bg-surface-variant whitespace-nowrap">Completed</button>
+<button class="bg-surface-container text-on-surface-variant px-6 py-2 rounded-full font-label-sm text-label-sm transition-all hover:bg-surface-variant whitespace-nowrap">Scheduled</button>
+<button class="bg-surface-container text-on-surface-variant px-6 py-2 rounded-full font-label-sm text-label-sm transition-all hover:bg-surface-variant whitespace-nowrap">Cancelled</button>
+</nav>
+<!-- Order Cards -->
+<div class="space-y-stack-md">
+<!-- Order Card 1: Completed -->
+<article class="glass-card rounded-xl p-5 transition-transform duration-300 hover:scale-[1.01]">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden border border-outline-variant/10">
+<img class="w-full h-full object-cover" data-alt="A professional culinary artist profile picture, focusing on a smiling chef in a modern charcoal grey uniform. The background shows a high-end restaurant kitchen with copper pans and soft bokeh lights in a deep midnight navy palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCG_BhZVHdA8hyglfPxSG6KVPug0ui3JQdoHBaahM4rE0BOYZNDeVTj7DzWvjNxCzvyW8xE4Gr2KUY6gOtZmpohQeanyDWx2TxNnTiCDTcCYdp8pGdsQniNDahf57r1G6xU4oxiAPlKwgyIAWYVRGPXkxG8SL_H7iOntvHeKTzHyPkKBVC9zEM_7D7Jg74DEYxQdPREiZfieTirmrrTdO2CCWMt7xy_lmiHAsz637QxydfOElbMh3VwrA">
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Kitchen of Marco</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Oct 24 • #GC-88219</p>
+</div>
+</div>
+<span class="bg-green-500/10 text-green-400 px-3 py-1 rounded-full font-label-sm text-label-sm font-bold border border-green-500/20">Delivered</span>
+</div>
+<p class="font-body-md text-on-surface-variant mb-4">Wild Mushroom Tagliatelle + 2 items</p>
+<div class="flex justify-between items-center border-t border-outline-variant/10 pt-4">
+<span class="font-headline-md text-headline-md text-primary">$42.50</span>
+<div class="flex gap-2">
+<button class="px-4 py-2 rounded-full font-label-sm text-label-sm font-bold text-on-surface-variant hover:bg-surface-variant transition-colors">Details</button>
+<button class="electric-gradient px-6 py-2 rounded-full font-label-sm text-label-sm font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all">Reorder</button>
+</div>
+</div>
+</article>
+<!-- Order Card 2: Cancelled -->
+<article class="glass-card rounded-xl p-5 transition-transform duration-300 hover:scale-[1.01]">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden border border-outline-variant/10">
+<img class="w-full h-full object-cover" data-alt="Close up of a gourmet sushi chef plating a delicate roll. The lighting is low-key with neon pink accents reflecting off the black granite counter. A premium, moody atmosphere for an upscale dining experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVHfs9-zdJOlD9gIakLDDih1LuvMloL7b3yrLfSkqAINTKJ2Km3q_Vn12txGIaFj2kydQ1c43ZeYTbge-quvtnNDMctMmgh-8FXIkc86CuY7bvi6qLl0cN-YTiA8WrAQK8iRgIgir6qNySDI7lVH4v6uyE8bDDMMwHhLmaPjfINg3-EzyqAAPwaB-BQuqWsp8vAYW10K6--ln6VsNJ6SNwml1bkCTf1o5ejDTg1DuDcBHqkgeUg71rSw">
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Sakura Artisan Sushi</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Oct 20 • #GC-87102</p>
+</div>
+</div>
+<span class="bg-error/10 text-error px-3 py-1 rounded-full font-label-sm text-label-sm font-bold border border-error/20">Cancelled</span>
+</div>
+<p class="font-body-md text-on-surface-variant mb-4">Omakase Box (Standard) + Miso Soup</p>
+<div class="flex justify-between items-center border-t border-outline-variant/10 pt-4">
+<span class="font-headline-md text-headline-md text-primary">$68.00</span>
+<div class="flex gap-2">
+<button class="px-4 py-2 rounded-full font-label-sm text-label-sm font-bold text-on-surface-variant hover:bg-surface-variant transition-colors">Support</button>
+<button class="bg-surface-container-high border border-outline-variant/20 px-6 py-2 rounded-full font-label-sm text-label-sm font-bold text-on-surface hover:bg-surface-variant transition-all">Try Again</button>
+</div>
+</div>
+</article>
+<!-- Order Card 3: Completed -->
+<article class="glass-card rounded-xl p-5 transition-transform duration-300 hover:scale-[1.01]">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden border border-outline-variant/10">
+<img class="w-full h-full object-cover" data-alt="A female chef with a focused expression, wearing a minimalist black apron in a high-tech kitchen. Soft neon lighting highlights the steam from a pan. High-fidelity cinematic photography style with deep shadows and vibrant highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAc2H_ek12cJF5ZnPJZ76YeCR3nSRDNVLVE9JGldUYq8fmKWMYxcB8rrzua7ALPBHaiSgJ6zO-eE5IvST3JywjWNkPARYrhHGgAwRy7w9UXBXNOU93MBGWLBJmmk0oEzab_evBCjp-nGWbzrFJ0b9fXjiVrw_XlsPIlBy1SrQePBaMIkZudTopPz-kXMCWUrYBKRj7ikymuxZFxm10kdte_J_h5QYU5QGTJSEIAiqGk75D1SNpDWj8ISw">
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Bistro Noir</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Oct 15 • #GC-86544</p>
+</div>
+</div>
+<span class="bg-green-500/10 text-green-400 px-3 py-1 rounded-full font-label-sm text-label-sm font-bold border border-green-500/20">Delivered</span>
+</div>
+<p class="font-body-md text-on-surface-variant mb-4">Beef Bourguignon for Two</p>
+<div class="flex justify-between items-center border-t border-outline-variant/10 pt-4">
+<span class="font-headline-md text-headline-md text-primary">$54.20</span>
+<div class="flex gap-2">
+<button class="px-4 py-2 rounded-full font-label-sm text-label-sm font-bold text-primary hover:bg-primary/10 transition-colors">Leave Review</button>
+<button class="electric-gradient px-6 py-2 rounded-full font-label-sm text-label-sm font-bold text-white shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all">Reorder</button>
+</div>
+</div>
+</article>
+</div>
+<!-- Optional Empty State (hidden if orders exist) -->
+<div class="hidden flex-col items-center justify-center text-center py-16 space-y-4" id="empty-state">
+<div class="w-24 h-24 rounded-full bg-surface-container flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant">restaurant</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface">No gourmet adventures yet</h2>
+<p class="font-body-md text-on-surface-variant max-w-[240px]">Start your culinary journey by exploring the finest kitchens in the city.</p>
+<button class="electric-gradient mt-4 px-8 py-3 rounded-full font-label-sm text-label-sm font-bold text-white shadow-xl shadow-primary/30">Explore Kitchens</button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-surface-container/70 backdrop-blur-2xl border-t border-outline-variant/10 shadow-lg flex justify-around items-center h-20 pb-safe px-4">
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-colors scale-98 active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-colors scale-98 active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold scale-98 active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-colors scale-98 active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">favorite</span>
+<span class="font-label-sm text-label-sm">Favorites</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-colors scale-98 active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple filter interaction
+        const chips = document.querySelectorAll('nav button');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => c.classList.remove('active-tab', 'font-bold'));
+                chips.forEach(c => c.classList.add('bg-surface-container', 'text-on-surface-variant'));
+                chip.classList.add('active-tab', 'font-bold');
+                chip.classList.remove('bg-surface-container', 'text-on-surface-variant');
+            });
+        });
+
+        // Add visual interest with slight entrance animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('article');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body></html>

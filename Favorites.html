@@ -1,0 +1,366 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>GoChef | Favorites</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Karla:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#690005",
+                        "outline-variant": "#5a4046",
+                        "error-container": "#93000a",
+                        "background": "#0f131c",
+                        "error": "#ffb4ab",
+                        "secondary": "#c6c6c7",
+                        "on-primary": "#650030",
+                        "primary-fixed-dim": "#ffb1c6",
+                        "primary-fixed": "#ffd9e1",
+                        "on-tertiary": "#620639",
+                        "surface-container-high": "#262a34",
+                        "inverse-on-surface": "#2c303a",
+                        "on-tertiary-fixed": "#3e0021",
+                        "tertiary-container": "#db6c9b",
+                        "on-error-container": "#ffdad6",
+                        "surface": "#0f131c",
+                        "on-primary-fixed-variant": "#8e0046",
+                        "on-primary-container": "#590029",
+                        "surface-container-highest": "#31353f",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "surface-container-lowest": "#0a0e17",
+                        "outline": "#a98890",
+                        "on-surface": "#dfe2ef",
+                        "on-tertiary-fixed-variant": "#7f2250",
+                        "tertiary-fixed": "#ffd9e4",
+                        "on-secondary-container": "#b4b5b5",
+                        "on-secondary": "#2f3131",
+                        "surface-bright": "#353943",
+                        "surface-container-low": "#181b25",
+                        "primary-container": "#ff4a90",
+                        "on-secondary-fixed-variant": "#454747",
+                        "surface-container": "#1c2029",
+                        "secondary-fixed": "#e2e2e2",
+                        "primary": "#ffb1c6",
+                        "on-tertiary-container": "#570032",
+                        "surface-variant": "#31353f",
+                        "tertiary": "#ffb0cd",
+                        "surface-dim": "#0f131c",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "inverse-surface": "#dfe2ef",
+                        "surface-tint": "#ffb1c6",
+                        "on-background": "#dfe2ef",
+                        "on-primary-fixed": "#3f001b",
+                        "on-surface-variant": "#e2bdc5",
+                        "tertiary-fixed-dim": "#ffb0cd",
+                        "inverse-primary": "#ba005e",
+                        "secondary-container": "#454747"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "24px",
+                        "stack-xs": "4px",
+                        "stack-sm": "12px",
+                        "stack-lg": "48px",
+                        "baseline": "8px",
+                        "margin-desktop": "64px",
+                        "gutter-mobile": "20px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Montserrat"],
+                        "headline-lg-mobile": ["Montserrat"],
+                        "body-md": ["Karla"],
+                        "label-sm": ["Karla"],
+                        "label-mono": ["Karla"],
+                        "display-lg": ["Montserrat"],
+                        "body-lg": ["Karla"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "headline-lg": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "label-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(49, 53, 63, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(169, 136, 144, 0.1);
+        }
+        .active-tab-indicator {
+            height: 3px;
+            background: linear-gradient(90deg, #ffb1c6, #ff4a90);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f131c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #31353f;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm flex items-center justify-between px-gutter-mobile h-16">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a gourmet chef wearing white kitchen attire, smiling warmly against a dark, moody metropolitan background. The lighting is sophisticated and high-end, reflecting a premium urban aesthetic with soft pink highlights consistent with the GoChef brand colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAU8mis0pP4cropYf_ewBNyFTgGq53qxntrTiyaVIf88KQ-osyDLkG4mckkT58h2jrGnKh06ZpQC473ANoxnVD5Zw39KV20LX9v46sSb3SSFJKZNNzVkxf5clSDYZYqHWqlCdnBflFDuoGDzjwlTZtq72B_lMiNQUi8Fq6FZXU2c17Nq9UK0t7tOO8OY03hINHRZbCxpqJ4bRcFYjdaOhFGtIMUjsm_Q0vpIQ-GTldl-OIIzcFxor18kQ">
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">GoChef</h1>
+</div>
+<button class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity scale-95 active:scale-90 transition-transform duration-300">notifications</button>
+</header>
+<main class="pt-20 pb-28 px-gutter-mobile max-w-4xl mx-auto min-h-screen">
+<!-- Search Bar Section -->
+<div class="mb-8">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full h-14 pl-12 pr-4 bg-surface-container-low border border-outline-variant/20 rounded-xl font-body-md text-on-surface focus:ring-2 focus:ring-primary-container focus:border-transparent outline-none transition-all" placeholder="Filter your favorites..." type="text">
+</div>
+</div>
+<!-- Tabs Section -->
+<div class="flex items-center border-b border-outline-variant/10 mb-8" id="tabs-container">
+<button class="flex-1 pb-4 font-headline-md text-headline-md text-primary transition-all relative" id="tab-meals" onclick="switchTab('meals')">
+                Meals
+                <div class="active-tab-indicator absolute bottom-0 left-0 w-full" id="indicator-meals"></div>
+</button>
+<button class="flex-1 pb-4 font-headline-md text-headline-md text-secondary transition-all relative" id="tab-kitchens" onclick="switchTab('kitchens')">
+                Kitchens
+                <div class="active-tab-indicator absolute bottom-0 left-0 w-full hidden" id="indicator-kitchens"></div>
+</button>
+</div>
+<!-- Meals Tab Content -->
+<section class="space-y-6" id="content-meals">
+<!-- Meal Card 1 -->
+<div class="glass-card rounded-xl overflow-hidden group hover:scale-[1.01] transition-all duration-300">
+<div class="flex h-36 md:h-44">
+<div class="w-1/3 h-full overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Close-up shot of a luxurious Truffle Risotto served in a dark ceramic bowl. The creamy arborio rice is garnished with thin shavings of fresh black truffle and a sprig of micro-herbs. The scene is lit with warm, atmospheric lighting against a dark midnight navy background, emphasizing the steam and rich texture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqCHamdmyHzWY44BD2HOJdBZKiRe0yGUhA0bw9NIDmOw-quVxvoE9NibZMRko85um3B3HddH_JtD8kH3XLibv8n-XPiN5V55ne4L4spXOsLznexFvnAIA_rN5Z5T_Sn3XEuQKpKgtikWZOc1Q00PcXk1H2DsIaZTmpvcffC3_Vt7QgdWWR5fq_SlvXz8jcjmCC6jsXNDJSSyvpcMeCWYRrgW-5n1senJTLdnD0V3WKexsGHt5X9u0dPA">
+</div>
+<div class="w-2/3 p-4 flex flex-col justify-between relative">
+<button class="absolute top-4 right-4 text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Truffle Risotto</h3>
+<p class="font-body-md text-on-surface-variant text-sm mt-1">Urban Gourmet Kitchen</p>
+</div>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-on-surface">4.9</span>
+</div>
+<span class="font-headline-md text-headline-md text-primary">$32.00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Meal Card 2 -->
+<div class="glass-card rounded-xl overflow-hidden group hover:scale-[1.01] transition-all duration-300">
+<div class="flex h-36 md:h-44">
+<div class="w-1/3 h-full overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Artisanal Wild Mushroom Tagliatelle featuring golden, hand-crafted egg pasta tangled with sautéed porcini and chanterelle mushrooms. A sprinkle of aged parmigiano-reggiano and cracked black pepper adds detail. Shot in an elegant, low-light gourmet setting with soft rose-tinted shadows and premium glass textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP6G29Uk965cwwQ8OiS6HLbGNzT29gNEjRR97s9amn-YJdLzm-FtdOQso4TeJsmTd8enlfva0lZn_qxl_MtPx9_w8IvTRTWLxrFdOf6bf4_9MmFaSXh9RKF5b5t9MBwRNp51M6Az7sT3lfZX1OfZj6gi4-WxhKSO8fiyU_QqAyeYkXLQtDtDovAtQsA4-TIKk33qjDFbhg-hQCfTohXc05ue8nbJFDaeu41bByo3y0YdsbrpMUnD2WYw">
+</div>
+<div class="w-2/3 p-4 flex flex-col justify-between relative">
+<button class="absolute top-4 right-4 text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Wild Mushroom Tagliatelle</h3>
+<p class="font-body-md text-on-surface-variant text-sm mt-1">Chef Elena's Atelier</p>
+</div>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-on-surface">4.8</span>
+</div>
+<span class="font-headline-md text-headline-md text-primary">$28.50</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Meal Card 3 -->
+<div class="glass-card rounded-xl overflow-hidden group hover:scale-[1.01] transition-all duration-300">
+<div class="flex h-36 md:h-44">
+<div class="w-1/3 h-full overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Pan-seared Chilean Sea Bass drizzled with a vibrant saffron-infused lemon butter sauce, served alongside blanched asparagus. The fish has a perfectly crispy golden skin and moist white flakes. The presentation is minimalist and high-end on a dark slate plate, creating a dramatic contrast against a deep midnight backdrop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAF_TuEEoNWqJZqP1hnUQoRSSNl6QK6bLgLVUJOhjwmD_gVYRHNpxTQ51ZAfZoGk3xz3UiEPouK6VWw70icuOu0DUMrCrHWE5Kmw92nv9jeJ19oD1SR_MHVqSNQmo5Py55e0egEJGYNYKKWSYVCK1luLgfuMJc6H0REBPYLD9i-JCYJaV3c6cByV9y1n3ecZQ3xePFDShlMy3fpcdOQk9nGTzIK_Qwv1U1QbNpMZp1BvqiXgx0BNUqWIw">
+</div>
+<div class="w-2/3 p-4 flex flex-col justify-between relative">
+<button class="absolute top-4 right-4 text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Saffron Glazed Sea Bass</h3>
+<p class="font-body-md text-on-surface-variant text-sm mt-1">Luxe Ocean Kitchen</p>
+</div>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-on-surface">5.0</span>
+</div>
+<span class="font-headline-md text-headline-md text-primary">$45.00</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Kitchens Tab Content -->
+<section class="hidden space-y-4" id="content-kitchens">
+<!-- Kitchen Card 1 -->
+<div class="glass-card p-4 rounded-xl flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A portrait of Chef Julian in a modern, dark-themed industrial kitchen. He wears a premium grey chef coat with the Urban Gourmet logo. The background is filled with blurred copper pans and high-end kitchenware, illuminated by warm glowing bulbs in a dark, sophisticated metropolitan setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfyJ0ofjcq8kSxWH35y8sDdaq-y-Q0bqU4ZoL4GuBMEaCchXl2dZkrUyYRrlRKYK--xVramO4GEWP8hbNNIA6s-LPdut57XLHc8r_Jej0GKraO8N_EIf3xg29zDDZG645tUnUX9XTA05Qfrk8B9_Uc3YsYmayhuhOulbh5ItKTcBPkY8vGcoePDajaF_Vg6NviGXfhseW0wPo4PWUtWpnT0WD4hbqqhj2k2MRRjELvKbyLwNPer4aiBA">
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface">Urban Gourmet Kitchen</h4>
+<p class="font-body-md text-on-surface-variant text-sm">Contemporary Fusion • 1.2 mi</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-primary text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-on-surface">4.9 (240+)</span>
+</div>
+</div>
+</div>
+<button class="text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<!-- Kitchen Card 2 -->
+<div class="glass-card p-4 rounded-xl flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A candid profile of Chef Elena, a master of Italian cuisine, preparing fresh pasta in an elegant, dimly lit studio. She is wearing a charcoal apron and has a focused, passionate expression. The atmosphere is warm and intimate, with dustings of flour visible in the soft, focused lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOWZ9CphwpqABBphlDNO028ghueIMH1NoPIjseFQzFNqju-kI5px17pBS3WhIS-goUhxkpEBxGQSTNiZzH5Ih0mK94zt9_tHJklGfawuEnLS5gX2ROx2wOvgBhipSXQAgxD-H_I3R7LWfzvpfmdkzXmVvU6ucljjXJ1BbpQoWYobzgEMX0z-A-q15xoWH9zEB2t-bX8doZSYJJ1hnNFCEKD8CbOwJRjPrR-nrYVvzgObVKzk1AVIrpKw">
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface">Chef Elena's Atelier</h4>
+<p class="font-body-md text-on-surface-variant text-sm">Artisanal Italian • 0.8 mi</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-primary text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-on-surface">4.8 (180+)</span>
+</div>
+</div>
+</div>
+<button class="text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<!-- Kitchen Card 3 -->
+<div class="glass-card p-4 rounded-xl flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-primary/30">
+<img class="w-full h-full object-cover" data-alt="Chef Marco smiling confidently in a high-end, minimalist sushi bar. He is wearing traditional black Japanese chef's attire. The background features sleek dark stone textures and elegant glassware, with a mood of precision and luxury, accentuated by soft rose and midnight lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGA3gHDVYkV1na4L5RbvyQwvzWcKOIBhdD6UAo0w525e-UoLhAj8eKxbGGlNkf1WAm1O3SL3wY7C9rGLjvDUM172ixx5ye-2RjIaeFlE-qGa8bsUeBK6FRw174X3Bj01fQICnWQQbAL90c_wpPB6VkADnDGXMACFURWXieC9nM1s2fsU5EM_JFHJcJtFozOI3bWj5QSJsorODZ7QjvLvhQXjz1HUxuu_F4AZzkP3KMYIOB8vM2hxb4_w">
+</div>
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface">Sakura Zenith</h4>
+<p class="font-body-md text-on-surface-variant text-sm">Fine Dining Sushi • 2.5 mi</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-primary text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm text-on-surface">5.0 (95+)</span>
+</div>
+</div>
+</div>
+<button class="text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-surface-container/70 backdrop-blur-2xl border-t border-outline-variant/10 shadow-lg flex justify-around items-center h-20 pb-safe px-4">
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-colors scale-98 active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-colors scale-98 active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="font-label-sm text-label-sm mt-1">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-colors scale-98 active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-label-sm text-label-sm mt-1">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold scale-98 active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-label-sm text-label-sm mt-1">Favorites</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-container transition-colors scale-98 active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</a>
+</nav>
+<script>
+        function switchTab(tab) {
+            const mealsTab = document.getElementById('tab-meals');
+            const kitchensTab = document.getElementById('tab-kitchens');
+            const mealsContent = document.getElementById('content-meals');
+            const kitchensContent = document.getElementById('content-kitchens');
+            const mealsIndicator = document.getElementById('indicator-meals');
+            const kitchensIndicator = document.getElementById('indicator-kitchens');
+
+            if (tab === 'meals') {
+                // Update Classes
+                mealsTab.classList.replace('text-secondary', 'text-primary');
+                kitchensTab.classList.replace('text-primary', 'text-secondary');
+                
+                // Show/Hide Content
+                mealsContent.classList.remove('hidden');
+                kitchensContent.classList.add('hidden');
+
+                // Indicators
+                mealsIndicator.classList.remove('hidden');
+                kitchensIndicator.classList.add('hidden');
+            } else {
+                // Update Classes
+                kitchensTab.classList.replace('text-secondary', 'text-primary');
+                mealsTab.classList.replace('text-primary', 'text-secondary');
+
+                // Show/Hide Content
+                kitchensContent.classList.remove('hidden');
+                mealsContent.classList.add('hidden');
+
+                // Indicators
+                kitchensIndicator.classList.remove('hidden');
+                mealsIndicator.classList.add('hidden');
+            }
+        }
+
+        // Add small bounce interaction on favorite clicks
+        document.querySelectorAll('button > span').forEach(btn => {
+            if (btn.innerText === 'favorite') {
+                btn.parentElement.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    this.style.transform = 'scale(1.3)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 200);
+                });
+            }
+        });
+    </script>
+</body></html>

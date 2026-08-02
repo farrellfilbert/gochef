@@ -1,7 +1,11 @@
 import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import 'login_screen.dart';
 
 /// Sign Up Screen — replicates Sign Up.html exactly
 class SignUpScreen extends StatefulWidget {
@@ -43,11 +47,111 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _onSignUp() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All fields are required')),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    Navigator.pop(context);
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://gochef.my.id/api/register.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Registration successful! Please login.')),
+          );
+          Navigator.pop(context);
+        } else {
+          _showError(data['error'] ?? 'Registration failed');
+        }
+      } else if (response.statusCode == 409) {
+        _showError('Email is already registered');
+      } else {
+        _showError('Server error during registration');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _showError('Connection error. Please try again.');
+    }
+  }
+
+  Future<void> _onGoogleSignUp() async {
+    setState(() => _isLoading = true);
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId: '1055253793767-as9i19kkmka2ootv8rublt7qvo31ovrb.apps.googleusercontent.com',
+      );
+      final GoogleSignInAccount? account = await googleSignIn.signIn();
+      
+      if (account != null) {
+        final response = await http.post(
+          Uri.parse('https://gochef.my.id/api/login_google.php'), // Using same API as it handles upsert
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'email': account.email,
+            'name': account.displayName ?? 'Google User',
+            'google_id': account.id,
+          }),
+        );
+        
+        if (!mounted) return;
+        
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data['success'] == true) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginScreen()), // Redirect to login or home
+            );
+          } else {
+            _showError(data['message'] ?? 'Failed to sign up via Google');
+          }
+        } else {
+          _showError('Server error during Google Sign Up');
+        }
+      }
+    } catch (e) {
+      _showError('Google sign in failed: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
   }
 
   @override
@@ -129,11 +233,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         _buildSocialSignUpButton(
                           'Continue with Google',
                           _buildGoogleIcon(),
+                          onTap: _isLoading ? null : _onGoogleSignUp,
                         ),
                         const SizedBox(height: 12),
                         _buildSocialSignUpButton(
                           'Continue with Apple',
                           const Icon(Icons.apple, color: AppColors.onSurface, size: 20),
+                          onTap: () {
+                            _showError('Apple Sign-In coming soon!');
+                          },
                         ),
                         const SizedBox(height: 48),
 
@@ -225,14 +333,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     // Title
-                    Text(
-                      'GoChef',
-                      style: AppTextStyles.displayLgMobile(
-                        color: AppColors.primary,
-                      ).copyWith(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Image.asset(
+                      'assets/images/GoCheflogo.png',
+                      height: 32,
+                      fit: BoxFit.contain,
                     ),
                     // Spacer
                     const SizedBox(width: 40),
@@ -246,11 +350,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildSocialSignUpButton(String label, Widget icon) {
+  Widget _buildSocialSignUpButton(String label, Widget icon, {VoidCallback? onTap}) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
