@@ -10,9 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $db_host = 'localhost';
-$db_user = 'gochefmy_api';
-$db_pass = 'GochefApiPassword123!';
-$db_name = 'gochefmy_app';
+$db_user = 'astroboomin_id_rsa';
+$db_pass = 'Astroboomin2026!';
+$db_name = 'astroboomin_gochef';
 
 try {
     $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
