@@ -34,18 +34,13 @@ try {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$user) {
-        $stmt = $pdo->prepare("INSERT INTO users (name, email, password, google_id) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$name, $email, '', $google_id]);
+        $stmt = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
+        $stmt->execute([$name, $email, '']);
         $user_id = $pdo->lastInsertId();
         
         $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
         $stmt->execute([$user_id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    } else {
-        if (empty($user['google_id'])) {
-            $stmt = $pdo->prepare("UPDATE users SET google_id = ? WHERE id = ?");
-            $stmt->execute([$google_id, $user['id']]);
-        }
     }
     
     unset($user['password']);
