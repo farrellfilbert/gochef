@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GoChef Dashboard - Customer Reviews</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Karla:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#ffb1c6",
+                        "tertiary-fixed-dim": "#ffb0cd",
+                        "background": "#0f131c",
+                        "inverse-on-surface": "#2c303a",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#570032",
+                        "surface-variant": "#31353f",
+                        "on-secondary-fixed-variant": "#454747",
+                        "on-primary-container": "#590029",
+                        "surface-dim": "#0f131c",
+                        "primary-fixed-dim": "#ffb1c6",
+                        "on-primary-fixed-variant": "#8e0046",
+                        "surface-container-low": "#181b25",
+                        "on-primary": "#650030",
+                        "on-error": "#690005",
+                        "on-secondary-container": "#b4b5b5",
+                        "tertiary-fixed": "#ffd9e4",
+                        "tertiary-container": "#db6c9b",
+                        "primary": "#ffb1c6",
+                        "on-primary-fixed": "#3f001b",
+                        "primary-fixed": "#ffd9e1",
+                        "on-tertiary-fixed-variant": "#7f2250",
+                        "surface-container-highest": "#31353f",
+                        "on-tertiary": "#620639",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "secondary-fixed": "#e2e2e2",
+                        "on-error-container": "#ffdad6",
+                        "surface-bright": "#353943",
+                        "primary-container": "#ff4a90",
+                        "on-surface-variant": "#e2bdc5",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-tertiary-fixed": "#3e0021",
+                        "surface-container": "#1c2029",
+                        "secondary-container": "#454747",
+                        "secondary": "#c6c6c7",
+                        "on-secondary": "#2f3131",
+                        "inverse-primary": "#ba005e",
+                        "tertiary": "#ffb0cd",
+                        "outline-variant": "#5a4046",
+                        "on-surface": "#dfe2ef",
+                        "error-container": "#93000a",
+                        "on-background": "#dfe2ef",
+                        "inverse-surface": "#dfe2ef",
+                        "surface": "#0f131c",
+                        "outline": "#a98890",
+                        "surface-container-high": "#262a34",
+                        "surface-container-lowest": "#0a0e17"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-xs": "4px",
+                        "baseline": "8px",
+                        "stack-md": "24px",
+                        "stack-lg": "48px",
+                        "stack-sm": "12px",
+                        "margin-desktop": "64px",
+                        "gutter-mobile": "20px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Karla"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "body-lg": ["Karla"],
+                        "display-lg": ["Montserrat"],
+                        "headline-md": ["Montserrat"],
+                        "headline-lg-mobile": ["Montserrat"],
+                        "label-mono": ["Karla"],
+                        "headline-lg": ["Montserrat"],
+                        "body-md": ["Karla"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "label-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0f131c;
+            color: #dfe2ef;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-card {
+            background: rgba(28, 32, 41, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(228, 34, 120, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 177, 198, 0.2);
+            border-radius: 10px;
+        }
+        .shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface-container/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm flex items-center justify-between px-gutter-mobile h-16">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border-2 border-primary overflow-hidden transition-transform active:scale-95 duration-200">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a charismatic gourmet chef wearing a clean white jacket, standing in a dimly lit high-end urban kitchen. The lighting is dramatic and warm, with soft neon pink accents reflecting off stainless steel surfaces. The mood is sophisticated and premium, matching an expensive culinary lifestyle brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-Te2SqJogt8XjJsmMQEkW15ATbbcpex0czgPTt7Iwy8VdrEhOyawuzewRGhELO6uJVLgWxbu1CJmCEhyUXYOAsDxuImtRmRwpx1gGHc3xY1kHclJ22Mg7GiqWw9-wI1XupsigbDzEBft2aAE9wVDPp5XKztrVeIrVF_mm8dL7ivstSA6BBvHd2U5P0sTlar-TNzGm8OUwk6G_ezcKqCG9khHQ_czFWYtxd4WzahtyQgQoQHBxYjnuIg"/>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary tracking-tight">Customer Reviews</h1>
+</div>
+<button class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity active:scale-95 duration-200" style="font-variation-settings: 'FILL' 0;">notifications</button>
+</header>
+<main class="pt-24 pb-32 px-gutter-mobile max-w-3xl mx-auto space-y-stack-md">
+<!-- Summary Section Hero Card -->
+<section class="glass-card rounded-xl p-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div class="text-center md:text-left">
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-1">Global Rating</p>
+<div class="flex items-center justify-center md:justify-start gap-2 mb-2">
+<span class="font-display-lg-mobile text-display-lg-mobile text-primary">4.9</span>
+<div class="flex flex-col">
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">star_half</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Based on 128 reviews</span>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<!-- Rating Bars -->
+<div class="flex items-center gap-3">
+<span class="font-label-sm text-label-sm w-4">5</span>
+<div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[85%] neon-glow"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant w-8">85%</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-label-sm text-label-sm w-4">4</span>
+<div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[10%] neon-glow"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant w-8">10%</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-label-sm text-label-sm w-4">3</span>
+<div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[3%] neon-glow"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant w-8">3%</span>
+</div>
+<div class="flex items-center gap-3 opacity-40">
+<span class="font-label-sm text-label-sm w-4">2</span>
+<div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[1%]"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant w-8">1%</span>
+</div>
+<div class="flex items-center gap-3 opacity-40">
+<span class="font-label-sm text-label-sm w-4">1</span>
+<div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[1%]"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant w-8">1%</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Sentiment Analytics -->
+<section class="flex flex-wrap items-center gap-4 py-2">
+<div class="flex items-center gap-2 px-4 py-2 rounded-full bg-primary-container/10 border border-primary/20">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-label-sm text-label-sm text-primary">98% Positive Sentiment</span>
+</div>
+<div class="flex gap-2 flex-wrap">
+<span class="px-3 py-1 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm border border-outline-variant/10">#Fresh</span>
+<span class="px-3 py-1 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm border border-outline-variant/10">#Great Portions</span>
+<span class="px-3 py-1 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm border border-outline-variant/10">#Authentic</span>
+</div>
+</section>
+<!-- Review List -->
+<section class="space-y-4 pb-12">
+<h2 class="font-headline-md text-headline-md mb-4 flex items-center justify-between">
+                Recent Feedback
+                <span class="material-symbols-outlined text-on-surface-variant cursor-pointer">tune</span>
+</h2>
+<!-- Review Card 1 -->
+<div class="glass-card rounded-xl p-5 space-y-4 hover:border-primary/30 transition-all duration-300 group">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-highest border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="A portrait of a young professional woman with a warm, satisfied expression, captured in soft evening lighting at her stylish home dining table. The image has a high-end lifestyle magazine quality, with a shallow depth of field focusing on her face while a gourmet meal is subtly visible in the foreground. Dark, moody aesthetics with rose-toned highlights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADiqxWDMfHctquatdRCtbNkjo8A2o290WNAy9bQgaFic8UOxCKf3rizd8hZQLDPbfAki3HXxsVlGn5Z6hesaYK9ina0fF9yJBYYwpSPnWw-wGsYDA6a9EpJYGbaR2DGIlVa4pOZ52hOpGhnsGKGq8PxJnw6CiWmq2se3GYIQ_4Z7BiwM8Hc47lK01xk846vT-A5HZG2VJjqIk-1xUrHEZKIEHuyAr2tXgPcFM-glIW-ubj8Ch7ecGyQA"/>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">Elena Vance</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">2 hours ago</p>
+</div>
+</div>
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                    The Black Truffle Risotto was incredible. Perfectly creamy and arrived hot! You can really taste the quality of the ingredients. Definitely my new favorite.
+                </p>
+<div class="flex items-center justify-between pt-2">
+<div class="flex gap-2">
+<button class="px-4 py-2 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-bold hover:opacity-90 active:scale-95 transition-all neon-glow">Reply</button>
+<button class="px-4 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm hover:bg-surface-variant transition-all active:scale-95">Report</button>
+</div>
+<button class="p-2 rounded-full text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">push_pin</span>
+</button>
+</div>
+</div>
+<!-- Review Card 2 -->
+<div class="glass-card rounded-xl p-5 space-y-4 hover:border-primary/30 transition-all duration-300">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-highest border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of an elderly gentleman with an appreciative smile, wearing a sharp navy sweater. He is sitting in a modern urban apartment with city lights blurred in the background. The aesthetic is clean, sophisticated, and dark-themed, focusing on human connection and trust. High contrast lighting with soft magenta undertones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjt_BbN9mj9IhfwcBjTlKpqZwg1jW4D9jHKz8fpHj4WAQ33WYKZTlwixUWGPhjOg2KWRkSKQ59tyuycPcYoqfHTw_iSOYpSsixxTVSr0dawQ7MBM7GBORKP4N4PIzYDU4QJbbVKbFRQZrcWlCzULjG7IFq3i06VHj5VDOBGGd-3hI56wlQwKzoiIJ0u2fMJt_26PwRFYLFdb74ioQWkQucY_OL9__1Z2-9nVO6oQJxxcA8C6NkHLJ-zg"/>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">Marcus Thorne</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">5 hours ago</p>
+</div>
+</div>
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 0;">star</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                    Great portions and very authentic taste. The packaging was eco-friendly which I appreciate. Only reason for 4 stars was a slight delay in delivery, but the food made up for it!
+                </p>
+<div class="flex items-center justify-between pt-2">
+<div class="flex gap-2">
+<button class="px-4 py-2 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-bold hover:opacity-90 active:scale-95 transition-all">Reply</button>
+<button class="px-4 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm hover:bg-surface-variant transition-all active:scale-95">Report</button>
+</div>
+<button class="p-2 rounded-full text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">push_pin</span>
+</button>
+</div>
+</div>
+<!-- Review Card 3 -->
+<div class="glass-card rounded-xl p-5 space-y-4 hover:border-primary/30 transition-all duration-300">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-highest border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="Portrait of a young man with a creative, urban look, smiling broadly. He is in a studio-like environment with soft, moody dark lighting and cinematic purple and pink highlights. The style is modern, approachable, and premium. The background is a dark charcoal texture that provides great contrast for his features." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKGuqjqmqB2vuDxHq43dRQH7satQcUeY0EHLvoxmLVSnyUpByb4o3BEfRwv3suyQj4HZjecjJnqsZR6tn6gQGmpClx4NVpnjIUsh4aQo4cANskJAAeg3BRr4gc-o3s2r1qW86k8qAr1ILWZxCOXmiooNE8z6-oWWZCjYsOyTbypwagPVn3m6AovfAtc7xtviPKEt_7HPccqegeHu_Sv1nUOypmkRQG-lE3e0N3FNaxTrdmXPxxgsgxvw"/>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">Jordan Smith</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Yesterday</p>
+</div>
+</div>
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                    The attention to detail in the presentation—even for delivery—is remarkable. Best home-cooked gourmet experience in the city.
+                </p>
+<div class="flex items-center justify-between pt-2">
+<div class="flex gap-2">
+<button class="px-4 py-2 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-bold hover:opacity-90 active:scale-95 transition-all">Reply</button>
+<button class="px-4 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm hover:bg-surface-variant transition-all active:scale-95">Report</button>
+</div>
+<button class="p-2 rounded-full text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">push_pin</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface-container-low/90 dark:bg-surface-container-lowest/90 backdrop-blur-2xl rounded-t-xl border-t border-outline-variant/5 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex justify-around items-center h-20 px-4 pb-4">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90 transition-transform duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1">restaurant</span>
+<span class="font-label-sm text-label-sm">Kitchen</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90 transition-transform duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1">menu_book</span>
+<span class="font-label-sm text-label-sm">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90 transition-transform duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1">receipt_long</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold bg-primary-container/20 rounded-full px-4 py-1 active:scale-90 transition-transform duration-300 ease-out" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">monitoring</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</a>
+</nav>
+<script>
+        // Simple interactivity for the cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Simulating some loading shimmer for the images
+        window.addEventListener('load', () => {
+            document.querySelectorAll('img').forEach(img => {
+                img.classList.add('transition-opacity', 'duration-1000');
+                img.style.opacity = '1';
+            });
+        });
+    </script>
+</body></html>

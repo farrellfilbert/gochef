@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GoChef - Reservations Calendar</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&amp;family=Karla:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-fixed": "#1a1c1c",
+            "secondary-fixed-dim": "#c6c6c7",
+            "primary-fixed-dim": "#ffb1c6",
+            "on-tertiary-fixed-variant": "#7f2250",
+            "surface-container-highest": "#31353f",
+            "primary": "#ffb1c6",
+            "on-secondary-container": "#b4b5b5",
+            "on-primary-container": "#590029",
+            "tertiary-fixed-dim": "#ffb0cd",
+            "surface-variant": "#31353f",
+            "primary-container": "#ff4a90",
+            "outline": "#a98890",
+            "surface-container-low": "#181b25",
+            "secondary-fixed": "#e2e2e2",
+            "error": "#ffb4ab",
+            "on-primary-fixed-variant": "#8e0046",
+            "outline-variant": "#5a4046",
+            "tertiary-fixed": "#ffd9e4",
+            "inverse-surface": "#dfe2ef",
+            "on-primary": "#650030",
+            "background": "#0f131c",
+            "surface-container-high": "#262a34",
+            "on-secondary": "#2f3131",
+            "surface-tint": "#ffb1c6",
+            "surface-bright": "#353943",
+            "on-surface-variant": "#e2bdc5",
+            "on-surface": "#dfe2ef",
+            "on-primary-fixed": "#3f001b",
+            "surface-dim": "#0f131c",
+            "error-container": "#93000a",
+            "surface-container-lowest": "#0a0e17",
+            "on-tertiary-fixed": "#3e0021",
+            "on-background": "#dfe2ef",
+            "secondary-container": "#454747",
+            "on-error": "#690005",
+            "tertiary": "#ffb0cd",
+            "tertiary-container": "#db6c9b",
+            "on-tertiary": "#620639",
+            "inverse-primary": "#ba005e",
+            "surface": "#0f131c",
+            "primary-fixed": "#ffd9e1",
+            "surface-container": "#1c2029",
+            "on-tertiary-container": "#570032",
+            "inverse-on-surface": "#2c303a",
+            "on-secondary-fixed-variant": "#454747",
+            "on-error-container": "#ffdad6",
+            "secondary": "#c6c6c7"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter-mobile": "20px",
+            "baseline": "8px",
+            "stack-md": "24px",
+            "stack-xs": "4px",
+            "stack-lg": "48px",
+            "stack-sm": "12px",
+            "margin-desktop": "64px"
+          },
+          "fontFamily": {
+            "display-lg-mobile": ["Montserrat"],
+            "display-lg": ["Montserrat"],
+            "headline-lg-mobile": ["Montserrat"],
+            "label-mono": ["Karla"],
+            "body-lg": ["Karla"],
+            "headline-md": ["Montserrat"],
+            "headline-lg": ["Montserrat"],
+            "body-md": ["Karla"],
+            "label-sm": ["Karla"]
+          },
+          "fontSize": {
+            "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+            "label-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .glass-card {
+      background: rgba(28, 32, 41, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(169, 136, 144, 0.15);
+    }
+    .neon-glow-primary {
+      box-shadow: 0 0 15px rgba(255, 74, 144, 0.4);
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+    .day-cell {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-container/30 selection:text-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-outline-variant/20 shadow-sm shadow-primary/5">
+<div class="flex items-center justify-between px-gutter-mobile h-16 w-full max-w-screen-xl mx-auto">
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-primary active:scale-95 transition-transform">menu</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile dark:text-on-background">Reservations</h1>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-primary-container overflow-hidden active:scale-95 transition-transform">
+<img class="w-full h-full object-cover" data-alt="A professional close-up portrait of a high-end private chef wearing a clean white chef jacket with pink accents. The background is a moody, dark, modern professional kitchen with subtle bokeh lighting. The overall aesthetic is premium, urban gourmet, and authoritative." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVy4wW2KeWCl5hsrVFz8_Y3hdqpgtDh5gzfCOF5456mCUjja1IbLYmf870eBp_jZu_-lOp6gzB-DkNm7VkTH84AopQmBqZ5kWFvObsJm9PPNGzzKSSAloqhm9NYGShy8jCOx1jAzBRTFOKqf_kjWcTpkAsnT1JGgmSeq-TjngSg_Ty3wueepLZoCsuWHshG4ZGCRP0uxk0i9aYT1V3OMF4hCpZZ2tMfY9MqoF0_7oggjGqWDq_HVWpiA"/>
+</div>
+</div>
+</header>
+<main class="pt-20 pb-24 px-gutter-mobile max-w-screen-xl mx-auto">
+<!-- View Selector Toggle -->
+<div class="flex justify-center mb-stack-md">
+<div class="bg-surface-container-high p-1 rounded-full flex gap-1 border border-outline-variant/10">
+<button class="px-6 py-2 rounded-full font-label-sm text-label-sm bg-primary-container text-on-primary-fixed font-bold transition-all shadow-md">Month</button>
+<button class="px-6 py-2 rounded-full font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container-highest transition-all">Week</button>
+</div>
+</div>
+<!-- Calendar Month Header -->
+<div class="flex items-center justify-between mb-stack-sm">
+<h2 class="font-headline-md text-headline-md">October 2024</h2>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-high text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Calendar Grid -->
+<div class="glass-card rounded-xl p-4 mb-stack-lg">
+<div class="calendar-grid mb-2">
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant/60 py-2">M</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant/60 py-2">T</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant/60 py-2">W</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant/60 py-2">T</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant/60 py-2">F</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant/60 py-2">S</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant/60 py-2">S</div>
+</div>
+<div class="calendar-grid gap-1">
+<!-- Empty spacers for October 2024 start (Tuesday) -->
+<div class="day-cell text-on-surface-variant/20">30</div>
+<!-- Day Cells -->
+<div class="day-cell font-label-sm text-label-sm">1</div>
+<div class="day-cell font-label-sm text-label-sm">2<span class="absolute bottom-1 w-1 h-1 rounded-full bg-primary-container"></span></div>
+<div class="day-cell font-label-sm text-label-sm">3</div>
+<div class="day-cell font-label-sm text-label-sm">4<span class="absolute bottom-1 w-1 h-1 rounded-full bg-primary-container"></span></div>
+<div class="day-cell font-label-sm text-label-sm">5</div>
+<div class="day-cell font-label-sm text-label-sm">6</div>
+<div class="day-cell font-label-sm text-label-sm">7</div>
+<div class="day-cell font-label-sm text-label-sm">8<span class="absolute bottom-1 w-1 h-1 rounded-full bg-primary-container"></span></div>
+<div class="day-cell font-label-sm text-label-sm">9</div>
+<div class="day-cell font-label-sm text-label-sm">10</div>
+<div class="day-cell font-label-sm text-label-sm">11</div>
+<div class="day-cell font-label-sm text-label-sm">12<span class="absolute bottom-1 w-1 h-1 rounded-full bg-primary-container"></span></div>
+<div class="day-cell font-label-sm text-label-sm">13</div>
+<!-- Selected Today (14th) -->
+<div class="day-cell font-label-sm text-label-sm bg-primary-container text-on-primary-fixed font-bold rounded-lg neon-glow-primary scale-110 z-10">14</div>
+<div class="day-cell font-label-sm text-label-sm">15</div>
+<div class="day-cell font-label-sm text-label-sm">16<span class="absolute bottom-1 w-1 h-1 rounded-full bg-primary-container"></span></div>
+<div class="day-cell font-label-sm text-label-sm">17</div>
+<div class="day-cell font-label-sm text-label-sm">18</div>
+<div class="day-cell font-label-sm text-label-sm">19</div>
+<div class="day-cell font-label-sm text-label-sm">20</div>
+<div class="day-cell font-label-sm text-label-sm">21</div>
+<div class="day-cell font-label-sm text-label-sm">22<span class="absolute bottom-1 w-1 h-1 rounded-full bg-primary-container"></span></div>
+<div class="day-cell font-label-sm text-label-sm">23</div>
+<div class="day-cell font-label-sm text-label-sm">24</div>
+<div class="day-cell font-label-sm text-label-sm">25<span class="absolute bottom-1 w-1 h-1 rounded-full bg-primary-container"></span></div>
+<div class="day-cell font-label-sm text-label-sm">26</div>
+<div class="day-cell font-label-sm text-label-sm">27</div>
+<div class="day-cell font-label-sm text-label-sm">28</div>
+<div class="day-cell font-label-sm text-label-sm">29</div>
+<div class="day-cell font-label-sm text-label-sm">30<span class="absolute bottom-1 w-1 h-1 rounded-full bg-primary-container"></span></div>
+<div class="day-cell font-label-sm text-label-sm">31</div>
+</div>
+</div>
+<!-- Upcoming Today Section -->
+<div class="flex items-center justify-between mb-stack-sm">
+<h3 class="font-headline-md text-headline-md">Upcoming Today</h3>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">3 Bookings</span>
+</div>
+<div class="space-y-4">
+<!-- Reservation Card 1 -->
+<div class="glass-card rounded-xl p-4 flex gap-4 items-center active:scale-[0.98] transition-all cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex flex-col items-center justify-center border border-outline-variant/20">
+<span class="font-label-sm text-label-sm text-primary font-bold">19:30</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant/60 uppercase">PM</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline-md text-[16px] mb-0.5">Julian Voss</h4>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-on-surface-variant/80">
+<span class="material-symbols-outlined text-[14px]">group</span>
+<span class="font-label-sm text-label-sm">4 Guests</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-primary/10 text-primary font-label-sm text-[10px] uppercase font-bold tracking-tight">Anniversary</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+<!-- Reservation Card 2 -->
+<div class="glass-card rounded-xl p-4 flex gap-4 items-center active:scale-[0.98] transition-all cursor-pointer">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex flex-col items-center justify-center border border-outline-variant/20">
+<span class="font-label-sm text-label-sm text-on-surface font-bold">20:00</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant/60 uppercase">PM</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline-md text-[16px] mb-0.5">Elena Rodriguez</h4>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-on-surface-variant/80">
+<span class="material-symbols-outlined text-[14px]">group</span>
+<span class="font-label-sm text-label-sm">2 Guests</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-tertiary/10 text-tertiary font-label-sm text-[10px] uppercase font-bold tracking-tight">Gluten Free</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+<!-- Reservation Card 3 -->
+<div class="glass-card rounded-xl p-4 flex gap-4 items-center active:scale-[0.98] transition-all cursor-pointer opacity-80">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex flex-col items-center justify-center border border-outline-variant/20">
+<span class="font-label-sm text-label-sm text-on-surface font-bold">21:15</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant/60 uppercase">PM</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline-md text-[16px] mb-0.5">Marcus Thorne</h4>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 text-on-surface-variant/80">
+<span class="material-symbols-outlined text-[14px]">group</span>
+<span class="font-label-sm text-label-sm">6 Guests</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-surface-container-lowest/90 backdrop-blur-2xl border-t border-outline-variant/10 shadow-[0_-4px_20px_rgba(255,74,144,0.1)]">
+<div class="flex justify-around items-center h-20 px-4 w-full max-w-screen-xl mx-auto">
+<!-- Dashboard -->
+<a class="flex flex-col items-center justify-center text-on-secondary-container/60 hover:text-primary/80 active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-sm text-label-sm">Dashboard</span>
+</a>
+<!-- Calendar (ACTIVE) -->
+<a class="flex flex-col items-center justify-center bg-primary/10 text-primary rounded-xl px-3 py-1 active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="font-label-sm text-label-sm font-bold">Calendar</span>
+</a>
+<!-- Kitchen -->
+<a class="flex flex-col items-center justify-center text-on-secondary-container/60 hover:text-primary/80 active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-label-sm text-label-sm">Kitchen</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-secondary-container/60 hover:text-primary/80 active:scale-90 transition-all duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</div>
+</nav>
+<script>
+    // Lightweight atmospheric effect: subtle glow following the cursor
+    document.addEventListener('mousemove', (e) => {
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+      
+      // We'll create a subtle radial gradient highlight
+      document.body.style.backgroundImage = `radial-gradient(circle at ${mouseX}px ${mouseY}px, rgba(255, 74, 144, 0.03) 0%, transparent 40%)`;
+    });
+
+    // Touch interaction feedback for cards
+    const cards = document.querySelectorAll('.glass-card');
+    cards.forEach(card => {
+      card.addEventListener('touchstart', () => {
+        card.style.transform = 'scale(0.98)';
+      });
+      card.addEventListener('touchend', () => {
+        card.style.transform = 'scale(1)';
+      });
+    });
+  </script>
+</body></html>

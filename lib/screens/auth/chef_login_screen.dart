@@ -1,0 +1,194 @@
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../chef_dashboard/chef_main_navigation.dart';
+import 'chef_register_screen.dart';
+
+class ChefLoginScreen extends StatefulWidget {
+  const ChefLoginScreen({super.key});
+
+  @override
+  State<ChefLoginScreen> createState() => _ChefLoginScreenState();
+}
+
+class _ChefLoginScreenState extends State<ChefLoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+
+  void _onLogin() {
+    // Navigate to the Chef Dashboard
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.background,
+          image: DecorationImage(
+            image: NetworkImage('https://images.unsplash.com/photo-1556155092-490a1ba16284?q=80&w=2000&auto=format&fit=crop'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(Colors.black87, BlendMode.darken),
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'GoChef',
+                    style: AppTextStyles.displayLgMobile(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 32),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(32),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        child: Container(
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(
+                            color: AppColors.glassBackground,
+                            borderRadius: BorderRadius.circular(32),
+                            border: Border.all(color: AppColors.glassBorder),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Center(
+                                child: Text(
+                                  'Chef Portal',
+                                  style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Center(
+                                child: Text(
+                                  'Manage your kitchen, track orders, and grow your brand.',
+                                  textAlign: TextAlign.center,
+                                  style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                              Text(
+                                'Email or Phone Number',
+                                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildTextField(_emailController, 'chef@urbangourmet.com', Icons.person_outline),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Password',
+                                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildTextField(
+                                _passwordController, 
+                                '••••••••', 
+                                Icons.lock_outline, 
+                                isPassword: true
+                              ),
+                              const SizedBox(height: 32),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 56,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: AppColors.magentaGloss,
+                                    borderRadius: BorderRadius.circular(9999),
+                                  ),
+                                  child: MaterialButton(
+                                    onPressed: _isLoading ? null : _onLogin,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
+                                    child: Text(
+                                      'Sign In',
+                                      style: AppTextStyles.headlineMd(color: AppColors.onPrimaryFixed),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "New to the platform? ",
+                                    style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const ChefRegisterScreen()),
+                                      );
+                                    },
+                                    child: Text(
+                                      'Register as a Chef',
+                                      style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isPassword = false}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword ? _obscurePassword : false,
+        style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant.withValues(alpha: 0.4)),
+          prefixIcon: Icon(icon, size: 20, color: AppColors.onSurfaceVariant),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: AppColors.onSurfaceVariant),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        ),
+      ),
+    );
+  }
+}

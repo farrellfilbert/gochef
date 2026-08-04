@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GoChef | Chef Portal Login</title>
+<!-- Montserrat & Karla Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Karla:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#454747",
+                    "background": "#0f131c",
+                    "primary": "#ffb1c6",
+                    "secondary": "#c6c6c7",
+                    "surface": "#0f131c",
+                    "surface-container-highest": "#31353f",
+                    "inverse-surface": "#dfe2ef",
+                    "tertiary-fixed-dim": "#ffb0cd",
+                    "surface-container": "#1c2029",
+                    "outline-variant": "#5a4046",
+                    "surface-tint": "#ffb1c6",
+                    "tertiary-fixed": "#ffd9e4",
+                    "inverse-on-surface": "#2c303a",
+                    "on-tertiary-container": "#570032",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed": "#3f001b",
+                    "primary-fixed-dim": "#ffb1c6",
+                    "surface-dim": "#0f131c",
+                    "on-secondary-fixed-variant": "#454747",
+                    "on-tertiary-fixed-variant": "#7f2250",
+                    "on-error": "#690005",
+                    "primary-fixed": "#ffd9e1",
+                    "on-tertiary-fixed": "#3e0021",
+                    "secondary-fixed": "#e2e2e2",
+                    "on-surface": "#dfe2ef",
+                    "tertiary-container": "#db6c9b",
+                    "on-secondary": "#2f3131",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "surface-variant": "#31353f",
+                    "outline": "#a98890",
+                    "on-primary": "#650030",
+                    "surface-container-low": "#181b25",
+                    "surface-bright": "#353943",
+                    "on-surface-variant": "#e2bdc5",
+                    "surface-container-lowest": "#0a0e17",
+                    "on-tertiary": "#620639",
+                    "error": "#ffb4ab",
+                    "surface-container-high": "#262a34",
+                    "primary-container": "#ff4a90",
+                    "on-primary-container": "#590029",
+                    "on-background": "#dfe2ef",
+                    "on-secondary-container": "#b4b5b5",
+                    "inverse-primary": "#ba005e",
+                    "tertiary": "#ffb0cd",
+                    "on-primary-fixed-variant": "#8e0046",
+                    "magenta-gloss": "#ff4a90"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "16px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-md": "24px",
+                    "stack-xs": "4px",
+                    "stack-sm": "12px",
+                    "stack-lg": "48px",
+                    "margin-desktop": "64px",
+                    "gutter-mobile": "20px",
+                    "baseline": "8px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Karla"],
+                    "headline-md": ["Montserrat"],
+                    "headline-lg-mobile": ["Montserrat"],
+                    "display-lg": ["Montserrat"],
+                    "label-mono": ["Karla"],
+                    "headline-lg": ["Montserrat"],
+                    "body-md": ["Karla"],
+                    "body-lg": ["Karla"],
+                    "display-lg-mobile": ["Montserrat"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0f131c;
+            color: #dfe2ef;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(28, 32, 41, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .input-glow:focus-within {
+            box-shadow: 0 0 15px rgba(255, 74, 144, 0.3);
+            border-color: #ff4a90;
+        }
+        .primary-gradient {
+            background: linear-gradient(135deg, #ff4a90 0%, #ffb0cd 100%);
+        }
+        /* Custom scrollbar for premium feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f131c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #31353f;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md overflow-x-hidden selection:bg-primary/30">
+<!-- Global Background -->
+<div class="fixed inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-b from-background/90 via-background/80 to-background z-10"></div>
+<div class="w-full h-full opacity-30 grayscale" data-alt="A cinematic, low-angle shot of a high-end, modern commercial kitchen with stainless steel surfaces, copper pans hanging from the ceiling, and warm ambient lighting. The atmosphere is professional and moody, with a deep midnight navy tint applied to the shadows and highlights. The lighting creates subtle lens flares on metallic surfaces, emphasizing a premium 'Urban Gourmet' aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDkpW-L2w1kDLEBHB8TYmwDQgytTMxR3FYDo1T6qbYlmk86Y-zQWuVOOX7C1IuN99j4P8ufl1gie2b6SXEsuG5PYZVGXe-B25nHidbvbBnU38QE6XqbetEgFPytPgn2fr9U8Vvoimn5k-iszDP8zaQ4lNYxnP2lYqflWCkVYjRh3zegC65UPLnRrIHAzBZOHEWVovpLY_fjEdefLwd2qROQzQWwKhFE-QA6WMow-t_uQr6Jhdl__d2nwA')">
+</div>
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-20 flex flex-col items-center justify-center min-h-screen px-gutter-mobile py-stack-lg">
+<!-- Brand Identity -->
+<div class="mb-stack-lg animate-in fade-in slide-in-from-top-4 duration-700">
+<h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg font-bold text-primary tracking-tight">
+                GoChef
+            </h1>
+</div>
+<!-- Login Container -->
+<div class="w-full max-w-md glass-panel p-8 rounded-xl border border-outline-variant/20 shadow-2xl animate-in fade-in zoom-in-95 duration-500 delay-100">
+<!-- Header Section -->
+<div class="text-center mb-stack-md">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-md md:text-headline-md text-on-surface mb-2">
+                    Chef Portal
+                </h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[280px] mx-auto">
+                    Manage your kitchen, track orders, and grow your brand.
+                </p>
+</div>
+<!-- Login Form -->
+<form action="#" class="space-y-stack-md" method="POST" onsubmit="return false;">
+<!-- Email/Phone Input -->
+<div class="space-y-stack-xs group">
+<label class="font-label-sm text-label-sm text-on-surface-variant ml-1 transition-colors group-focus-within:text-primary" for="identity">
+                        Email or Phone Number
+                    </label>
+<div class="relative input-glow transition-all duration-300 rounded-lg border border-outline-variant/30 bg-surface-container-low focus-within:bg-surface-container">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">person</span>
+<input class="w-full bg-transparent border-none focus:ring-0 pl-12 pr-4 py-3.5 text-on-surface font-body-md placeholder:text-on-surface-variant/40" id="identity" placeholder="chef@urbangourmet.com" type="text"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="space-y-stack-xs group">
+<div class="flex justify-between items-center ml-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant transition-colors group-focus-within:text-primary" for="password">
+                            Password
+                        </label>
+<a class="font-label-sm text-label-sm text-primary hover:text-primary-fixed transition-colors" href="#">
+                            Forgot Password?
+                        </a>
+</div>
+<div class="relative input-glow transition-all duration-300 rounded-lg border border-outline-variant/30 bg-surface-container-low focus-within:bg-surface-container">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
+<input class="w-full bg-transparent border-none focus:ring-0 pl-12 pr-12 py-3.5 text-on-surface font-body-md placeholder:text-on-surface-variant/40" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+</div>
+<!-- Sign In Button -->
+<button class="w-full primary-gradient text-on-primary-fixed font-headline-md text-headline-md py-4 rounded-full shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 mt-4" type="submit">
+                    Sign In
+                </button>
+</form>
+<!-- Divider -->
+<div class="relative my-8">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant/30"></div>
+</div>
+<div class="relative flex justify-center text-xs uppercase">
+<span class="bg-surface-container-low px-4 text-on-surface-variant font-label-sm tracking-widest">Or continue with</span>
+</div>
+</div>
+<!-- Social Logins -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-3 glass-panel border border-outline-variant/20 py-3 rounded-xl hover:bg-surface-container-highest transition-colors active:scale-[0.98] duration-200">
+<svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24">
+<path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"></path>
+</svg>
+<span class="font-label-sm">Apple</span>
+</button>
+<button class="flex items-center justify-center gap-3 glass-panel border border-outline-variant/20 py-3 rounded-xl hover:bg-surface-container-highest transition-colors active:scale-[0.98] duration-200">
+<svg class="w-5 h-5" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+</svg>
+<span class="font-label-sm">Google</span>
+</button>
+</div>
+</div>
+<!-- Registration Link -->
+<div class="mt-stack-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+<p class="font-body-md text-on-surface-variant">
+                New to the platform? 
+                <a class="text-primary font-bold hover:text-primary-fixed transition-colors ml-1" href="#">
+                    Register as a Chef
+                </a>
+</p>
+</div>
+<!-- Footer Decor -->
+<div class="mt-auto pt-stack-lg text-center opacity-40">
+<p class="font-label-sm text-label-sm tracking-widest uppercase">
+                © 2024 GoChef Urban Gourmet Collective
+            </p>
+</div>
+</main>
+<!-- Micro-interaction Scripts -->
+<script>
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('border-primary');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('border-primary');
+            });
+        });
+
+        // Simple visibility toggle logic
+        const toggleBtn = document.querySelector('button[type="button"]');
+        const passInput = document.querySelector('#password');
+        toggleBtn.addEventListener('click', () => {
+            const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passInput.setAttribute('type', type);
+            toggleBtn.querySelector('span').textContent = type === 'password' ? 'visibility' : 'visibility_off';
+        });
+    </script>
+</body></html>

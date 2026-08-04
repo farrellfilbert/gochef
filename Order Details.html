@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Details | GoChef</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Karla:wght@400;500;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Karla:wght@100..900&family=Montserrat:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-on-surface": "#2c303a",
+                    "surface-container": "#1c2029",
+                    "on-primary-container": "#590029",
+                    "on-surface": "#dfe2ef",
+                    "on-primary-fixed-variant": "#8e0046",
+                    "on-tertiary-container": "#570032",
+                    "surface-container-high": "#262a34",
+                    "surface-container-lowest": "#0a0e17",
+                    "tertiary-fixed-dim": "#ffb0cd",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "on-secondary-container": "#b4b5b5",
+                    "on-error-container": "#ffdad6",
+                    "surface": "#0f131c",
+                    "on-primary-fixed": "#3f001b",
+                    "on-secondary": "#2f3131",
+                    "error-container": "#93000a",
+                    "tertiary-container": "#db6c9b",
+                    "on-secondary-fixed-variant": "#454747",
+                    "surface-container-highest": "#31353f",
+                    "on-primary": "#650030",
+                    "outline-variant": "#5a4046",
+                    "tertiary": "#ffb0cd",
+                    "on-tertiary": "#620639",
+                    "surface-bright": "#353943",
+                    "outline": "#a98890",
+                    "on-surface-variant": "#e2bdc5",
+                    "surface-variant": "#31353f",
+                    "secondary": "#c6c6c7",
+                    "primary-fixed": "#ffd9e1",
+                    "on-background": "#dfe2ef",
+                    "tertiary-fixed": "#ffd9e4",
+                    "inverse-surface": "#dfe2ef",
+                    "primary-fixed-dim": "#ffb1c6",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "surface-dim": "#0f131c",
+                    "inverse-primary": "#ba005e",
+                    "primary-container": "#ff4a90",
+                    "surface-tint": "#ffb1c6",
+                    "secondary-fixed": "#e2e2e2",
+                    "background": "#0f131c",
+                    "primary": "#ffb1c6",
+                    "on-tertiary-fixed-variant": "#7f2250",
+                    "on-tertiary-fixed": "#3e0021",
+                    "on-error": "#690005",
+                    "secondary-container": "#454747",
+                    "surface-container-low": "#181b25",
+                    "error": "#ffb4ab"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-xs": "4px",
+                    "stack-lg": "48px",
+                    "gutter-mobile": "20px",
+                    "baseline": "8px",
+                    "stack-md": "24px",
+                    "margin-desktop": "64px",
+                    "stack-sm": "12px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Montserrat"],
+                    "label-mono": ["Karla"],
+                    "display-lg": ["Montserrat"],
+                    "body-lg": ["Karla"],
+                    "body-md": ["Karla"],
+                    "display-lg-mobile": ["Montserrat"],
+                    "label-sm": ["Karla"],
+                    "headline-md": ["Montserrat"],
+                    "headline-lg-mobile": ["Montserrat"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "label-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(28, 32, 41, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 189, 197, 0.05);
+        }
+        .step-active { color: #ffb1c6; }
+        .step-line { background: #31353f; position: relative; }
+        .step-line::after { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 50%; background: #ff4a90; }
+        
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-soft { animation: pulse-soft 3s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden">
+<!-- Top App Bar (Custom Implementation based on Shared Components) -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl shadow-sm border-b border-outline-variant/10 h-16 flex justify-between items-center px-gutter-mobile">
+<div class="flex items-center gap-3">
+<button class="active:scale-95 duration-300 ease-out flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-bright/20 transition-colors">
+<span class="material-symbols-outlined text-on-surface">arrow_back_ios_new</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary">Order #2412</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="active:scale-95 duration-300 ease-out flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-bright/20 transition-colors">
+<span class="material-symbols-outlined text-on-surface">print</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-gutter-mobile max-w-4xl mx-auto space-y-stack-md">
+<!-- Customer Info Section -->
+<section class="glass-card rounded-xl p-5 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img class="w-16 h-16 rounded-full object-cover border-2 border-primary/30" data-alt="A professional headshot of a smiling young man named Julian Voss, wearing a high-end black casual shirt, with a soft cinematic lighting profile against a dark blurred urban loft background. The style is premium, clean, and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ73N9_T58G9HvYyyyjujBPqOx8oEgGCNi5IVlcOgix8vFcKSmsAkyFS0CSgUZ73hNhv7Vk31RVuUCx7-5yOe1XHs8jspJheZ5kzBAR7rgT4LiepaEduRJNUqrdxX5CX4ODNl80aMR4lopfjj3kcdv8l9Fsf3Ukywdw3JaKT1wsPNkDs0CQ9mk6ZshQa4oR2NUbtQn2fG8NHnJPOhOmbNghch9XOJFEE2G0vX7xcnhQMfaVlUhfohMaQ"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-on-primary-container p-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                        VIP
+                    </div>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md leading-tight">Julian Voss</h2>
+<div class="flex items-center gap-2 mt-1">
+<span class="bg-surface-container-highest px-2 py-0.5 rounded text-label-sm text-secondary uppercase tracking-widest font-bold">Delivery</span>
+<span class="text-on-surface-variant text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">star</span>
+                            4.9 (12 Orders)
+                        </span>
+</div>
+</div>
+</div>
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-secondary-container text-on-secondary-container border border-outline-variant/20 hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+</section>
+<!-- Order Status Tracker -->
+<section class="glass-card rounded-xl p-6">
+<div class="flex justify-between items-start mb-6">
+<div class="space-y-1">
+<h3 class="font-headline-md text-headline-md text-primary">In Preparation</h3>
+<p class="text-label-sm text-on-surface-variant uppercase tracking-tighter">Elapsed Time: <span class="text-primary font-bold">14m</span></p>
+</div>
+<div class="text-right">
+<p class="text-label-sm text-on-surface-variant font-bold">ETA</p>
+<p class="font-headline-md text-headline-md">19:15</p>
+</div>
+</div>
+<!-- Progress Bar -->
+<div class="relative pt-2 pb-6">
+<div class="flex items-center justify-between w-full relative z-10">
+<!-- Pending -->
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-primary ring-4 ring-primary/20 mb-2"></div>
+<span class="text-label-sm font-bold text-on-surface-variant">Pending</span>
+</div>
+<!-- Preparing -->
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-primary ring-4 ring-primary/20 mb-2 animate-pulse"></div>
+<span class="text-label-sm font-bold text-primary">Preparing</span>
+</div>
+<!-- Ready -->
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-surface-container-highest mb-2"></div>
+<span class="text-label-sm font-bold text-on-surface-variant">Ready</span>
+</div>
+<!-- Out -->
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-surface-container-highest mb-2"></div>
+<span class="text-label-sm font-bold text-on-surface-variant">Out</span>
+</div>
+<!-- Delivered -->
+<div class="flex flex-col items-center">
+<div class="w-3 h-3 rounded-full bg-surface-container-highest mb-2"></div>
+<span class="text-label-sm font-bold text-on-surface-variant">Delivered</span>
+</div>
+</div>
+<!-- Track Line -->
+<div class="absolute top-[13px] left-0 w-full h-[2px] bg-surface-container-highest">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container w-[40%] rounded-full shadow-[0_0_10px_rgba(255,74,144,0.5)]"></div>
+</div>
+</div>
+</section>
+<!-- Special Instructions Callout -->
+<section class="glass-card rounded-xl p-5 border-l-4 border-primary bg-primary/5">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">assignment</span>
+<div>
+<h4 class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-widest mb-1">Special Instructions</h4>
+<p class="font-body-md text-body-md italic text-on-surface">"Extra creamy risotto, no parsley garnish please. It's an anniversary dinner!"</p>
+</div>
+</div>
+</section>
+<!-- Order Items List -->
+<section class="space-y-stack-sm">
+<h3 class="font-headline-md text-headline-md px-1">Order Items (2)</h3>
+<!-- Item 1 -->
+<div class="glass-card rounded-xl overflow-hidden flex h-32 transition-transform active:scale-[0.98]">
+<div class="w-32 h-full flex-shrink-0">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLshvBZ9qmd31PMCWWz80b92CKeWi-eZrdPi47G7mS1r63ua7HuW_3I0P0OzpDXvQsuPF6Ia6er-pszN6H1un9DXInIhz5xpDy_dnsxfb8qKrDNaK11I7kOYkOSIoMpXaYDpnhsNLUhLCHQskwfiKOwBvsZCgtLa1kmhdQMz5owG09JOLlEFcq5Nn51V44LZrRaVxzePWiuo4PouRm3PUDLbCAtXrl58JTTS21O85z9Y2MxJSqprMP3PvOdb"/>
+</div>
+<div class="flex-1 p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline-md text-headline-md-mobile">Black Truffle Risotto</h4>
+<p class="text-label-sm text-on-surface-variant">Qty: 1</p>
+</div>
+<span class="font-bold text-primary">$32.00</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] border border-outline-variant/30 px-2 py-0.5 rounded uppercase font-bold text-secondary">Gluten Free</span>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="glass-card rounded-xl overflow-hidden flex h-32 transition-transform active:scale-[0.98]">
+<div class="w-32 h-full flex-shrink-0">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLvrXK0qxOpDGf5dHMobw1CTscmhTOLE8G-Qy3BYIq_9oTT79XU-g9pCEDgbgrPYVAqqywMf_o-g1FkcAsaln7nl_xiURXw4hNdTX-0bECQbD8oQ8ymTpnuOOQJUWRMA66CLGOzJWFCGwNqZ87ySgkSQyo0m4PdNp5IwBQhLo6yI1DKGzr195hhFmjY3facyQ8Be_ncAFKlCR8pR9Ayw9axznszlHsN4lIf-6wxhKQD9r3uHJjKBsnlSNOo"/>
+</div>
+<div class="flex-1 p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline-md text-headline-md-mobile">Wild Mushroom Tagliatelle</h4>
+<p class="text-label-sm text-on-surface-variant">Qty: 1</p>
+</div>
+<span class="font-bold text-primary">$28.00</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] border border-outline-variant/30 px-2 py-0.5 rounded uppercase font-bold text-secondary">Vegetarian</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Timing Info -->
+<div class="flex flex-wrap gap-4 px-2">
+<div class="flex items-center gap-2 text-on-surface-variant text-label-sm">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+                Placed at 18:45
+            </div>
+<div class="flex items-center gap-2 text-primary text-label-sm font-bold">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                Requested ASAP
+            </div>
+</div>
+<!-- Financial Summary -->
+<section class="glass-card rounded-xl p-6 space-y-4">
+<div class="flex justify-between text-body-md text-on-surface-variant">
+<span>Items Subtotal</span>
+<span>$60.00</span>
+</div>
+<div class="flex justify-between text-body-md text-on-surface-variant">
+<span>Marketplace Service Fee</span>
+<span>$4.50</span>
+</div>
+<div class="pt-4 border-t border-outline-variant/10 flex justify-between items-center">
+<div>
+<p class="text-label-sm uppercase font-bold text-tertiary">Chef Earnings</p>
+<p class="text-headline-lg-mobile font-headline-lg-mobile text-on-surface">$54.00</p>
+</div>
+<div class="text-right">
+<p class="text-label-sm uppercase font-bold text-on-surface-variant">Total Paid</p>
+<p class="text-headline-md text-headline-md text-primary">$64.50</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Actions Shell -->
+<div class="fixed bottom-0 left-0 w-full glass-card border-t border-outline-variant/10 p-4 pb-8 z-50 flex flex-col gap-3">
+<button class="w-full h-14 bg-gradient-to-r from-primary-container to-tertiary-container text-on-primary-container font-headline-md text-headline-md rounded-xl shadow-lg shadow-primary-container/20 active:scale-95 transition-all duration-300">
+            Mark as Ready
+        </button>
+<button class="w-full h-12 bg-transparent text-on-surface font-headline-md text-headline-md border border-outline-variant/30 rounded-xl hover:bg-surface-bright/20 transition-colors active:scale-95 duration-300">
+            Contact Customer
+        </button>
+</div>
+<!-- Background Atmospheric Effect -->
+<div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+<div class="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-tertiary/10 blur-[100px] rounded-full"></div>
+</div>
+<script>
+        // Simple micro-interaction for item cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousedown', () => {
+                card.style.transform = 'scale(0.98)';
+            });
+            card.addEventListener('mouseup', () => {
+                card.style.transform = 'scale(1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

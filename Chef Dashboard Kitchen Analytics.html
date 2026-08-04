@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GoChef Kitchen Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&amp;family=Karla:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "on-surface": "#dfe2ef",
+                  "on-primary-container": "#590029",
+                  "on-primary": "#650030",
+                  "tertiary-fixed": "#ffd9e4",
+                  "outline": "#a98890",
+                  "on-background": "#dfe2ef",
+                  "on-primary-fixed": "#3f001b",
+                  "primary-fixed-dim": "#ffb1c6",
+                  "surface-container": "#1c2029",
+                  "on-surface-variant": "#e2bdc5",
+                  "on-primary-fixed-variant": "#8e0046",
+                  "on-tertiary-container": "#570032",
+                  "inverse-primary": "#ba005e",
+                  "surface-container-high": "#262a34",
+                  "secondary-container": "#454747",
+                  "outline-variant": "#5a4046",
+                  "on-error-container": "#ffdad6",
+                  "inverse-surface": "#dfe2ef",
+                  "tertiary": "#ffb0cd",
+                  "surface": "#0f131c",
+                  "on-tertiary-fixed": "#3e0021",
+                  "tertiary-container": "#db6c9b",
+                  "primary": "#ffb1c6",
+                  "on-secondary-fixed": "#1a1c1c",
+                  "on-secondary-container": "#b4b5b5",
+                  "secondary": "#c6c6c7",
+                  "surface-container-lowest": "#0a0e17",
+                  "on-secondary": "#2f3131",
+                  "primary-fixed": "#ffd9e1",
+                  "surface-container-low": "#181b25",
+                  "surface-container-highest": "#31353f",
+                  "secondary-fixed": "#e2e2e2",
+                  "inverse-on-surface": "#2c303a",
+                  "surface-variant": "#31353f",
+                  "surface-bright": "#353943",
+                  "on-tertiary": "#620639",
+                  "secondary-fixed-dim": "#c6c6c7",
+                  "on-secondary-fixed-variant": "#454747",
+                  "background": "#0f131c",
+                  "on-error": "#690005",
+                  "primary-container": "#ff4a90",
+                  "on-tertiary-fixed-variant": "#7f2250",
+                  "tertiary-fixed-dim": "#ffb0cd",
+                  "surface-dim": "#0f131c",
+                  "error-container": "#93000a",
+                  "surface-tint": "#ffb1c6",
+                  "error": "#ffb4ab"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "spacing": {
+                  "stack-md": "24px",
+                  "stack-lg": "48px",
+                  "stack-sm": "12px",
+                  "stack-xs": "4px",
+                  "margin-desktop": "64px",
+                  "gutter-mobile": "20px",
+                  "baseline": "8px"
+          },
+          "fontFamily": {
+                  "headline-md": ["Montserrat"],
+                  "headline-lg-mobile": ["Montserrat"],
+                  "headline-lg": ["Montserrat"],
+                  "label-mono": ["Karla"],
+                  "body-md": ["Karla"],
+                  "display-lg-mobile": ["Montserrat"],
+                  "display-lg": ["Montserrat"],
+                  "body-lg": ["Karla"],
+                  "label-sm": ["Karla"]
+          },
+          "fontSize": {
+                  "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                  "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                  "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                  "label-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                  "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                  "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                  "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      background-color: #0f131c;
+      color: #dfe2ef;
+      font-family: 'Karla', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .glass-card {
+      background: rgba(31, 35, 47, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 177, 198, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    .neon-pink-glow {
+      box-shadow: 0 0 15px rgba(228, 34, 120, 0.4);
+    }
+
+    .progress-ring-circle {
+      transition: stroke-dashoffset 0.8s ease-in-out;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #5a4046;
+      border-radius: 10px;
+    }
+
+    .peak-bar {
+      transition: height 1s ease-out;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface custom-scrollbar pb-24">
+<!-- TOP APP BAR -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-outline-variant/20 shadow-sm flex justify-between items-center px-gutter-mobile h-16">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border-2 border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional close-up portrait of a gourmet chef in a dark modern kitchen. The lighting is moody and dramatic with pink neon highlights, capturing a high-end urban culinary aesthetic. The chef looks confident and refined, perfectly representing the premium Urban Gourmet brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBb2WrtwO-ubvL32aYYDkPgQtzYcWSWjO2V-l5XZPjoJzCjV0qPBu_pIaD5GrZvdi9-qG5ueUA2mHJ2Fye5xtUOIrb9ltFfKwmbitrC1GNaz99JVwcjh1S0cPa5JvvNxwzZaj75nuIBvRT97K2WOgqqPMHR9baMHGc-Ocbd9gTfzOCQbOq4r7gcagNBVUq7hg9eKAYeSUA0hQmC7Hq61Y4jSLT9NUh-SC4om6hWXPapglJ7IhQ8zbN1cQ"/>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary tracking-tight">Urban Gourmet</span>
+</div>
+<button class="material-symbols-outlined text-primary hover:opacity-80 transition-opacity active:scale-95 duration-300">notifications</button>
+</header>
+<main class="mt-20 px-gutter-mobile max-w-5xl mx-auto space-y-stack-md">
+<!-- HEADER SECTION -->
+<section class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Kitchen Analytics</h1>
+<p class="font-body-md text-body-md text-on-surface-variant opacity-80">Track your culinary performance</p>
+</div>
+<!-- TIME RANGE SELECTOR -->
+<div class="flex bg-surface-container rounded-full p-1 border border-outline-variant/30 self-start md:self-center">
+<button class="px-4 py-1.5 rounded-full font-label-sm text-label-sm bg-primary-container text-on-primary-container font-bold transition-all shadow-lg">Today</button>
+<button class="px-4 py-1.5 rounded-full font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">Week</button>
+<button class="px-4 py-1.5 rounded-full font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">Month</button>
+<button class="px-4 py-1.5 rounded-full font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">Year</button>
+</div>
+</section>
+<!-- KEY METRICS GRID -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter-mobile">
+<!-- Average Order Value -->
+<div class="glass-card p-6 rounded-xl flex items-center justify-between">
+<div>
+<p class="font-label-mono text-label-sm text-on-surface-variant uppercase tracking-widest mb-1">Avg Order Value</p>
+<h2 class="font-headline-lg text-headline-lg-mobile text-primary">$42.50</h2>
+<div class="flex items-center gap-1 text-green-400 mt-2">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="font-label-sm text-label-sm font-bold">+5.2% vs last week</span>
+</div>
+</div>
+<div class="w-16 h-16 flex items-center justify-center bg-primary/10 rounded-full">
+<span class="material-symbols-outlined text-3xl text-primary">payments</span>
+</div>
+</div>
+<!-- Returning Customers -->
+<div class="glass-card p-6 rounded-xl flex items-center justify-between">
+<div>
+<p class="font-label-mono text-label-sm text-on-surface-variant uppercase tracking-widest mb-1">Returning Customers</p>
+<h2 class="font-headline-lg text-headline-lg-mobile text-primary">68%</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-2 opacity-60">High loyalty index</p>
+</div>
+<div class="relative w-20 h-20">
+<svg class="w-20 h-20">
+<circle class="text-surface-container" cx="40" cy="40" fill="transparent" r="32" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary progress-ring-circle" cx="40" cy="40" fill="transparent" r="32" stroke="currentColor" stroke-dasharray="201" stroke-dashoffset="64" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">group</span>
+</div>
+</div>
+</div>
+</div>
+<!-- GROWTH INSIGHTS BENTO -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter-mobile">
+<!-- Peak Hours Chart (Span 2) -->
+<section class="lg:col-span-2 glass-card p-6 rounded-xl flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline-md text-headline-md">Peak Hours</h3>
+<span class="font-label-sm text-label-sm text-tertiary bg-tertiary/10 px-3 py-1 rounded-full border border-tertiary/20">7PM - 9PM Surge</span>
+</div>
+<div class="flex-grow flex items-end justify-between h-48 gap-2">
+<!-- Bars -->
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-outline-variant/30 rounded-t-lg peak-bar hover:bg-primary/40 transition-colors" style="height: 40%"></div>
+<span class="font-label-sm text-label-sm mt-2 opacity-40">4PM</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-outline-variant/30 rounded-t-lg peak-bar hover:bg-primary/40 transition-colors" style="height: 55%"></div>
+<span class="font-label-sm text-label-sm mt-2 opacity-40">5PM</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-outline-variant/30 rounded-t-lg peak-bar hover:bg-primary/40 transition-colors" style="height: 70%"></div>
+<span class="font-label-sm text-label-sm mt-2 opacity-40">6PM</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-primary/80 rounded-t-lg peak-bar neon-pink-glow" style="height: 95%"></div>
+<span class="font-label-sm text-label-sm mt-2 font-bold text-primary">7PM</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-primary/80 rounded-t-lg peak-bar neon-pink-glow" style="height: 100%"></div>
+<span class="font-label-sm text-label-sm mt-2 font-bold text-primary">8PM</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-primary/60 rounded-t-lg peak-bar neon-pink-glow" style="height: 85%"></div>
+<span class="font-label-sm text-label-sm mt-2 font-bold text-primary">9PM</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-outline-variant/30 rounded-t-lg peak-bar hover:bg-primary/40 transition-colors" style="height: 50%"></div>
+<span class="font-label-sm text-label-sm mt-2 opacity-40">10P</span>
+</div>
+</div>
+</section>
+<!-- Insights Summary -->
+<section class="glass-card p-6 rounded-xl bg-gradient-to-br from-surface-container to-surface flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 bg-tertiary/20 rounded-xl flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-tertiary">lightbulb</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2">Growth Insight</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            The <span class="text-primary font-bold">'Dinner'</span> period remains your primary revenue driver, accounting for <span class="text-tertiary">74%</span> of daily earnings.
+          </p>
+</div>
+<button class="mt-6 w-full py-3 rounded-full bg-tertiary-container text-on-tertiary-container font-bold font-label-mono hover:opacity-90 transition-opacity active:scale-95">VIEW STRATEGY</button>
+</section>
+</div>
+<!-- BEST SELLING MEALS -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline-md text-headline-md">Best Selling Meals</h3>
+<button class="text-primary font-label-sm text-label-sm font-bold flex items-center gap-1 hover:underline">
+          Full Menu Report <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="space-y-stack-sm">
+<!-- Meal Card 1 -->
+<div class="glass-card p-4 rounded-xl flex items-center gap-4 transition-all hover:translate-x-2">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A gourmet dish of Black Truffle Risotto presented with high-end editorial styling. Creamy textures, scattered herbs, and shaved truffle pieces catching the light. The shot is dark and moody with deep shadows and vibrant pink neon accents reflecting on the plate's edge, aligning with the Urban Gourmet noir aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfjblid1wuVva2YRGc7wwMrVnVEW2MiYZn_sTA7z7tZX0iTmajCNvJHKau1n6okhf4aOHWOvB7tea32wQOUl1HGifLK_ULZh1ipIh4zqxWkdK_AGKdTbmu_70GSxbCV-ZLTDCADAKaz_4HwcJUl9z5IOXYqadRUXuU890pEtHYJSQ41MhCe8qQus_XrVRd0tNcR-746NQ48YtMt6ZB1YTUjm-VUNJXVJzbrKyAhiugXRPEXsEb6uVEew"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-headline-md text-body-lg font-bold">Black Truffle Risotto</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Signature Series</p>
+</div>
+<div class="text-right">
+<p class="font-headline-md text-primary">145</p>
+<p class="font-label-sm text-label-sm opacity-60">Orders</p>
+</div>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 85%"></div>
+</div>
+</div>
+</div>
+<!-- Meal Card 2 -->
+<div class="glass-card p-4 rounded-xl flex items-center gap-4 transition-all hover:translate-x-2">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A close-up photograph of Wild Mushroom Tagliatelle with golden brown sautéed fungi and fresh herbs on a charcoal ceramic plate. The aesthetic is sophisticated and urban, featuring sharp contrasts and soft magenta glowing edges. Professional lighting highlights the pasta's texture against the deep midnight background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsa8mmibWLRj6-k3KM7goH3DaTFxqzvDWXuP56HtEJ7j9Ivx76NYglVkv-3pIa16Fc9s1kRBk4BBXlHKDt364UNW3MT8GY30o4GW1esaGO1gRlQ2i10BURUYcwfmAio5bcw3EYSjFM8jy3cZmrRpGCO9uznJj4qDZkHMe1cXxxVSg1tOBXKAzivdBploLkGtxjQ-Yz8IPXyH7gK5yvrY66XXNEakI-9rHx-H6amCMi2xiFflWDqsKF_g"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h4 class="font-headline-md text-body-lg font-bold">Wild Mushroom Tagliatelle</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Vegetarian Choice</p>
+</div>
+<div class="text-right">
+<p class="font-headline-md text-primary">98</p>
+<p class="font-label-sm text-label-sm opacity-60">Orders</p>
+</div>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary rounded-full" style="width: 58%"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BOTTOM NAVIGATION BAR -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-surface/90 dark:bg-surface/90 backdrop-blur-2xl border-t border-outline-variant/10 shadow-2xl flex justify-around items-center h-20 pb-safe px-4">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant opacity-60 hover:text-primary/80 active:scale-90 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="font-label-sm text-label-sm">Kitchen</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant opacity-60 hover:text-primary/80 active:scale-90 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-sm text-label-sm">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant opacity-60 hover:text-primary/80 active:scale-90 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary font-bold scale-110 active:scale-90 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</a>
+</nav>
+<!-- FAB: Global Kitchen Control (Suppressed for focused analytics but available via interaction if needed) -->
+<div class="fixed bottom-24 right-gutter-mobile z-40">
+<button class="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-tertiary-container shadow-lg flex items-center justify-center text-on-primary-container active:scale-95 transition-all neon-pink-glow">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<script>
+    // Micro-interactions for chart entrance
+    document.addEventListener('DOMContentLoaded', () => {
+      const bars = document.querySelectorAll('.peak-bar');
+      bars.forEach(bar => {
+        const finalHeight = bar.style.height;
+        bar.style.height = '0%';
+        setTimeout(() => {
+          bar.style.height = finalHeight;
+        }, 100);
+      });
+    });
+  </script>
+</body></html>

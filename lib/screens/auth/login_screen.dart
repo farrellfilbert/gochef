@@ -9,6 +9,7 @@ import '../../main.dart';
 import '../../services/api_service.dart';
 import 'login_phone_otp_screen.dart';
 import 'sign_up_screen.dart';
+import 'chef_login_screen.dart';
 
 /// Login Main Screen — replicates Login Main.html exactly
 class LoginScreen extends StatefulWidget {
@@ -583,6 +584,33 @@ class _LoginScreenState extends State<LoginScreen>
               },
               child: Text(
                 'Sign Up',
+                style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Login as Chef link
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Are you a chef? ",
+              style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ChefLoginScreen(),
+                  ),
+                );
+              },
+              child: Text(
+                'Login as Chef',
                 style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(
                   fontWeight: FontWeight.bold,
                 ),

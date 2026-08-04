@@ -458,7 +458,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   children: [
                     const Icon(Icons.logout, color: Colors.redAccent),
                     const SizedBox(width: 8),
-                    Text('Log Out', style: AppTextStyles.labelLg(color: Colors.redAccent)),
+                    Text('Log Out', style: AppTextStyles.bodyMd(color: Colors.redAccent)),
                   ],
                 ),
               ),
@@ -509,7 +509,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             child: Icon(icon, color: color, size: 24),
           ),
           const Spacer(),
-          Text(title, style: AppTextStyles.labelLg(color: AppColors.onSurface)),
+          Text(title, style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
           const SizedBox(height: 2),
           Text(subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
           const SizedBox(height: 12),
