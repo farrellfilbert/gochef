@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'theme/app_theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -14,6 +15,12 @@ import 'services/api_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Disable runtime font fetching on web — prevents hang if Google Fonts CDN is slow
+  if (kIsWeb) {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  }
+  
   if (!kIsWeb) {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
@@ -58,6 +65,15 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
   void initState() {
     super.initState();
     _checkAuth();
+    // Absolute fallback: if still loading after 2 seconds, force to login
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted && _isLoading) {
+        setState(() {
+          _isLoading = false;
+          _isLoggedIn = false;
+        });
+      }
+    });
   }
 
   Future<void> _checkAuth() async {
@@ -90,7 +106,10 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
         ),
       );
     }
-    return _isLoggedIn ? const MainNavigation() : const LoginScreen();
+    if (_isLoggedIn) {
+      return const MainNavigation();
+    }
+    return const LoginScreen();
   }
 }
 
