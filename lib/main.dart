@@ -48,6 +48,9 @@ class AuthCheckScreen extends StatefulWidget {
 }
 
 class _AuthCheckScreenState extends State<AuthCheckScreen> {
+  bool _isLoading = true;
+  bool _isLoggedIn = false;
+
   @override
   void initState() {
     super.initState();
@@ -56,40 +59,32 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
 
   Future<void> _checkAuth() async {
     try {
-      // Wait briefly to allow UI to render the loading state smoothly
-      await Future.delayed(const Duration(milliseconds: 500));
       final userId = await ApiService.getUserId();
-      
       if (!mounted) return;
-      
-      if (userId != null && userId.isNotEmpty) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainNavigation()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      }
+      setState(() {
+        _isLoggedIn = userId != null && userId.isNotEmpty;
+        _isLoading = false;
+      });
     } catch (e) {
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      setState(() {
+        _isLoggedIn = false;
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppColors.midnight,
-      body: Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      ),
-    );
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.midnight,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+    return _isLoggedIn ? const MainNavigation() : const LoginScreen();
   }
 }
 
