@@ -7,6 +7,7 @@ import '../cart/cart_screen.dart';
 
 import '../../services/api_service.dart';
 import '../../models/user_model.dart';
+import '../auth/login_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -446,7 +447,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 onPressed: () async {
                   await ApiService.logout();
                   if (context.mounted) {
-                    Navigator.of(context).pushReplacementNamed('/'); // Go to root/login
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      (Route<dynamic> route) => false,
+                    );
                   }
                 },
                 style: OutlinedButton.styleFrom(

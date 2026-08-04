@@ -69,7 +69,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://gochef.my.id/api/register.php'),
+        Uri.parse('https://astroboomin.co/api/register.php'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': name,
@@ -113,7 +113,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       
       if (account != null) {
         final response = await http.post(
-          Uri.parse('https://gochef.my.id/api/login_google.php'), // Using same API as it handles upsert
+          Uri.parse('https://astroboomin.co/api/login_google.php'), // Using same API as it handles upsert
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'email': account.email,

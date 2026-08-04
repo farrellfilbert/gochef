@@ -1,0 +1,320 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GoChef - Profile &amp; Loyalty Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Karla:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#0f131c",
+                    "tertiary-fixed": "#ffd9e4",
+                    "error-container": "#93000a",
+                    "surface-tint": "#ffb1c6",
+                    "primary-fixed": "#ffd9e1",
+                    "secondary-container": "#454747",
+                    "error": "#ffb4ab",
+                    "surface-variant": "#31353f",
+                    "background": "#0f131c",
+                    "primary": "#ffb1c6",
+                    "tertiary-fixed-dim": "#ffb0cd",
+                    "on-background": "#dfe2ef",
+                    "outline": "#a98890",
+                    "surface-container-highest": "#31353f",
+                    "surface-container-lowest": "#0a0e17",
+                    "primary-container": "#ff4a90",
+                    "on-tertiary-container": "#570032",
+                    "on-primary-fixed-variant": "#8e0046",
+                    "on-primary-fixed": "#3f001b",
+                    "on-error": "#690005",
+                    "surface-container-low": "#181b25",
+                    "secondary-fixed": "#e2e2e2",
+                    "on-tertiary-fixed-variant": "#7f2250",
+                    "surface-bright": "#353943",
+                    "on-secondary-container": "#b4b5b5",
+                    "inverse-surface": "#dfe2ef",
+                    "surface-container-high": "#262a34",
+                    "inverse-on-surface": "#2c303a",
+                    "secondary-fixed-dim": "#c6c6c7",
+                    "on-surface": "#dfe2ef",
+                    "on-secondary-fixed-variant": "#454747",
+                    "on-secondary-fixed": "#1a1c1c",
+                    "on-secondary": "#2f3131",
+                    "tertiary-container": "#db6c9b",
+                    "primary-fixed-dim": "#ffb1c6",
+                    "surface-container": "#1c2029",
+                    "on-error-container": "#ffdad6",
+                    "on-primary": "#650030",
+                    "on-tertiary": "#620639",
+                    "tertiary": "#ffb0cd",
+                    "surface": "#0f131c",
+                    "on-tertiary-fixed": "#3e0021",
+                    "on-surface-variant": "#e2bdc5",
+                    "on-primary-container": "#590029",
+                    "secondary": "#c6c6c7",
+                    "outline-variant": "#5a4046",
+                    "inverse-primary": "#ba005e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "12px",
+                    "stack-lg": "48px",
+                    "stack-xs": "4px",
+                    "margin-desktop": "64px",
+                    "stack-md": "24px",
+                    "baseline": "8px",
+                    "gutter-mobile": "20px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Karla"],
+                    "headline-lg-mobile": ["Montserrat"],
+                    "label-mono": ["Karla"],
+                    "body-md": ["Karla"],
+                    "display-lg-mobile": ["Montserrat"],
+                    "headline-md": ["Montserrat"],
+                    "body-lg": ["Karla"],
+                    "headline-lg": ["Montserrat"],
+                    "display-lg": ["Montserrat"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "label-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(28, 32, 41, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(169, 136, 144, 0.1);
+        }
+        .text-glow-primary {
+            text-shadow: 0 0 10px rgba(255, 74, 144, 0.4);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .avatar-glow {
+            box-shadow: 0 0 15px rgba(255, 74, 144, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary/30 min-h-screen pb-24">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-outline-variant/20 shadow-sm px-gutter-mobile h-16 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary active:scale-95 duration-300">menu</button>
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-primary tracking-tighter">GoChef</h1>
+</div>
+<button class="material-symbols-outlined text-primary active:scale-95 duration-300">shopping_bag</button>
+</header>
+<main class="pt-20 px-gutter-mobile space-y-stack-md">
+<!-- Profile Header -->
+<section class="flex flex-col items-center text-center mt-4">
+<div class="relative group">
+<div class="w-24 h-24 rounded-full border-2 border-primary-container p-1 avatar-glow mb-4">
+<img class="w-full h-full rounded-full object-cover" data-alt="A sophisticated professional portrait of a stylish man named Alex Thompson with a warm smile, set against a dark, moody metropolitan apartment background with soft bokeh city lights. The image features high-end editorial lighting, sharp focus on the face, and a cinematic urban gourmet aesthetic that aligns with a premium food marketplace brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCABkMoDXf8yH7pXJ1S1GTjNU0hp579UQyB3xr2XusadzrBACMgH_WDbJQAAdV5bL-W7s0clXMSKM22PW7pbg2lVV7_xbXD_2CviE1ZSPIrhKYunEIV1p2VdbWpuIsGSgcjdeexj-lwypxoyRMeM_KDILk3Hky-IOtxBKJ8LBp_5h9RekwfcgmJGwP9qzPEtnfuOprGRUdOor7D-kprabLtBIRSf76GmR_1kOuHtf4cGmxbc6CFse6xnA">
+</div>
+<button class="absolute bottom-4 right-0 bg-primary-container text-on-primary-container p-1.5 rounded-full shadow-lg active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+</div>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile mb-1">Alex Thompson</h2>
+<div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-primary-container/10 border border-primary-container/20">
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider">Gourmet Gold Member</span>
+</div>
+</section>
+<!-- Loyalty Dashboard Card -->
+<section class="glass-panel rounded-2xl p-6 shadow-xl relative overflow-hidden">
+<!-- Decorative shader background -->
+<div class="absolute inset-0 opacity-20 pointer-events-none">
+
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-6">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-1">Loyalty Points</p>
+<h3 class="font-display-lg-mobile text-display-lg-mobile text-primary leading-none">1,250 <span class="text-[18px] font-medium opacity-70">pts</span></h3>
+</div>
+<button class="bg-surface-container-highest/50 hover:bg-surface-container-highest p-2 rounded-xl transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">history</span>
+</button>
+</div>
+<div class="space-y-2 mb-6">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Progress to Platinum</span>
+<span class="text-primary font-bold">250 pts left</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary-container to-tertiary-container w-[75%] rounded-full"></div>
+</div>
+</div>
+<div class="flex gap-4 p-4 rounded-xl bg-surface-container-low/40 border border-outline-variant/10">
+<div class="flex-1">
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Recent Activity</p>
+<p class="font-body-md text-body-md">+150 pts from "Spicy Thai Kitchen"</p>
+</div>
+<span class="material-symbols-outlined self-center text-primary">arrow_forward_ios</span>
+</div>
+</div>
+</section>
+<!-- Rewards Gallery -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h4 class="font-headline-md text-headline-md">Rewards Gallery</h4>
+<button class="text-primary font-label-sm text-label-sm">View All</button>
+</div>
+<div class="flex overflow-x-auto gap-4 no-scrollbar pb-2 -mx-gutter-mobile px-gutter-mobile">
+<!-- Perk Card 1 -->
+<div class="min-w-[160px] glass-panel rounded-xl p-4 flex flex-col items-center text-center gap-3">
+<div class="w-12 h-12 rounded-full bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">delivery_dining</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm font-bold">Free Delivery</p>
+<p class="font-label-sm text-[10px] text-on-surface-variant">Valid for 3 days</p>
+</div>
+<button class="w-full py-2 bg-primary text-on-primary text-[12px] font-bold rounded-lg active:scale-95 transition-all">Claim</button>
+</div>
+<!-- Perk Card 2 -->
+<div class="min-w-[160px] glass-panel rounded-xl p-4 flex flex-col items-center text-center gap-3">
+<div class="w-12 h-12 rounded-full bg-tertiary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-3xl">percent</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm font-bold">10% Off Order</p>
+<p class="font-label-sm text-[10px] text-on-surface-variant">500 Points</p>
+</div>
+<button class="w-full py-2 bg-surface-container-highest text-on-surface text-[12px] font-bold rounded-lg opacity-50 cursor-not-allowed">Locked</button>
+</div>
+<!-- Perk Card 3 -->
+<div class="min-w-[160px] glass-panel rounded-xl p-4 flex flex-col items-center text-center gap-3">
+<div class="w-12 h-12 rounded-full bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">wine_bar</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm font-bold">Free Mocktail</p>
+<p class="font-label-sm text-[10px] text-on-surface-variant">With any entree</p>
+</div>
+<button class="w-full py-2 bg-primary text-on-primary text-[12px] font-bold rounded-lg active:scale-95 transition-all">Claim</button>
+</div>
+</div>
+</section>
+<!-- Account Management List -->
+<section class="space-y-stack-sm">
+<h4 class="font-headline-md text-headline-md mb-2">Account Management</h4>
+<div class="glass-panel rounded-2xl divide-y divide-outline-variant/10">
+<a class="flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">person_outline</span>
+<span class="flex-1 font-body-md text-body-md">Personal Information</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">chevron_right</span>
+</a>
+<a class="flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">credit_card</span>
+<span class="flex-1 font-body-md text-body-md">Payment Methods</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">chevron_right</span>
+</a>
+<a class="flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">location_on</span>
+<span class="flex-1 font-body-md text-body-md">Delivery Addresses</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">chevron_right</span>
+</a>
+<a class="flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">receipt_long</span>
+<span class="flex-1 font-body-md text-body-md">Order History</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">chevron_right</span>
+</a>
+<a class="flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">security</span>
+<span class="flex-1 font-body-md text-body-md">Security &amp; Password</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">chevron_right</span>
+</a>
+<a class="flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+<span class="flex-1 font-body-md text-body-md">Preferences</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">chevron_right</span>
+</a>
+</div>
+</section>
+<!-- Support & Legal -->
+<section class="space-y-stack-sm pb-8">
+<h4 class="font-headline-md text-headline-md mb-2">Support &amp; Legal</h4>
+<div class="glass-panel rounded-2xl divide-y divide-outline-variant/10">
+<a class="flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">help</span>
+<span class="flex-1 font-body-md text-body-md">Help Center</span>
+</a>
+<a class="flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">policy</span>
+<span class="flex-1 font-body-md text-body-md">Privacy Policy</span>
+</a>
+<a class="flex items-center gap-4 p-4 hover:bg-surface-container-high transition-colors" href="#">
+<span class="material-symbols-outlined text-on-surface-variant">description</span>
+<span class="flex-1 font-body-md text-body-md">Terms of Service</span>
+</a>
+</div>
+<button class="w-full mt-4 py-4 rounded-2xl border border-error text-error font-headline-md active:scale-[0.98] transition-all bg-error/5">
+                Log Out
+            </button>
+</section>
+</main>
+<!-- Bottom Nav Bar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-surface-container/90 backdrop-blur-2xl border-t border-outline-variant/10 shadow-[0_-4px_20px_rgba(255,74,144,0.1)] px-4 pt-2 pb-safe flex justify-around items-center h-20">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary/80 transition-all duration-300 active:scale-90">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary/80 transition-all duration-300 active:scale-90">
+<span class="material-symbols-outlined">search</span>
+<span class="font-label-sm text-label-sm">Search</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary/80 transition-all duration-300 active:scale-90">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-label-sm text-label-sm">Orders</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant/70 hover:text-primary/80 transition-all duration-300 active:scale-90">
+<span class="material-symbols-outlined">favorite</span>
+<span class="font-label-sm text-label-sm">Favorites</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary transition-all duration-300 active:scale-90">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</button>
+</nav>
+<script>
+        // Simple scale interaction for all list items and cards
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('touchstart', () => {
+                el.classList.add('scale-[0.98]');
+            });
+            el.addEventListener('touchend', () => {
+                el.classList.remove('scale-[0.98]');
+            });
+        });
+    </script>
+</body></html>
