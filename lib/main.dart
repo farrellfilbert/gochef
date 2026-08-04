@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
@@ -13,12 +14,14 @@ import 'services/api_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-    ),
-  );
+  if (!kIsWeb) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
+  }
   runApp(const GoChefApp());
 }
 
@@ -59,7 +62,10 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
 
   Future<void> _checkAuth() async {
     try {
-      final userId = await ApiService.getUserId();
+      final userId = await ApiService.getUserId().timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => null,
+      );
       if (!mounted) return;
       setState(() {
         _isLoggedIn = userId != null && userId.isNotEmpty;
