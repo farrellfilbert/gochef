@@ -9,6 +9,7 @@ import 'theme/app_text_styles.dart';
 import 'screens/orders/order_history_screen.dart';
 import 'screens/favorites/favorites_screen.dart';
 import 'screens/profile/user_profile_screen.dart';
+import 'services/api_service.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
@@ -29,7 +30,56 @@ class GoChefApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'GoChef Premium',
       theme: AppTheme.darkTheme,
-      home: const LoginScreen(),
+      home: const AuthCheckScreen(),
+    );
+  }
+}
+
+// ==========================================
+// AUTH CHECK SCREEN
+// ==========================================
+
+class AuthCheckScreen extends StatefulWidget {
+  const AuthCheckScreen({super.key});
+
+  @override
+  State<AuthCheckScreen> createState() => _AuthCheckScreenState();
+}
+
+class _AuthCheckScreenState extends State<AuthCheckScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    // Wait briefly to allow UI to render the loading state smoothly
+    await Future.delayed(const Duration(milliseconds: 500));
+    final userId = await ApiService.getUserId();
+    
+    if (!mounted) return;
+    
+    if (userId != null && userId.isNotEmpty) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainNavigation()),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: AppColors.midnight,
+      body: Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      ),
     );
   }
 }
