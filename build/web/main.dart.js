@@ -93085,7 +93085,7 @@ return A.O($async$vj,r)},
 H(a){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e=this,d=null,c=e.z
 c===$&&A.a()
 c=A.nX(0,A.hO(c,new A.atu(e),d))
-s=A.nX(0,A.f8(B.jK,A.fj(100,100)))
+s=A.nX(0,A.f8(B.jK,A.fj(20,20)))
 r=e.ajd()
 q=A.j("Verify Phone",d,d,d,d,A.al().$4$color$fontSize$fontWeight$height(B.w,24,B.y,1.3333333333333333),d,d)
 p=A.z().$4$color$fontSize$fontWeight$height(B.l,16,B.o,1.5)
@@ -93324,7 +93324,7 @@ n=A.b_(a,r,q).w
 m=A.b_(a,r,q).w
 q=A.b_(a,r,q).w
 s=t.p
-return A.dq(r,B.bp,A.cR(B.ar,A.b([p,A.d0(-o.a.b*0.1,A.Q(r,r,B.f,r,r,new A.J(B.ew.D(0.05),r,r,r,r,r,B.Y),r,q.a.b*0.5,r,r,r,r,m.a.a*0.5),r,r,r,-n.a.a*0.1,r,r),A.nX(0,A.f8(B.jK,A.fj(120,120))),A.hs(!0,A.dD(A.dI(new A.dO(B.kq,A.a9(A.b([this.ab3(),B.cv,this.aaZ(),B.cv,A.i6(A.j("TRUSTED BY 50,000+ URBAN CHEFS",r,r,r,r,A.z().$5$color$fontSize$fontWeight$height$letterSpacing(B.oG,12,B.n,1.3333333333333333,0.24).k_(2),B.cx,r),0.5)],s),B.i,B.h,B.e),r),r,B.G,B.Jw,r,B.a4),r,r),!1,B.a0,!0)],s),B.L,B.ax),r,!1,r)},
+return A.dq(r,B.bp,A.cR(B.ar,A.b([p,A.d0(-o.a.b*0.1,A.Q(r,r,B.f,r,r,new A.J(B.ew.D(0.05),r,r,r,r,r,B.Y),r,q.a.b*0.5,r,r,r,r,m.a.a*0.5),r,r,r,-n.a.a*0.1,r,r),A.nX(0,A.f8(B.jK,A.fj(20,20))),A.hs(!0,A.dD(A.dI(new A.dO(B.kq,A.a9(A.b([this.ab3(),B.cv,this.aaZ(),B.cv,A.i6(A.j("TRUSTED BY 50,000+ URBAN CHEFS",r,r,r,r,A.z().$5$color$fontSize$fontWeight$height$letterSpacing(B.oG,12,B.n,1.3333333333333333,0.24).k_(2),B.cx,r),0.5)],s),B.i,B.h,B.e),r),r,B.G,B.Jw,r,B.a4),r,r),!1,B.a0,!0)],s),B.L,B.ax),r,!1,r)},
 ab3(){var s,r,q=null,p=this.z
 p===$&&A.a()
 s=A.X(16)
@@ -93629,7 +93629,7 @@ case 2:return A.M(o.at(-1),r)}})
 return A.O($async$vf,r)},
 n4(a){var s=null
 this.c.ag(t.Pu).f.mG(A.aE4(s,s,s,B.hh,s,B.L,s,A.j(a,s,s,s,s,s,s,s),s,B.dp,s,s,s,s,s,s,s,s,s,s))},
-H(a2){var s,r,q,p,o,n,m,l,k,j,i,h=this,g=-128,f=null,e=A.d0(g,A.Q(f,f,B.f,f,f,new A.J(B.a_.D(0.1),f,f,f,f,f,B.Y),f,384,f,f,f,f,384),f,f,g,f,f,f),d=A.d0(f,A.Q(f,f,B.f,f,f,new A.J(B.pd.D(0.1),f,f,f,f,f,B.Y),f,384,f,f,f,f,384),f,f,f,g,g,f),c=A.nX(0,A.f8(B.jK,A.fj(120,120))),b=h.ab_(),a=A.j("Create Account",f,f,f,f,A.al().$4$color$fontSize$fontWeight$height(B.w,24,B.y,1.3333333333333333),f,f),a0=A.i6(A.j("Join the community of neighborhood chefs and foodies.",f,f,f,f,A.z().$4$color$fontSize$fontWeight$height(B.l,16,B.o,1.5),f,f),0.8),a1=A.bX(A.hd(f,f,f,new A.VD(f),B.U),20,20)
+H(a2){var s,r,q,p,o,n,m,l,k,j,i,h=this,g=-128,f=null,e=A.d0(g,A.Q(f,f,B.f,f,f,new A.J(B.a_.D(0.1),f,f,f,f,f,B.Y),f,384,f,f,f,f,384),f,f,g,f,f,f),d=A.d0(f,A.Q(f,f,B.f,f,f,new A.J(B.pd.D(0.1),f,f,f,f,f,B.Y),f,384,f,f,f,f,384),f,f,f,g,g,f),c=A.nX(0,A.f8(B.jK,A.fj(20,20))),b=h.ab_(),a=A.j("Create Account",f,f,f,f,A.al().$4$color$fontSize$fontWeight$height(B.w,24,B.y,1.3333333333333333),f,f),a0=A.i6(A.j("Join the community of neighborhood chefs and foodies.",f,f,f,f,A.z().$4$color$fontSize$fontWeight$height(B.l,16,B.o,1.5),f,f),0.8),a1=A.bX(A.hd(f,f,f,new A.VD(f),B.U),20,20)
 a1=h.R1("Continue with Google",a1,h.z?f:h.gakg())
 s=h.R1("Continue with Apple",B.Lf,new A.axx(h))
 r=t.p

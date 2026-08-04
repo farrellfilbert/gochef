@@ -188,7 +188,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           // Blur
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: const SizedBox(),
             ),
           ),

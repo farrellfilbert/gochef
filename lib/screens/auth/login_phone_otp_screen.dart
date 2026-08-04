@@ -159,7 +159,7 @@ class _LoginPhoneOtpScreenState extends State<LoginPhoneOtpScreen>
           // Blur
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: const SizedBox(),
             ),
           ),
