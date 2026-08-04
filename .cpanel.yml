@@ -3,3 +3,4 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/astroboomin/public_html/
     - /bin/cp -a build/web/* $DEPLOYPATH
+    - /bin/cp -a api $DEPLOYPATH
