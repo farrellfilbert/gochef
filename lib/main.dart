@@ -12,6 +12,7 @@ import 'screens/profile/user_profile_screen.dart';
 import 'services/api_service.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -54,18 +55,26 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
   }
 
   Future<void> _checkAuth() async {
-    // Wait briefly to allow UI to render the loading state smoothly
-    await Future.delayed(const Duration(milliseconds: 500));
-    final userId = await ApiService.getUserId();
-    
-    if (!mounted) return;
-    
-    if (userId != null && userId.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavigation()),
-      );
-    } else {
+    try {
+      // Wait briefly to allow UI to render the loading state smoothly
+      await Future.delayed(const Duration(milliseconds: 500));
+      final userId = await ApiService.getUserId();
+      
+      if (!mounted) return;
+      
+      if (userId != null && userId.isNotEmpty) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainNavigation()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
