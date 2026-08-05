@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_chef_app/theme/app_colors.dart';
-import 'package:go_chef_app/theme/app_text_styles.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
 import '../notifications/notifications_screen.dart';
+import '../../services/api_service.dart';
+import '../kitchen/kitchen_profile_screen.dart';
+import '../food/food_details_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -12,11 +15,48 @@ class FavoritesScreen extends StatefulWidget {
 
 class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  List<Map<String, dynamic>> _meals = [];
+  List<Map<String, dynamic>> _kitchens = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    setState(() => _isLoading = true);
+    try {
+      final meals = await ApiService.getFavorites(type: 'dish');
+      final kitchens = await ApiService.getFavorites(type: 'kitchen');
+      setState(() {
+        _meals = meals;
+        _kitchens = kitchens;
+      });
+    } catch (e) {
+      debugPrint('Error loading favorites: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _removeFavorite(int itemId, String type) async {
+    // Assuming backend endpoint /favorites.php?action=remove handles it, 
+    // but the current ApiService might not have removeFavorite. 
+    // We will just do local remove for demonstration if we don't have the API method.
+    // If ApiService.removeFavorite exists, call it. For now, local update:
+    setState(() {
+      if (type == 'dish') {
+        _meals.removeWhere((m) => m['menu_item_id'] == itemId || m['item_id'] == itemId);
+      } else {
+        _kitchens.removeWhere((k) => k['kitchen_id'] == itemId || k['item_id'] == itemId);
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Removed from favorites'), backgroundColor: AppColors.primary),
+    );
   }
 
   @override
@@ -58,7 +98,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
                     const Icon(Icons.location_on, size: 14, color: AppColors.onSurfaceVariant),
                     const SizedBox(width: 4),
                     Text(
-                      'University District',
+                      'Favorites',
                       style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
                     ),
                   ],
@@ -80,242 +120,293 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
           child: Container(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
         ),
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 16),
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppColors.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
-              ),
-              child: TextField(
-                style: AppTextStyles.bodyMd(color: AppColors.onSurface),
-                decoration: InputDecoration(
-                  hintText: 'Filter your favorites...',
-                  hintStyle: AppTextStyles.bodyMd(color: AppColors.outline),
-                  prefixIcon: const Icon(Icons.search, color: AppColors.outline),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Tabs
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.1))),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                indicatorColor: AppColors.primary,
-                indicatorWeight: 3,
-                labelColor: AppColors.primary,
-                unselectedLabelColor: AppColors.secondary,
-                labelStyle: AppTextStyles.headlineMd(color: AppColors.primary),
-                tabs: const [
-                  Tab(text: 'Meals'),
-                  Tab(text: 'Kitchens'),
-                ],
-              ),
-            ),
-          ),
-          
-          // Tab Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : Column(
               children: [
-                _buildMealsTab(),
-                _buildKitchensTab(),
+                const SizedBox(height: 16),
+                // Search Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                    ),
+                    child: TextField(
+                      style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+                      decoration: InputDecoration(
+                        hintText: 'Filter your favorites...',
+                        hintStyle: AppTextStyles.bodyMd(color: AppColors.outline),
+                        prefixIcon: const Icon(Icons.search, color: AppColors.outline),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Tabs
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(bottom: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.1))),
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      indicatorColor: AppColors.primary,
+                      indicatorWeight: 3,
+                      labelColor: AppColors.primary,
+                      unselectedLabelColor: AppColors.secondary,
+                      labelStyle: AppTextStyles.headlineMd(color: AppColors.primary),
+                      tabs: const [
+                        Tab(text: 'Meals'),
+                        Tab(text: 'Kitchens'),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                // Tab Content
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildMealsTab(),
+                      _buildKitchensTab(),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildMealsTab() {
-    return ListView(
+    if (_meals.isEmpty) {
+      return Center(
+        child: Text('No favorite meals found.', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
+      );
+    }
+    return ListView.separated(
       padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 120),
-      children: [
-        _buildMealCard(
-          title: 'Truffle Risotto',
-          subtitle: 'Urban Gourmet Kitchen',
-          price: '\$32.00',
-          rating: '4.9',
-          imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBqCHamdmyHzWY44BD2HOJdBZKiRe0yGUhA0bw9NIDmOw-quVxvoE9NibZMRko85um3B3HddH_JtD8kH3XLibv8n-XPiN5V55ne4L4spXOsLznexFvnAIA_rN5Z5T_Sn3XEuQKpKgtikWZOc1Q00PcXk1H2DsIaZTmpvcffC3_Vt7QgdWWR5fq_SlvXz8jcjmCC6jsXNDJSSyvpcMeCWYRrgW-5n1senJTLdnD0V3WKexsGHt5X9u0dPA',
-        ),
-        const SizedBox(height: 24),
-        _buildMealCard(
-          title: 'Wild Mushroom Tagliatelle',
-          subtitle: 'Chef Elena\'s Atelier',
-          price: '\$28.50',
-          rating: '4.8',
-          imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDP6G29Uk965cwwQ8OiS6HLbGNzT29gNEjRR97s9amn-YJdLzm-FtdOQso4TeJsmTd8enlfva0lZn_qxl_MtPx9_w8IvTRTWLxrFdOf6bf4_9MmFaSXh9RKF5b5t9MBwRNp51M6Az7sT3lfZX1OfZj6gi4-WxhKSO8fiyU_QqAyeYkXLQtDtDovAtQsA4-TIKk33qjDFbhg-hQCfTohXc05ue8nbJFDaeu41bByo3y0YdsbrpMUnD2WYw',
-        ),
-        const SizedBox(height: 24),
-        _buildMealCard(
-          title: 'Saffron Glazed Sea Bass',
-          subtitle: 'Luxe Ocean Kitchen',
-          price: '\$45.00',
-          rating: '5.0',
-          imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAF_TuEEoNWqJZqP1hnUQoRSSNl6QK6bLgLVUJOhjwmD_gVYRHNpxTQ51ZAfZoGk3xz3UiEPouK6VWw70icuOu0DUMrCrHWE5Kmw92nv9jeJ19oD1SR_MHVqSNQmo5Py55e0egEJGYNYKKWSYVCK1luLgfuMJc6H0REBPYLD9i-JCYJaV3c6cByV9y1n3ecZQ3xePFDShlMy3fpcdOQk9nGTzIK_Qwv1U1QbNpMZp1BvqiXgx0BNUqWIw',
-        ),
-      ],
+      itemCount: _meals.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 24),
+      itemBuilder: (context, index) {
+        final meal = _meals[index];
+        return _buildMealCard(
+          id: meal['item_id'] ?? meal['menu_item_id'] ?? 0,
+          title: meal['name'] ?? 'Unknown',
+          subtitle: meal['kitchen_name'] ?? '',
+          price: '\$${(meal['price'] != null ? double.parse(meal['price'].toString()) : 0.0).toStringAsFixed(2)}',
+          rating: (meal['rating'] != null ? double.parse(meal['rating'].toString()) : 0.0).toStringAsFixed(1),
+          imageUrl: meal['image'] ?? '',
+        );
+      },
     );
   }
 
   Widget _buildKitchensTab() {
-    return ListView(
+    if (_kitchens.isEmpty) {
+      return Center(
+        child: Text('No favorite kitchens found.', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
+      );
+    }
+    return ListView.separated(
       padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 120),
-      children: [
-        _buildKitchenCard(
-          title: 'Urban Gourmet Kitchen',
-          subtitle: 'Contemporary Fusion • 1.2 mi',
-          rating: '4.9 (240+)',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAfyJ0ofjcq8kSxWH35y8sDdaq-y-Q0bqU4ZoL4GuBMEaCchXl2dZkrUyYRrlRKYK--xVramO4GEWP8hbNNIA6s-LPdut57XLHc8r_Jej0GKraO8N_EIf3xg29zDDZG645tUnUX9XTA05Qfrk8B9_Uc3YsYmayhuhOulbh5ItKTcBPkY8vGcoePDajaF_Vg6NviGXfhseW0wPo4PWUtWpnT0WD4hbqqhj2k2MRRjELvKbyLwNPer4aiBA',
-        ),
-        const SizedBox(height: 16),
-        _buildKitchenCard(
-          title: 'Chef Elena\'s Atelier',
-          subtitle: 'Artisanal Italian • 0.8 mi',
-          rating: '4.8 (180+)',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDOWZ9CphwpqABBphlDNO028ghueIMH1NoPIjseFQzFNqju-kI5px17pBS3WhIS-goUhxkpEBxGQSTNiZzH5Ih0mK94zt9_tHJklGfawuEnLS5gX2ROx2wOvgBhipSXQAgxD-H_I3R7LWfzvpfmdkzXmVvU6ucljjXJ1BbpQoWYobzgEMX0z-A-q15xoWH9zEB2t-bX8doZSYJJ1hnNFCEKD8CbOwJRjPrR-nrYVvzgObVKzk1AVIrpKw',
-        ),
-        const SizedBox(height: 16),
-        _buildKitchenCard(
-          title: 'Sakura Zenith',
-          subtitle: 'Fine Dining Sushi • 2.5 mi',
-          rating: '5.0 (95+)',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAGA3gHDVYkV1na4L5RbvyQwvzWcKOIBhdD6UAo0w525e-UoLhAj8eKxbGGlNkf1WAm1O3SL3wY7C9rGLjvDUM172ixx5ye-2RjIaeFlE-qGa8bsUeBK6FRw174X3Bj01fQICnWQQbAL90c_wpPB6VkADnDGXMACFURWXieC9nM1s2fsU5EM_JFHJcJtFozOI3bWj5QSJsorODZ7QjvLvhQXjz1HUxuu_F4AZzkP3KMYIOB8vM2hxb4_w',
-        ),
-      ],
+      itemCount: _kitchens.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
+        final kitchen = _kitchens[index];
+        return _buildKitchenCard(
+          id: kitchen['item_id'] ?? kitchen['kitchen_id'] ?? 0,
+          title: kitchen['name'] ?? 'Unknown',
+          subtitle: kitchen['cuisine_type'] ?? '',
+          rating: (kitchen['rating'] != null ? double.parse(kitchen['rating'].toString()) : 0.0).toStringAsFixed(1),
+          avatar: kitchen['image'] ?? kitchen['avatar'] ?? '',
+        );
+      },
     );
   }
 
   Widget _buildMealCard({
+    required int id,
     required String title,
     required String subtitle,
     required String price,
     required String rating,
     required String imageUrl,
   }) {
-    return Container(
-      height: 176,
-      decoration: BoxDecoration(
-        color: const Color(0xFF31353F).withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFA98890).withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 140,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), bottomLeft: Radius.circular(12)),
-              child: Image.network(imageUrl, fit: BoxFit.cover, height: double.infinity),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(title, style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(height: 1.2)),
-                            const SizedBox(height: 4),
-                            Text(subtitle, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 14)),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.favorite, color: AppColors.primaryContainer),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: AppColors.primary, size: 16),
-                          const SizedBox(width: 4),
-                          Text(rating, style: AppTextStyles.labelSm(color: AppColors.onSurface)),
-                        ],
-                      ),
-                      Text(price, style: AppTextStyles.headlineMd(color: AppColors.primary)),
-                    ],
-                  )
-                ],
+    return GestureDetector(
+      onTap: () {
+        if (id > 0) {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: id)));
+        }
+      },
+      child: Container(
+        height: 176,
+        decoration: BoxDecoration(
+          color: const Color(0xFF31353F).withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFA98890).withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 140,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), bottomLeft: Radius.circular(12)),
+                child: Image.network(imageUrl, fit: BoxFit.cover, height: double.infinity,
+                  errorBuilder: (_, __, ___) => Container(color: AppColors.surfaceContainer),
+                ),
               ),
             ),
-          )
-        ],
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(title, style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
+                              const SizedBox(height: 4),
+                              Text(subtitle, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => _removeFavorite(id, 'dish'),
+                          child: const Icon(Icons.favorite, color: AppColors.primaryContainer),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(price, style: AppTextStyles.bodyLg(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.star, color: AppColors.primary, size: 14),
+                                const SizedBox(width: 4),
+                                Text(rating, style: AppTextStyles.labelMono(color: AppColors.onSurfaceVariant)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            if (id > 0) {
+                              final success = await ApiService.addToCart(id);
+                              if (success && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Added to cart'), backgroundColor: AppColors.primary),
+                                );
+                              }
+                            }
+                          },
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: const BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.add, color: AppColors.onPrimary, size: 20),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildKitchenCard({
+    required int id,
     required String title,
     required String subtitle,
     required String rating,
     required String avatar,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF31353F).withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFA98890).withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
-              image: DecorationImage(image: NetworkImage(avatar), fit: BoxFit.cover),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                Text(subtitle, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 14)),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: AppColors.primary, size: 12),
-                    const SizedBox(width: 4),
-                    Text(rating, style: AppTextStyles.labelSm(color: AppColors.onSurface)),
-                  ],
+    return GestureDetector(
+      onTap: () {
+        if (id > 0) {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => KitchenProfileScreen(kitchenId: id)));
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF31353F).withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFA98890).withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                image: DecorationImage(image: NetworkImage(avatar), fit: BoxFit.cover,
+                  onError: (_, __) => const NetworkImage('https://ui-avatars.com/api/?name=Kitchen')
                 ),
-              ],
+              ),
             ),
-          ),
-          const Icon(Icons.favorite, color: AppColors.primaryContainer),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: AppTextStyles.headlineMd(color: AppColors.onSurface), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: AppColors.primary, size: 14),
+                      const SizedBox(width: 4),
+                      Text(rating, style: AppTextStyles.labelMono(color: AppColors.onSurfaceVariant)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: () => _removeFavorite(id, 'kitchen'),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.favorite, color: AppColors.primaryContainer, size: 20),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

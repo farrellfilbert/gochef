@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_chef_app/theme/app_colors.dart';
-import 'package:go_chef_app/theme/app_text_styles.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../services/api_service.dart';
+import '../../models/notification_model.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -12,9 +14,67 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   int _selectedFilter = 0;
   final List<String> _filters = ['All', 'Orders', 'Promotions'];
+  
+  bool _isLoading = true;
+  List<NotificationModel> _notifications = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    setState(() => _isLoading = true);
+    try {
+      final notifs = await ApiService.getNotifications();
+      setState(() {
+        _notifications = notifs;
+      });
+    } catch (e) {
+      debugPrint('Error loading notifications: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _markAsRead(int notificationId) async {
+    final success = await ApiService.markNotificationRead(notificationId);
+    if (success) {
+      setState(() {
+        final index = _notifications.indexWhere((n) => n.id == notificationId);
+        if (index != -1) {
+          _notifications[index] = NotificationModel(
+            id: _notifications[index].id,
+            userId: _notifications[index].userId,
+            title: _notifications[index].title,
+            message: _notifications[index].message,
+            type: _notifications[index].type,
+            isRead: true,
+            createdAt: _notifications[index].createdAt,
+          );
+        }
+      });
+    }
+  }
+
+  Future<void> _markAllAsRead() async {
+    for (var notif in _notifications) {
+      if (!notif.isRead) {
+        await _markAsRead(notif.id);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    List<NotificationModel> filteredNotifs = _notifications;
+    if (_selectedFilter == 1) { // Orders
+      filteredNotifs = _notifications.where((n) => n.type == 'order').toList();
+    } else if (_selectedFilter == 2) { // Promotions
+      filteredNotifs = _notifications.where((n) => n.type == 'promotion').toList();
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -46,7 +106,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     const Icon(Icons.location_on, size: 14, color: AppColors.onSurfaceVariant),
                     const SizedBox(width: 4),
                     Text(
-                      'University District',
+                      'Notifications',
                       style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
                     ),
                   ],
@@ -66,7 +126,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           child: Container(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
         ),
       ),
-      body: SingleChildScrollView(
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+        : SingleChildScrollView(
         padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,7 +138,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text('Notifications', style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface)),
-                Text('Mark all as read', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(decoration: TextDecoration.underline)),
+                GestureDetector(
+                  onTap: _markAllAsRead,
+                  child: Text('Mark all as read', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(decoration: TextDecoration.underline)),
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -115,49 +180,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 24),
 
             // Notifications List
-            _buildNotificationCard(
-              icon: Icons.restaurant,
-              iconColor: AppColors.primaryContainer,
-              title: 'Order #GC-99210 Prepared',
-              time: '2m ago',
-              description: 'Chef Elena has just started preparing your Truffle Risotto. Expect delivery in 20 mins.',
-              isUnread: true,
-            ),
-            const SizedBox(height: 12),
-            _buildNotificationCard(
-              icon: Icons.sell,
-              iconColor: AppColors.tertiary,
-              title: 'Weekend Special',
-              time: '1h ago',
-              description: 'Enjoy 20% off all Italian Kitchens this Saturday! Book your private chef table now.',
-              isUnread: false,
-            ),
-            const SizedBox(height: 12),
-            _buildNotificationCardWithImage(
-              imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAFRCmj_r9VK400WojFaLqAOv201ao1yO09OU1mpOkGARCuKaAdHlY2DsD5RVJTqorbO6r_sH7ttzrp-8Z5gX6q__Q9LbUaILPY53iMVIDwA0ISRY5Kk5byFphjw_x5TOhYNtaExdWI7F7EPvg3sE3wSLMp7ufqTs1FJ0WTG2_WFPsPOoiP75EpCVSVsMYso4ofmA1_2QxQubz99B2dXXtK7fBiiVVeDXxFOTvA3ojzGvK8ymC0AEHTGg',
-              title: 'New Seasonal Menu',
-              time: '4h ago',
-              description: 'Chef Maria Rossi just uploaded a new autumn-inspired menu featuring wild mushroom pairings.',
-              isUnread: true,
-            ),
-            const SizedBox(height: 12),
-            _buildNotificationCard(
-              icon: Icons.delivery_dining,
-              iconColor: AppColors.secondary,
-              title: 'Order Delivered',
-              time: 'Yesterday',
-              description: 'Enjoy your meal! Order #GC-98122 from Chef Marco has been delivered.',
-              isUnread: false,
-            ),
-            const SizedBox(height: 12),
-            _buildNotificationCard(
-              icon: Icons.person_pin_circle,
-              iconColor: AppColors.primary,
-              title: 'New Chef Nearby',
-              time: '2d ago',
-              description: 'A Michelin-star pastry chef just joined GoChef in your neighborhood. Discover their treats!',
-              isUnread: false,
-            ),
+            if (filteredNotifs.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Text('No notifications found', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
+                ),
+              )
+            else
+              ...filteredNotifs.map((n) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildNotificationCard(
+                    notification: n,
+                  ),
+                );
+              }),
           ],
         ),
       ),
@@ -165,138 +203,99 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildNotificationCard({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String time,
-    required String description,
-    required bool isUnread,
+    required NotificationModel notification,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C2029).withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFA98890).withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: iconColor.withValues(alpha: 0.2)),
-                ),
-                child: Icon(icon, color: iconColor),
-              ),
-              if (isUnread)
-                Positioned(
-                  top: -4,
-                  right: -4,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryContainer,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.background, width: 2),
-                      boxShadow: [BoxShadow(color: AppColors.primaryContainer.withValues(alpha: 0.3), blurRadius: 10)],
-                    ),
-                  ),
-                )
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    IconData icon = Icons.notifications;
+    Color iconColor = AppColors.primary;
+
+    if (notification.type == 'order') {
+      icon = Icons.restaurant;
+      iconColor = AppColors.primaryContainer;
+    } else if (notification.type == 'promotion') {
+      icon = Icons.sell;
+      iconColor = AppColors.tertiary;
+    }
+
+    return GestureDetector(
+      onTap: () {
+        if (!notification.isRead) _markAsRead(notification.id);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1C2029).withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFA98890).withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(title, style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
-                    Text(time, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6))),
-                  ],
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: iconColor.withValues(alpha: 0.2)),
+                  ),
+                  child: Icon(icon, color: iconColor),
                 ),
-                const SizedBox(height: 4),
-                Text(description, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(height: 1.2)),
+                if (!notification.isRead)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryContainer,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.background, width: 2),
+                        boxShadow: [BoxShadow(color: AppColors.primaryContainer.withValues(alpha: 0.3), blurRadius: 10)],
+                      ),
+                    ),
+                  )
               ],
             ),
-          )
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(notification.title, style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _formatTime(notification.createdAt), 
+                        style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6))
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(notification.message, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(height: 1.2)),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildNotificationCardWithImage({
-    required String imageUrl,
-    required String title,
-    required String time,
-    required String description,
-    required bool isUnread,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C2029).withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFA98890).withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
-                  image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover),
-                ),
-              ),
-              if (isUnread)
-                Positioned(
-                  top: -4,
-                  right: -4,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryContainer,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.background, width: 2),
-                      boxShadow: [BoxShadow(color: AppColors.primaryContainer.withValues(alpha: 0.3), blurRadius: 10)],
-                    ),
-                  ),
-                )
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(title, style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
-                    Text(time, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6))),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(description, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(height: 1.2)),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
+  String _formatTime(DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}m ago';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h ago';
+    } else {
+      return '${diff.inDays}d ago';
+    }
   }
 }

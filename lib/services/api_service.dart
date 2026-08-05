@@ -517,4 +517,45 @@ class ApiService {
     }
     return [];
   }
+  static Future<bool> createMenuItem(Map<String, dynamic> data) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/menu_item_create.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(data),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      final resData = json.decode(response.body);
+      return resData['success'] == true;
+    }
+    return false;
+  }
+
+  static Future<bool> deleteMenuItem(int id) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/menu_item_delete.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'id': id}),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['success'] == true;
+    }
+    return false;
+  }
+
+  static Future<bool> updateKitchen(Map<String, dynamic> data) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/kitchen_update.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(data),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      final resData = json.decode(response.body);
+      return resData['success'] == true;
+    }
+    return false;
+  }
 }
