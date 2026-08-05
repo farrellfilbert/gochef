@@ -29,7 +29,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     try {
       final notifs = await ApiService.getNotifications();
       setState(() {
-        _notifications = notifs;
+        _notifications = (notifs['notifications'] as List).cast<NotificationModel>();
       });
     } catch (e) {
       debugPrint('Error loading notifications: $e');
@@ -46,7 +46,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         if (index != -1) {
           _notifications[index] = NotificationModel(
             id: _notifications[index].id,
-            userId: _notifications[index].userId,
             title: _notifications[index].title,
             message: _notifications[index].message,
             type: _notifications[index].type,
@@ -272,7 +271,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _formatTime(notification.createdAt), 
+                        _formatTime(DateTime.tryParse(notification.createdAt) ?? DateTime.now()), 
                         style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6))
                       ),
                     ],

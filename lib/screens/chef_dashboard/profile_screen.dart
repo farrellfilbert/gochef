@@ -321,7 +321,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                     children: [
                       Text(
                         '"${_kitchen!.description}"',
-                        style: AppTextStyles.body(color: AppColors.onSurfaceVariant).copyWith(fontStyle: FontStyle.italic),
+                        style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontStyle: FontStyle.italic),
                       ),
                       const SizedBox(height: 12),
                       Row(

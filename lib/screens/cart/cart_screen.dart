@@ -35,10 +35,12 @@ class _CartScreenState extends State<CartScreen> {
         _cartItems = items;
         if (addresses.isNotEmpty) {
           try {
-            _primaryAddress = addresses.firstWhere((a) => a.isPrimary);
-          } catch (_) {
-            _primaryAddress = addresses.first;
-          }
+          try {
+            _primaryAddress = addresses.firstWhere(
+              (a) => a.isDefault,
+              orElse: () => addresses.first,
+            );
+          } catch (_) {}
         }
       });
     } catch (e) {
@@ -57,19 +59,22 @@ class _CartScreenState extends State<CartScreen> {
       // Since we don't, we'll just local update or suggest remove/add.
       // We will skip actual backend update for quantity if endpoint is missing, 
       // but let's assume we can remove and re-add or just do local update for UI demonstration.
-      final index = _cartItems.indexWhere((i) => i.id == cartItemId);
+      final index = _cartItems.indexWhere((i) => i.cartItemId == cartItemId);
       if (index != -1) {
         setState(() {
           _cartItems[index] = CartItemModel(
-            id: _cartItems[index].id,
-            userId: _cartItems[index].userId,
+            cartItemId: _cartItems[index].cartItemId,
             menuItemId: _cartItems[index].menuItemId,
+            name: _cartItems[index].name,
+            price: _cartItems[index].price,
+            image: _cartItems[index].image,
+            prepTime: _cartItems[index].prepTime,
             quantity: newQuantity,
-            addons: _cartItems[index].addons,
-            menuItemName: _cartItems[index].menuItemName,
-            menuItemImage: _cartItems[index].menuItemImage,
-            menuItemPrice: _cartItems[index].menuItemPrice,
+            notes: _cartItems[index].notes,
             kitchenName: _cartItems[index].kitchenName,
+            kitchenAvatar: _cartItems[index].kitchenAvatar,
+            kitchenId: _cartItems[index].kitchenId,
+            addons: _cartItems[index].addons,
           );
         });
       }
@@ -80,7 +85,7 @@ class _CartScreenState extends State<CartScreen> {
     final success = await ApiService.removeFromCart(cartItemId);
     if (success) {
       setState(() {
-        _cartItems.removeWhere((item) => item.id == cartItemId);
+        _cartItems.removeWhere((item) => item.cartItemId == cartItemId);
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -160,7 +165,7 @@ class _CartScreenState extends State<CartScreen> {
                                           ),
                                           if (_primaryAddress != null)
                                             Text(
-                                              _primaryAddress!.addressLine1,
+                                              _primaryAddress!.address,
                                               style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
                                               maxLines: 1, overflow: TextOverflow.ellipsis,
                                             ),
@@ -467,8 +472,8 @@ class _CartScreenState extends State<CartScreen> {
 
   Widget _buildCartItem(CartItemModel item) {
     String addonsText = '';
-    if (item.addons != null && item.addons!.isNotEmpty) {
-      addonsText = item.addons!.map((a) => a['name']).join(', ');
+    if (item.addons.isNotEmpty) {
+      addonsText = item.addons.map((a) => a.name).join(', ');
     }
 
     return Container(
@@ -485,7 +490,7 @@ class _CartScreenState extends State<CartScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
-              item.menuItemImage,
+              item.image,
               width: 80,
               height: 80,
               fit: BoxFit.cover,
@@ -504,7 +509,7 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        item.menuItemName,
+                        item.name,
                         style: AppTextStyles.bodyLg(color: AppColors.onSurface)
                             .copyWith(fontWeight: FontWeight.bold, height: 1.2),
                       ),

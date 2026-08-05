@@ -69,13 +69,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       isOrdering = true;
     });
 
-    final success = await ApiService.checkout(
+    final result = await ApiService.checkout(
       addressId: _primaryAddress!.id,
       notes: isAsap ? 'ASAP Delivery' : 'Scheduled Delivery',
     );
 
     if (mounted) {
-      if (success) {
+      if (result != null && result['success'] == true) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const OrderCompleteScreen()),
