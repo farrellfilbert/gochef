@@ -5,6 +5,8 @@ import '../notifications/notifications_screen.dart';
 import '../../services/api_service.dart';
 import '../kitchen/kitchen_profile_screen.dart';
 import '../food/food_details_screen.dart';
+import '../../models/kitchen_model.dart';
+import '../../widgets/custom_app_bar_title.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -73,40 +75,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
         toolbarHeight: 80,
         backgroundColor: AppColors.surface.withValues(alpha: 0.8),
         elevation: 0,
-        title: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primaryContainer, width: 2),
-                image: const DecorationImage(
-                  image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuAU8mis0pP4cropYf_ewBNyFTgGq53qxntrTiyaVIf88KQ-osyDLkG4mckkT58h2jrGnKh06ZpQC473ANoxnVD5Zw39KV20LX9v46sSb3SSFJKZNNzVkxf5clSDYZYqHWqlCdnBflFDuoGDzjwlTZtq72B_lMiNQUi8Fq6FZXU2c17Nq9UK0t7tOO8OY03hINHRZbCxpqJ4bRcFYjdaOhFGtIMUjsm_Q0vpIQ-GTldl-OIIzcFxor18kQ'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('GoChef', style: AppTextStyles.headlineLgMobile(color: AppColors.primary).copyWith(fontSize: 20)),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 14, color: AppColors.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Favorites',
-                      style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
+        title: const CustomAppBarTitle(subtitle: 'Favorites'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications, color: AppColors.primary),

@@ -6,6 +6,7 @@ import '../../services/api_service.dart';
 import '../../models/menu_item_model.dart';
 import '../../models/review_model.dart';
 import '../cart/cart_screen.dart';
+import '../kitchen/kitchen_profile_screen.dart';
 
 class FoodDetailsScreen extends StatefulWidget {
   final int menuItemId;

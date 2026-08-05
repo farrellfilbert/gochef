@@ -41,7 +41,7 @@ try {
         $targetPath = $uploadDir . $fileName;
         
         if (move_uploaded_file($tmpName, $targetPath)) {
-            $avatarUrl = 'https://gochef.my.id/avatars/' . $fileName;
+            $avatarUrl = 'https://astroboomin.co/avatars/' . $fileName;
         }
     }
     

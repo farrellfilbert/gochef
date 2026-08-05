@@ -11,6 +11,7 @@ import '../../models/menu_item_model.dart';
 import '../../models/category_model.dart';
 import '../../models/promotion_model.dart';
 import '../../models/user_model.dart';
+import '../../widgets/custom_app_bar_title.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -86,52 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              FutureBuilder<UserModel>(
-                                future: _profileFuture,
-                                builder: (context, profileSnapshot) {
-                                  String avatarUrl = 'https://via.placeholder.com/150';
-                                  if (profileSnapshot.hasData && profileSnapshot.data!.avatar.isNotEmpty) {
-                                    avatarUrl = profileSnapshot.data!.avatar;
-                                  }
-                                  return Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-                                      image: DecorationImage(
-                                        image: NetworkImage(avatarUrl),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 12),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'GoChef',
-                                    style: AppTextStyles.headlineLgMobile(color: AppColors.primary)
-                                        .copyWith(fontSize: 20),
-                                  ),
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.location_on, size: 14, color: AppColors.onSurfaceVariant),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'University District',
-                                        style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ],
-                          ),
+                          const CustomAppBarTitle(),
                           IconButton(
                             icon: const Icon(Icons.notifications_none, color: AppColors.onSurfaceVariant),
                             onPressed: () {},

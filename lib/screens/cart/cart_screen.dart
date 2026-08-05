@@ -35,7 +35,6 @@ class _CartScreenState extends State<CartScreen> {
         _cartItems = items;
         if (addresses.isNotEmpty) {
           try {
-          try {
             _primaryAddress = addresses.firstWhere(
               (a) => a.isDefault,
               orElse: () => addresses.first,

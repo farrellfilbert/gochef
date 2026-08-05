@@ -3,6 +3,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../models/notification_model.dart';
+import '../../widgets/custom_app_bar_title.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -80,40 +81,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         toolbarHeight: 80,
         backgroundColor: AppColors.surface.withValues(alpha: 0.8),
         elevation: 0,
-        title: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-                image: const DecorationImage(
-                  image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuDmj8hgyvwYqvYQqz9ke9LLzp8aKdCCuoCq-fmpL1KRFEzVqSTfxbnMSG-Vu8vC6h9enXJQFedwTkocVED9mRa-E4rD4BWoolc1QCtRecvrEx2FwoRa2Zt2b9pHRiO-mmzWDZcPFSjanjzzNK7oj-iWwJ3Ki3Q35z_S0C1XRcpdfYh0utEv3AnPEhlcn8wJK6tWfs-pIFlApjeSXAWXRwYirMH1xfeisLtnIHv2bBvJAvAFOE5oOCiQoA'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('GoChef', style: AppTextStyles.headlineLgMobile(color: AppColors.primary).copyWith(fontSize: 20)),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 14, color: AppColors.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Notifications',
-                      style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
+        title: const CustomAppBarTitle(subtitle: 'Notifications'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications, color: AppColors.primary),
