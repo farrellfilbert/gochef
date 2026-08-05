@@ -31,7 +31,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
     try {
       // In a real app we'd fetch the chef's kitchen ID first. 
       // Assuming kitchenId = 1 for the demo.
-      final items = await ApiService.getMenu(_kitchenId);
+      final items = await ApiService.getMenuItems(kitchenId: _kitchenId);
       setState(() {
         _menuItems = items;
       });

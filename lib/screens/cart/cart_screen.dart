@@ -553,7 +553,7 @@ class _CartScreenState extends State<CartScreen> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.remove, size: 16),
-                            onPressed: () => _updateQuantity(item.id, item.quantity - 1),
+                            onPressed: () => _updateQuantity(item.cartItemId, item.quantity - 1),
                             padding: const EdgeInsets.all(4),
                             constraints: const BoxConstraints(),
                             color: AppColors.onSurface,
@@ -568,7 +568,7 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.add, size: 16),
-                            onPressed: () => _updateQuantity(item.id, item.quantity + 1),
+                            onPressed: () => _updateQuantity(item.cartItemId, item.quantity + 1),
                             padding: const EdgeInsets.all(4),
                             constraints: const BoxConstraints(),
                             color: AppColors.onSurface,
@@ -578,7 +578,7 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                      onPressed: () => _removeFromCart(item.id),
+                      onPressed: () => _removeFromCart(item.cartItemId),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),

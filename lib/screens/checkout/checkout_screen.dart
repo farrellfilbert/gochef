@@ -44,11 +44,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       setState(() {
         _grandTotal = subtotal + deliveryFee + serviceFee;
         if (addresses.isNotEmpty) {
-          try {
-            _primaryAddress = addresses.firstWhere((a) => a.isPrimary);
-          } catch (_) {
-            _primaryAddress = addresses.first;
-          }
+          _primaryAddress = addresses.firstWhere(
+            (a) => a.isDefault,
+            orElse: () => addresses.first,
+          );
         }
       });
     } catch (e) {
@@ -72,7 +71,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final success = await ApiService.checkout(
       addressId: _primaryAddress!.id,
-      paymentMethod: selectedPayment,
       notes: isAsap ? 'ASAP Delivery' : 'Scheduled Delivery',
     );
 
@@ -153,7 +151,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             Text(_primaryAddress?.label ?? 'No Address Set',
                                 style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
-                            Text(_primaryAddress != null ? '${_primaryAddress!.addressLine1}\n${_primaryAddress!.city}' : 'Please add an address',
+                            Text(_primaryAddress != null ? _primaryAddress!.address : 'Please add an address',
                                 style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant.withValues(alpha: 0.8))),
                           ],
                         ),

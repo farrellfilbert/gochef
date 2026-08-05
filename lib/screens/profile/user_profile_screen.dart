@@ -180,8 +180,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
-          if (snapshot.hasError || !snapshot.hasData) {
-            return const Center(child: Text('Failed to load profile', style: TextStyle(color: Colors.white)));
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Failed to load profile:\n${snapshot.error}',
+                style: const TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
+          if (!snapshot.hasData) {
+            return const Center(child: Text('Failed to load profile: No data', style: TextStyle(color: Colors.white)));
           }
           final user = snapshot.data!;
           return SingleChildScrollView(

@@ -31,7 +31,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     try {
       final kitchenData = await ApiService.getKitchenDetail(_kitchenId);
       setState(() {
-        _kitchen = kitchenData['kitchen'];
+        _kitchen = kitchenData;
       });
     } catch (e) {
       debugPrint('Error loading chef profile: $e');
@@ -82,11 +82,9 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
   }
 
   void _showEditProfileDialog() {
-    if (_kitchen == null) return;
-    
     final nameController = TextEditingController(text: _kitchen!.name);
-    final locationController = TextEditingController(text: _kitchen!.location);
-    final aboutController = TextEditingController(text: _kitchen!.about);
+    final aboutController = TextEditingController(text: _kitchen!.description);
+    final timeController = TextEditingController(text: _kitchen!.deliveryTime);
     bool isSaving = false;
 
     showDialog(
@@ -108,16 +106,16 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   ),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: locationController,
-                    style: const TextStyle(color: AppColors.onSurface),
-                    decoration: const InputDecoration(labelText: 'Location', labelStyle: TextStyle(color: AppColors.onSurfaceVariant)),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
                     controller: aboutController,
                     style: const TextStyle(color: AppColors.onSurface),
                     maxLines: 3,
                     decoration: const InputDecoration(labelText: 'About', labelStyle: TextStyle(color: AppColors.onSurfaceVariant)),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: timeController,
+                    style: const TextStyle(color: AppColors.onSurface),
+                    decoration: const InputDecoration(labelText: 'Delivery Time', labelStyle: TextStyle(color: AppColors.onSurfaceVariant)),
                   ),
                 ],
               ),
@@ -134,8 +132,8 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                     bool success = await ApiService.updateKitchen({
                       'kitchen_id': _kitchenId,
                       'name': nameController.text,
-                      'location': locationController.text,
-                      'about': aboutController.text,
+                      'description': aboutController.text,
+                      'deliveryTime': timeController.text,
                     });
                     
                     if (success) {
@@ -322,8 +320,8 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '"${_kitchen!.about}"',
-                        style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontStyle: FontStyle.italic),
+                        '"${_kitchen!.description}"',
+                        style: AppTextStyles.body(color: AppColors.onSurfaceVariant).copyWith(fontStyle: FontStyle.italic),
                       ),
                       const SizedBox(height: 12),
                       Row(

@@ -117,7 +117,7 @@ class _ReviewsRatingsScreenState extends State<ReviewsRatingsScreen> {
                     itemBuilder: (context, index) {
                       bool isSelected = selectedFilter == index;
                       return GestureDetector(
-                        onTap: () setState(() => selectedFilter = index),
+                        onTap: () => setState(() => selectedFilter = index),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                           decoration: BoxDecoration(
