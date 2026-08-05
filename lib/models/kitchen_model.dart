@@ -1,0 +1,59 @@
+import 'menu_item_model.dart';
+import 'review_model.dart';
+
+class KitchenModel {
+  final int id;
+  final String name;
+  final String description;
+  final String avatar;
+  final String coverImage;
+  final double rating;
+  final int totalReviews;
+  final String cuisineType;
+  final String deliveryTime;
+  final String location;
+  final bool isVerified;
+  final bool isFeatured;
+  final List<MenuItemModel>? menuItems;
+  final List<ReviewModel>? reviews;
+
+  KitchenModel({
+    required this.id,
+    required this.name,
+    this.description = '',
+    this.avatar = '',
+    this.coverImage = '',
+    this.rating = 0.0,
+    this.totalReviews = 0,
+    this.cuisineType = '',
+    this.deliveryTime = '20-30 min',
+    this.location = '',
+    this.isVerified = false,
+    this.isFeatured = false,
+    this.menuItems,
+    this.reviews,
+  });
+
+  factory KitchenModel.fromJson(Map<String, dynamic> json) {
+    return KitchenModel(
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      avatar: json['avatar'] ?? '',
+      coverImage: json['cover_image'] ?? '',
+      rating: double.tryParse(json['rating']?.toString() ?? '0') ?? 0.0,
+      totalReviews: int.tryParse(json['total_reviews']?.toString() ?? '0') ?? 0,
+      cuisineType: json['cuisine_type'] ?? '',
+      deliveryTime: json['delivery_time'] ?? '20-30 min',
+      location: json['location'] ?? '',
+      isVerified: json['is_verified']?.toString() == '1',
+      isFeatured: json['is_featured']?.toString() == '1',
+      menuItems: json['menu_items'] != null
+          ? (json['menu_items'] as List).map((e) => MenuItemModel.fromJson(e)).toList()
+          : null,
+      reviews: json['reviews'] != null
+          ? (json['reviews'] as List).map((e) => ReviewModel.fromJson(e)).toList()
+          : null,
+    );
+  }
+}

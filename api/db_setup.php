@@ -8,102 +8,216 @@ try {
     $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Create users table first
+    // =============================================
+    // USERS (already exists, ensure columns)
+    // =============================================
     $pdo->exec("CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         email VARCHAR(100) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        phone VARCHAR(50) DEFAULT '',
+        avatar VARCHAR(500) DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )");
-
-    // Alter users table to add phone and avatar
     $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50) DEFAULT ''");
     $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(500) DEFAULT ''");
 
-    // Create orders table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS orders (
-        id VARCHAR(50) PRIMARY KEY,
-        user_id INT(11) NOT NULL,
-        kitchen_name VARCHAR(100) NOT NULL,
-        order_date VARCHAR(50) NOT NULL,
-        status VARCHAR(20) NOT NULL,
-        total_amount DECIMAL(10, 2) NOT NULL,
-        items_count INT(11) NOT NULL,
-        avatar VARCHAR(500) NOT NULL,
+    // =============================================
+    // CATEGORIES
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS categories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(50) NOT NULL,
+        icon VARCHAR(50) DEFAULT 'restaurant',
+        sort_order INT DEFAULT 0
+    )");
+
+    // =============================================
+    // KITCHENS
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS kitchens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NULL,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        avatar VARCHAR(500) DEFAULT '',
+        cover_image VARCHAR(500) DEFAULT '',
+        rating DECIMAL(2,1) DEFAULT 0.0,
+        total_reviews INT DEFAULT 0,
+        cuisine_type VARCHAR(100) DEFAULT '',
+        delivery_time VARCHAR(50) DEFAULT '20-30 min',
+        location VARCHAR(200) DEFAULT '',
+        is_verified TINYINT(1) DEFAULT 0,
+        is_featured TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    )");
+
+    // =============================================
+    // MENU ITEMS
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS menu_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        kitchen_id INT NOT NULL,
+        category_id INT NULL,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        price DECIMAL(10,2) NOT NULL,
+        image VARCHAR(500) DEFAULT '',
+        rating DECIMAL(2,1) DEFAULT 0.0,
+        total_reviews INT DEFAULT 0,
+        prep_time VARCHAR(50) DEFAULT '15-20 min',
+        is_available TINYINT(1) DEFAULT 1,
+        is_popular TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE CASCADE,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+    )");
+
+    // =============================================
+    // MENU ADD-ONS
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS menu_addons (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        menu_item_id INT NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        price DECIMAL(10,2) DEFAULT 0.00,
+        FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE
+    )");
+
+    // =============================================
+    // CART ITEMS
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS cart_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        menu_item_id INT NOT NULL,
+        quantity INT DEFAULT 1,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE
+    )");
+
+    // =============================================
+    // CART ITEM ADD-ONS
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS cart_item_addons (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        cart_item_id INT NOT NULL,
+        addon_id INT NOT NULL,
+        FOREIGN KEY (cart_item_id) REFERENCES cart_items(id) ON DELETE CASCADE,
+        FOREIGN KEY (addon_id) REFERENCES menu_addons(id) ON DELETE CASCADE
+    )");
+
+    // =============================================
+    // FAVORITES
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS favorites (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        menu_item_id INT NULL,
+        kitchen_id INT NULL,
+        type ENUM('dish','kitchen') NOT NULL DEFAULT 'dish',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE,
+        FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE CASCADE
+    )");
+
+    // =============================================
+    // REVIEWS
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS reviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        kitchen_id INT NULL,
+        menu_item_id INT NULL,
+        rating INT NOT NULL DEFAULT 5,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE CASCADE,
+        FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE
+    )");
+
+    // =============================================
+    // NOTIFICATIONS
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        title VARCHAR(200) NOT NULL,
+        message TEXT,
+        type VARCHAR(50) DEFAULT 'general',
+        is_read TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )");
 
-    // Create order_items table
+    // =============================================
+    // PROMOTIONS
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS promotions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(200) NOT NULL,
+        subtitle VARCHAR(200) DEFAULT '',
+        image VARCHAR(500) DEFAULT '',
+        discount_percent INT DEFAULT 0,
+        code VARCHAR(50) DEFAULT '',
+        is_active TINYINT(1) DEFAULT 1,
+        start_date DATE NULL,
+        end_date DATE NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+
+    // =============================================
+    // ADDRESSES
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS addresses (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        label VARCHAR(50) DEFAULT 'Home',
+        address VARCHAR(300) NOT NULL,
+        is_default TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )");
+
+    // =============================================
+    // ORDERS (update existing)
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS orders (
+        id VARCHAR(50) PRIMARY KEY,
+        user_id INT NOT NULL,
+        kitchen_name VARCHAR(100) NOT NULL,
+        order_date VARCHAR(50) NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'Active',
+        total_amount DECIMAL(10,2) NOT NULL,
+        items_count INT NOT NULL,
+        avatar VARCHAR(500) DEFAULT '',
+        delivery_address VARCHAR(300) DEFAULT '',
+        notes TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )");
+
+    // =============================================
+    // ORDER ITEMS (ensure exists)
+    // =============================================
     $pdo->exec("CREATE TABLE IF NOT EXISTS order_items (
-        id INT(11) AUTO_INCREMENT PRIMARY KEY,
+        id INT AUTO_INCREMENT PRIMARY KEY,
         order_id VARCHAR(50) NOT NULL,
         name VARCHAR(100) NOT NULL,
-        options VARCHAR(100) NOT NULL,
-        quantity INT(11) NOT NULL,
-        price DECIMAL(10, 2) NOT NULL,
+        options VARCHAR(100) DEFAULT '',
+        quantity INT DEFAULT 1,
+        price DECIMAL(10,2) NOT NULL,
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
     )");
 
-    // Insert dummy user if doesn't exist
-    $stmt = $pdo->query("SELECT id FROM users WHERE email = 'eleanor.pena@example.com'");
-    if ($stmt->rowCount() == 0) {
-        $pdo->exec("INSERT INTO users (name, email, password, phone, avatar) VALUES (
-            'Eleanor Pena', 'eleanor.pena@example.com', 'dummy_hash', '+62 812 3456 7890', 'https://lh3.googleusercontent.com/aida-public/AB6AXuCABkMoDXf8yH7pXJ1S1GTjNU0hp579UQyB3xr2XusadzrBACMgH_WDbJQAAdV5bL-W7s0clXMSKM22PW7pbg2lVV7_xbXD_2CviE1ZSPIrhKYunEIV1p2VdbWpuIsGSgcjdeexj-lwypxoyRMeM_KDILk3Hky-IOtxBKJ8LBp_5h9RekwfcgmJGwP9qzPEtnfuOprGRUdOor7D-kprabLtBIRSf76GmR_1kOuHtf4cGmxbc6CFse6xnA'
-        )");
-    } else {
-        $pdo->exec("UPDATE users SET name='Eleanor Pena', phone='+62 812 3456 7890', avatar='https://lh3.googleusercontent.com/aida-public/AB6AXuCABkMoDXf8yH7pXJ1S1GTjNU0hp579UQyB3xr2XusadzrBACMgH_WDbJQAAdV5bL-W7s0clXMSKM22PW7pbg2lVV7_xbXD_2CviE1ZSPIrhKYunEIV1p2VdbWpuIsGSgcjdeexj-lwypxoyRMeM_KDILk3Hky-IOtxBKJ8LBp_5h9RekwfcgmJGwP9qzPEtnfuOprGRUdOor7D-kprabLtBIRSf76GmR_1kOuHtf4cGmxbc6CFse6xnA' WHERE email='eleanor.pena@example.com'");
-    }
-
-    $stmt = $pdo->query("SELECT id FROM users WHERE email = 'eleanor.pena@example.com'");
-    $user_id = $stmt->fetchColumn();
-
-    // Clear old dummy orders
-    $pdo->exec("DELETE FROM orders WHERE user_id = $user_id");
-
-    // Insert dummy orders
-    $orders = [
-        [
-            'id' => 'ORD-2023-0891', 'user_id' => $user_id, 'kitchen_name' => 'Le Petit Bistro', 
-            'date' => 'Oct 24, 2023 • 19:30', 'status' => 'Active', 'total' => 142.50, 'count' => 3, 
-            'avatar' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuAZMoYO7wf8gvDE28myrFAGo5stcscD096feok4IbDsGydgEkamUrKgJh0x2HoW2YQ6o905fcAAOr-UTZU54MXcTMi3vHvnfpfV1fbotdC2EExFxhUlUK3bXX7gDvfb14LG4A0986jNBo2QxfHkrkv03qSESjCZ2GIDfgnTBJCpOTyPtWIum_BfAgzOirM6cNl1beMcwb3AuxtZcsycxq6Vkfph5EBnbtDvdpz4X551OaKyZj43dEkbBQ'
-        ],
-        [
-            'id' => 'ORD-2023-0842', 'user_id' => $user_id, 'kitchen_name' => 'Sakura Sushi Bar', 
-            'date' => 'Oct 22, 2023 • 20:15', 'status' => 'Completed', 'total' => 86.00, 'count' => 2, 
-            'avatar' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuCG_BhZVHdA8hyglfPxSG6KVPug0ui3JQdoHBaahM4rE0BOYZNDeVTj7DzWvjNxCzvyW8xE4Gr2KUY6gOtZmpohQeanyDWx2TxNnTiCDTcCYdp8pGdsQniNDahf57r1G6xU4oxiAPlKwgyIAWYVRGPXkxG8SL_H7iOntvHeKTzHyPkKBVC9zEM_7D7Jg74DEYxQdPREiZfieTirmrrTdO2CCWMt7xy_lmiHAsz637QxydfOElbMh3VwrA'
-        ],
-        [
-            'id' => 'ORD-2023-0798', 'user_id' => $user_id, 'kitchen_name' => 'Trattoria Roma', 
-            'date' => 'Oct 18, 2023 • 18:45', 'status' => 'Cancelled', 'total' => 64.50, 'count' => 2, 
-            'avatar' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuAVHfs9-zdJOlD9gIakLDDih1LuvMloL7b3yrLfSkqAINTKJ2Km3q_Vn12txGIaFj2kydQ1c43ZeYTbge-quvtnNDMctMmgh-8FXIkc86CuY7bvi6qLl0cN-YTiA8WrAQK8iRgIgir6qNySDI7lVH4v6uyE8bDDMMwHhLmaPjfINg3-EzyqAAPwaB-BQuqWsp8vAYW10K6--ln6VsNJ6SNwml1bkCTf1o5ejDTg1DuDcBHqkgeUg71rSw'
-        ],
-        [
-            'id' => 'ORD-2023-0755', 'user_id' => $user_id, 'kitchen_name' => 'Spice Route', 
-            'date' => 'Oct 15, 2023 • 19:00', 'status' => 'Completed', 'total' => 52.00, 'count' => 3, 
-            'avatar' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuAc2H_ek12cJF5ZnPJZ76YeCR3nSRDNVLVE9JGldUYq8fmKWMYxcB8rrzua7ALPBHaiSgJ6zO-eE5IvST3JywjWNkPARYrhHGgAwRy7w9UXBXNOU93MBGWLBJmmk0oEzab_evBCjp-nGWbzrFJ0b9fXjiVrw_XlsPIlBy1SrQePBaMIkZudTopPz-kXMCWUrYBKRj7ikymuxZFxm10kdte_J_h5QYU5QGTJSEIAiqGk75D1SNpDWj8ISw'
-        ]
-    ];
-
-    $stmt = $pdo->prepare("INSERT INTO orders (id, user_id, kitchen_name, order_date, status, total_amount, items_count, avatar) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    foreach ($orders as $o) {
-        $stmt->execute([$o['id'], $o['user_id'], $o['kitchen_name'], $o['date'], $o['status'], $o['total'], $o['count'], $o['avatar']]);
-    }
-
-    // Insert dummy items for ORD-2023-0891
-    $items = [
-        ['ORD-2023-0891', 'Truffle Risotto', 'Extra parmesan', 1, 45.0],
-        ['ORD-2023-0891', 'Wagyu Beef Wellington', 'Medium rare', 1, 85.0],
-        ['ORD-2023-0891', 'Sparkling Water', 'Chilled', 1, 12.5],
-    ];
-    $itemStmt = $pdo->prepare("INSERT INTO order_items (order_id, name, options, quantity, price) VALUES (?, ?, ?, ?, ?)");
-    foreach ($items as $i) {
-        $itemStmt->execute($i);
-    }
-
-    echo "Database structure updated and dummy data inserted!\n";
+    echo json_encode(['success' => true, 'message' => 'All tables created/updated successfully!']);
 
 } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
 ?>
