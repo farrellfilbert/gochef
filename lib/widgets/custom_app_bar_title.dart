@@ -40,15 +40,14 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
         final lon = position.coords!.longitude;
         if (lat != null && lon != null) {
           try {
-            final url = Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1');
-            final response = await http.get(url, headers: {'User-Agent': 'GoChefApp/1.0'});
+            final url = Uri.parse('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=$lat&longitude=$lon&localityLanguage=id');
+            final response = await http.get(url);
             if (response.statusCode == 200) {
               final data = json.decode(response.body);
-              final address = data['address'];
-              if (address != null && mounted) {
-                final road = address['road'] ?? address['neighbourhood'] ?? address['suburb'] ?? address['city'] ?? address['village'] ?? 'Unknown Location';
+              if (mounted) {
+                final locality = data['locality'] ?? data['city'] ?? 'Lokasi tidak diketahui';
                 setState(() {
-                  _deviceLocation = road;
+                  _deviceLocation = locality;
                 });
               }
             }
