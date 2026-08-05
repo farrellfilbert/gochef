@@ -1,3 +1,6 @@
+import 'dart:html' as html;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -20,12 +23,43 @@ class CustomAppBarTitle extends StatefulWidget {
 class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
   late Future<UserModel> _profileFuture;
   late Future<List<AddressModel>> _addressesFuture;
+  String _deviceLocation = '';
 
   @override
   void initState() {
     super.initState();
     _profileFuture = ApiService.getProfile();
     _addressesFuture = ApiService.getAddresses();
+    _fetchDeviceLocation();
+  }
+
+  void _fetchDeviceLocation() {
+    if (html.window.navigator.geolocation != null) {
+      html.window.navigator.geolocation.getCurrentPosition().then((html.Geoposition position) async {
+        final lat = position.coords!.latitude;
+        final lon = position.coords!.longitude;
+        if (lat != null && lon != null) {
+          try {
+            final url = Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=18&addressdetails=1');
+            final response = await http.get(url, headers: {'User-Agent': 'GoChefApp/1.0'});
+            if (response.statusCode == 200) {
+              final data = json.decode(response.body);
+              final address = data['address'];
+              if (address != null && mounted) {
+                final road = address['road'] ?? address['neighbourhood'] ?? address['suburb'] ?? address['city'] ?? address['village'] ?? 'Unknown Location';
+                setState(() {
+                  _deviceLocation = road;
+                });
+              }
+            }
+          } catch (e) {
+            // Error fetching geocoding, fallback to default address
+          }
+        }
+      }).catchError((e) {
+        // Permission denied or unavailable, fallback to default address
+      });
+    }
   }
 
   @override
@@ -50,6 +84,14 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
             if (location.length > 25) {
               location = '${location.substring(0, 25)}...';
             }
+          }
+        }
+
+        // Override location with real device location if available and no subtitle is provided
+        if (_deviceLocation.isNotEmpty) {
+          location = _deviceLocation;
+          if (location.length > 25) {
+            location = '${location.substring(0, 25)}...';
           }
         }
 
