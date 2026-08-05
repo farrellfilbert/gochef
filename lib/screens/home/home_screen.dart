@@ -10,6 +10,7 @@ import '../../models/kitchen_model.dart';
 import '../../models/menu_item_model.dart';
 import '../../models/category_model.dart';
 import '../../models/promotion_model.dart';
+import '../../models/user_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,16 +21,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<Map<String, dynamic>> _homeDataFuture;
+  late Future<UserModel> _profileFuture;
 
   @override
   void initState() {
     super.initState();
     _homeDataFuture = ApiService.getHomeData();
+    _profileFuture = ApiService.getProfile();
   }
 
   Future<void> _refreshData() async {
     setState(() {
       _homeDataFuture = ApiService.getHomeData();
+      _profileFuture = ApiService.getProfile();
     });
   }
 
@@ -84,18 +88,26 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Row(
                             children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-                                  image: const DecorationImage(
-                                    image: NetworkImage(
-                                        'https://lh3.googleusercontent.com/aida-public/AB6AXuCXRdPe5_MByp2tNUrIy7UsKh6b6qoLfFFfx4_VyYcOly1XAyrMfXK9FA3XGzRXOz57m6SCZVfc2Ndc6AgT6Uxw98-ucCdYyfx_l9gNdz5WtkdEGHR-z2iOQcd0RRYlTDlBQRjGd_YTaV1533HDcAV__XS2fj5896BuDL4zShrJYRxwBz74YVTmA0da0WIm-yu0P4lSn6zotP6M2DeLcMJm9ljXy5MUH7FI0mIG1AHYOYBchylw4JJ4xA'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+                              FutureBuilder<UserModel>(
+                                future: _profileFuture,
+                                builder: (context, profileSnapshot) {
+                                  String avatarUrl = 'https://via.placeholder.com/150';
+                                  if (profileSnapshot.hasData && profileSnapshot.data!.avatar.isNotEmpty) {
+                                    avatarUrl = profileSnapshot.data!.avatar;
+                                  }
+                                  return Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                                      image: DecorationImage(
+                                        image: NetworkImage(avatarUrl),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               const SizedBox(width: 12),
                               Column(
