@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart'; // for kIsWeb
 import '../../theme/app_colors.dart';
@@ -42,10 +43,21 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
 
   Future<void> _updateImage(bool isAvatar) async {
     final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
     
-    if (image != null && mounted) {
-      setState(() => _isLoading = true);
+    if (picked != null && mounted) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        uiSettings: [
+          WebUiSettings(
+            context: context,
+            presentStyle: WebPresentStyle.dialog,
+          ),
+        ],
+      );
+      if (croppedFile != null) {
+        final image = XFile(croppedFile.path);
+        setState(() => _isLoading = true);
       try {
         String? imageUrl = await ApiService.uploadImage(image);
         if (imageUrl != null) {
@@ -77,6 +89,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
             SnackBar(content: Text('Error: $e')),
           );
         }
+      }
       }
     }
   }

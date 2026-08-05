@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
@@ -80,9 +81,20 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                       final ImagePicker picker = ImagePicker();
                       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
                       if (image != null) {
-                        setDialogState(() {
-                          selectedImage = image;
-                        });
+                        final croppedFile = await ImageCropper().cropImage(
+                          sourcePath: image.path,
+                          uiSettings: [
+                            WebUiSettings(
+                              context: context,
+                              presentStyle: WebPresentStyle.dialog,
+                            ),
+                          ],
+                        );
+                        if (croppedFile != null) {
+                          setDialogState(() {
+                            selectedImage = XFile(croppedFile.path);
+                          });
+                        }
                       }
                     },
                     child: Container(

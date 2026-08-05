@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'settings_screen.dart';
 import '../cart/cart_screen.dart';
 
@@ -54,9 +55,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       onTap: () async {
                         final picked = await _picker.pickImage(source: ImageSource.gallery);
                         if (picked != null) {
-                          setDialogState(() {
-                            selectedImage = picked;
-                          });
+                          final croppedFile = await ImageCropper().cropImage(
+                            sourcePath: picked.path,
+                            uiSettings: [
+                              WebUiSettings(
+                                context: context,
+                                presentStyle: WebPresentStyle.dialog,
+                              ),
+                            ],
+                          );
+                          if (croppedFile != null) {
+                            setDialogState(() {
+                              selectedImage = XFile(croppedFile.path);
+                            });
+                          }
                         }
                       },
                       child: CircleAvatar(
@@ -182,10 +194,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           }
           if (snapshot.hasError) {
             return Center(
-              child: Text(
-                'Failed to load profile:\n${snapshot.error}',
-                style: const TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Failed to load profile:\n${snapshot.error}',
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await ApiService.logout();
+                      if (context.mounted) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                    child: const Text('Logout & Relogin'),
+                  ),
+                ],
               ),
             );
           }
