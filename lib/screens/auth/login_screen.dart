@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen>
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      _showError('Connection error. Please try again.');
+      _showError('Error: $e');
     }
   }
 
