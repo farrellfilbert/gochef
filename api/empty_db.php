@@ -12,14 +12,17 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     $tables = [
-        'reviews',
-        'favorites',
-        'notifications',
+        'cart_item_addons',
+        'cart_items',
         'order_items',
         'orders',
-        'cart',
         'addresses',
+        'notifications',
+        'favorites',
+        'reviews',
+        'menu_addons',
         'menu_items',
+        'categories',
         'kitchens',
         'users'
     ];
