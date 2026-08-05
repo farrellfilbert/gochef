@@ -74,15 +74,14 @@ $params[] = $kitchen_id;
 $types .= "i";
 
 $query = "UPDATE kitchens SET " . implode(", ", $updateFields) . " WHERE id = ?";
-$stmt = $conn->prepare($query);
+$stmt = $pdo->prepare($query);
 
-// Dynamically bind parameters
-$stmt->bind_param($types, ...$params);
-
-if ($stmt->execute()) {
+// Execute with params
+if ($stmt->execute($params)) {
     echo json_encode(["message" => "Kitchen updated successfully.", "success" => true]);
 } else {
     http_response_code(500);
-    echo json_encode(["message" => "Unable to update kitchen.", "error" => $stmt->error, "success" => false]);
+    $err = $stmt->errorInfo();
+    echo json_encode(["message" => "Unable to update kitchen.", "error" => $err[2], "success" => false]);
 }
 ?>

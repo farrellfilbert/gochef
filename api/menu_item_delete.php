@@ -26,13 +26,13 @@ if (!isset($data->id)) {
 $id = intval($data->id);
 
 $query = "DELETE FROM menu_items WHERE id = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $id);
+$stmt = $pdo->prepare($query);
 
-if ($stmt->execute()) {
+if ($stmt->execute([$id])) {
     echo json_encode(["message" => "Menu item deleted successfully.", "success" => true]);
 } else {
     http_response_code(500);
-    echo json_encode(["message" => "Unable to delete menu item.", "error" => $stmt->error, "success" => false]);
+    $err = $stmt->errorInfo();
+    echo json_encode(["message" => "Unable to delete menu item.", "error" => $err[2], "success" => false]);
 }
 ?>

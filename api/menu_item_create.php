@@ -33,13 +33,13 @@ $is_popular = isset($data->is_popular) ? intval($data->is_popular) : 0;
 $tags = isset($data->tags) ? $data->tags : '';
 
 $query = "INSERT INTO menu_items (kitchen_id, category_id, name, description, price, image, is_popular, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("iissdsis", $kitchen_id, $category_id, $name, $description, $price, $image, $is_popular, $tags);
+$stmt = $pdo->prepare($query);
 
-if ($stmt->execute()) {
-    echo json_encode(["message" => "Menu item created successfully.", "id" => $conn->insert_id, "success" => true]);
+if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular, $tags])) {
+    echo json_encode(["message" => "Menu item created successfully.", "id" => $pdo->lastInsertId(), "success" => true]);
 } else {
     http_response_code(500);
-    echo json_encode(["message" => "Unable to create menu item.", "error" => $stmt->error, "success" => false]);
+    $err = $stmt->errorInfo();
+    echo json_encode(["message" => "Unable to create menu item.", "error" => $err[2], "success" => false]);
 }
 ?>
