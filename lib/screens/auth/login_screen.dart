@@ -137,6 +137,8 @@ class _LoginScreenState extends State<LoginScreen>
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           if (data['success']) {
+            await ApiService.saveUserId(data['user']['id'].toString());
+            if (!mounted) return;
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const MainNavigation()),
