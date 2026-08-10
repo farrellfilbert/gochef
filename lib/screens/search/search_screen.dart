@@ -114,15 +114,15 @@ class SearchScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Row(
                     children: [
-                      _buildFilterChip('Nearby', isSelected: true),
+                      _buildFilterChip(context, 'Nearby', isSelected: true),
                       const SizedBox(width: 12),
-                      _buildFilterChip('Top Rated'),
+                      _buildFilterChip(context, 'Top Rated'),
                       const SizedBox(width: 12),
-                      _buildFilterChip('Under \$15'),
+                      _buildFilterChip(context, 'Under \$15'),
                       const SizedBox(width: 12),
-                      _buildFilterChip('Vegan'),
+                      _buildFilterChip(context, 'Vegan'),
                       const SizedBox(width: 12),
-                      _buildFilterChip('Gluten-Free'),
+                      _buildFilterChip(context, 'Gluten-Free'),
                     ],
                   ),
                 ),
@@ -149,9 +149,9 @@ class SearchScreen extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _buildRecentSearch('Authentic Ramen'),
-                        _buildRecentSearch('Vegan Sushi'),
-                        _buildRecentSearch('Chef Marco'),
+                        _buildRecentSearch(context, 'Authentic Ramen'),
+                        _buildRecentSearch(context, 'Vegan Sushi'),
+                        _buildRecentSearch(context, 'Chef Marco'),
                       ],
                     ),
                   ],
@@ -168,7 +168,7 @@ class SearchScreen extends StatelessWidget {
                   children: [
                     Text('Trending Near You', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                     const SizedBox(height: 16),
-                    _buildTrendingCard(),
+                    _buildTrendingCard(context),
                   ],
                 ),
               ),
@@ -179,8 +179,16 @@ class SearchScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFilterChip(String label, {bool isSelected = false}) {
-    return Container(
+  Widget _buildFilterChip(BuildContext context, String label, {bool isSelected = false}) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SearchResultsScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
         color: isSelected ? AppColors.primary : AppColors.surface.withValues(alpha: 0.7),
@@ -194,11 +202,20 @@ class SearchScreen extends StatelessWidget {
         style: AppTextStyles.labelMono(
             color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceVariant),
       ),
+      ),
     );
   }
 
-  Widget _buildRecentSearch(String label) {
-    return Container(
+  Widget _buildRecentSearch(BuildContext context, String label) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SearchResultsScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: AppColors.surfaceContainer,
@@ -213,11 +230,20 @@ class SearchScreen extends StatelessWidget {
           Text(label, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
         ],
       ),
+      ),
     );
   }
 
-  Widget _buildTrendingCard() {
-    return Container(
+  Widget _buildTrendingCard(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SearchResultsScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
       height: 256,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -270,6 +296,7 @@ class SearchScreen extends StatelessWidget {
             ),
           )
         ],
+      ),
       ),
     );
   }
