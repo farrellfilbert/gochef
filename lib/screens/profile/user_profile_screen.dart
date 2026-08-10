@@ -142,6 +142,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
+  void _showComingSoon() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('This feature is coming soon!')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -440,13 +446,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 children: [
                   _buildListTile(Icons.person_outline, 'Personal Information', () => _showEditProfileDialog(user)),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.credit_card, 'Payment Methods', null),
+                  _buildListTile(Icons.credit_card, 'Payment Methods', _showComingSoon),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.location_on, 'Delivery Addresses', null),
+                  _buildListTile(Icons.location_on, 'Delivery Addresses', _showComingSoon),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.receipt_long, 'Order History', null),
+                  _buildListTile(Icons.receipt_long, 'Order History', _showComingSoon),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.security, 'Security & Password', null),
+                  _buildListTile(Icons.security, 'Security & Password', _showComingSoon),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.settings, 'Settings', () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
@@ -469,11 +475,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
               child: Column(
                 children: [
-                  _buildListTile(Icons.help_outline, 'Help Center', null),
+                  _buildListTile(Icons.help_outline, 'Help Center', _showComingSoon),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.chat_bubble_outline, 'Contact Support', null),
+                  _buildListTile(Icons.chat_bubble_outline, 'Contact Support', _showComingSoon),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.info_outline, 'About GoChef', null),
+                  _buildListTile(Icons.info_outline, 'About GoChef', _showComingSoon),
                 ],
               ),
             ),

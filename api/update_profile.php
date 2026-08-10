@@ -30,18 +30,28 @@ try {
     $phone = $_POST['phone'] ?? null;
     $avatarUrl = null;
     
-    if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = '../avatars/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-        
-        $tmpName = $_FILES['avatar']['tmp_name'];
-        $fileName = time() . '_' . basename($_FILES['avatar']['name']);
-        $targetPath = $uploadDir . $fileName;
-        
-        if (move_uploaded_file($tmpName, $targetPath)) {
-            $avatarUrl = 'https://astroboomin.co/avatars/' . $fileName;
+    if (isset($_FILES['avatar'])) {
+        if ($_FILES['avatar']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = '../avatars/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            
+            $tmpName = $_FILES['avatar']['tmp_name'];
+            $fileName = time() . '_' . basename($_FILES['avatar']['name']);
+            $targetPath = $uploadDir . $fileName;
+            
+            if (move_uploaded_file($tmpName, $targetPath)) {
+                $avatarUrl = 'https://astroboomin.co/avatars/' . $fileName;
+            } else {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'error' => 'Failed to move uploaded file. Check permissions on avatars directory.']);
+                exit();
+            }
+        } else {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Upload failed with error code: ' . $_FILES['avatar']['error']]);
+            exit();
         }
     }
     
