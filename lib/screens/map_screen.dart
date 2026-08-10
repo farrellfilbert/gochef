@@ -182,21 +182,26 @@ class _MapScreenState extends State<MapScreen> {
                   userAgentPackageName: 'com.astroboomin.gochef',
                 ),
                 MarkerLayer(
-                  markers: _kitchens.map((k) {
-                    final loc = _kitchenLocations[k.id] ?? _baseLocation;
-                    return Marker(
-                      point: loc,
-                      width: 60,
-                      height: 60,
-                      child: GestureDetector(
-                        onTap: () => _showKitchenDetails(k),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
+                  markers: [
+                    // User's own location marker
+                    if (_hasRealLocation)
+                      Marker(
+                        point: _baseLocation,
+                        width: 40,
+                        height: 40,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.blue.withValues(alpha: 0.2),
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 16,
+                              height: 16,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.primary, width: 2),
+                                color: Colors.blue,
+                                border: Border.all(color: Colors.white, width: 2),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.2),
@@ -205,30 +210,60 @@ class _MapScreenState extends State<MapScreen> {
                                   ),
                                 ],
                               ),
-                              child: CircleAvatar(
-                                radius: 18,
-                                backgroundImage: NetworkImage(k.avatar),
-                              ),
                             ),
-                            Container(
-                              margin: const EdgeInsets.only(top: 2),
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.surface,
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: AppColors.outlineVariant),
-                              ),
-                              child: Text(
-                                k.name,
-                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    );
-                  }).toList(),
+                    
+                    // Kitchen markers
+                    ..._kitchens.map((k) {
+                      final loc = _kitchenLocations[k.id] ?? _baseLocation;
+                      return Marker(
+                        point: loc,
+                        width: 60,
+                        height: 60,
+                        child: GestureDetector(
+                          onTap: () => _showKitchenDetails(k),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: AppColors.primary, width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: CircleAvatar(
+                                  radius: 18,
+                                  backgroundImage: NetworkImage(k.avatar),
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.only(top: 2),
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: AppColors.outlineVariant),
+                                ),
+                                child: Text(
+                                  k.name,
+                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ],
                 ),
               ],
             ),
