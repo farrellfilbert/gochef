@@ -7,11 +7,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'settings_screen.dart';
 import '../cart/cart_screen.dart';
-import 'address_selection_screen.dart';
-
-import '../../services/api_service.dart';
 import '../../models/user_model.dart';
+import '../../services/api_service.dart';
 import '../auth/login_screen.dart';
+import '../orders/order_history_screen.dart';
+import 'address_selection_screen.dart';
+import 'payment_methods_screen.dart';
+import 'security_password_screen.dart';
+import 'help_center_screen.dart';
+import 'contact_support_screen.dart';
+import 'about_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -458,15 +463,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 children: [
                   _buildListTile(Icons.person_outline, 'Personal Information', () => _showEditProfileDialog(user)),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.credit_card, 'Payment Methods', _showComingSoon),
+                  _buildListTile(Icons.credit_card, 'Payment Methods', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()));
+                  }),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.location_on, 'Delivery Addresses', () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressSelectionScreen(isSelectionMode: false)));
                   }),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.receipt_long, 'Order History', _showComingSoon),
+                  _buildListTile(Icons.receipt_long, 'Order History', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderHistoryScreen()));
+                  }),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.security, 'Security & Password', _showComingSoon),
+                  _buildListTile(Icons.security, 'Security & Password', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const SecurityPasswordScreen()));
+                  }),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.settings, 'Settings', () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
@@ -489,11 +500,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
               child: Column(
                 children: [
-                  _buildListTile(Icons.help_outline, 'Help Center', _showComingSoon),
+                  _buildListTile(Icons.help_outline, 'Help Center', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpCenterScreen()));
+                  }),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.chat_bubble_outline, 'Contact Support', _showComingSoon),
+                  _buildListTile(Icons.chat_bubble_outline, 'Contact Support', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ContactSupportScreen()));
+                  }),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.info_outline, 'About GoChef', _showComingSoon),
+                  _buildListTile(Icons.info_outline, 'About GoChef', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutScreen()));
+                  }),
                 ],
               ),
             ),
