@@ -7,6 +7,7 @@ import '../theme/app_text_styles.dart';
 import '../services/api_service.dart';
 import '../models/user_model.dart';
 import '../models/address_model.dart';
+import '../screens/map_screen.dart';
 
 class CustomAppBarTitle extends StatefulWidget {
   final String subtitle;
@@ -99,43 +100,51 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
       location = _deviceLocation;
     }
     
+
     if (location.length > 25) {
       location = '${location.substring(0, 25)}...';
     }
 
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-            image: DecorationImage(
-              image: NetworkImage(_avatarUrl),
-              fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const MapScreen()));
+      },
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+              image: DecorationImage(
+                image: NetworkImage(_avatarUrl),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(_name, style: AppTextStyles.headlineLgMobile(color: AppColors.primary).copyWith(fontSize: 20)),
-            Row(
-              children: [
-                const Icon(Icons.location_on, size: 14, color: AppColors.onSurfaceVariant),
-                const SizedBox(width: 4),
-                Text(
-                  widget.subtitle.isNotEmpty ? widget.subtitle : location,
-                  style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_name, style: AppTextStyles.headlineLgMobile(color: AppColors.primary).copyWith(fontSize: 20)),
+              Row(
+                children: [
+                  const Icon(Icons.location_on, size: 14, color: AppColors.onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Text(
+                    widget.subtitle.isNotEmpty ? widget.subtitle : location,
+                    style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.keyboard_arrow_down, color: AppColors.onSurfaceVariant, size: 14),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

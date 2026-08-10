@@ -5,6 +5,7 @@ import '../../theme/app_text_styles.dart';
 import '../kitchen/kitchen_profile_screen.dart';
 import '../food/food_details_screen.dart';
 import '../search/search_results_screen.dart';
+import '../cart/cart_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/kitchen_model.dart';
 import '../../models/menu_item_model.dart';
@@ -23,18 +24,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Future<Map<String, dynamic>> _homeDataFuture;
   late Future<UserModel> _profileFuture;
+  late Future<List<dynamic>> _cartFuture;
 
   @override
   void initState() {
     super.initState();
     _homeDataFuture = ApiService.getHomeData();
     _profileFuture = ApiService.getProfile();
+    _cartFuture = ApiService.getCart();
   }
 
   Future<void> _refreshData() async {
     setState(() {
       _homeDataFuture = ApiService.getHomeData();
       _profileFuture = ApiService.getProfile();
+      _cartFuture = ApiService.getCart();
     });
   }
 
@@ -88,9 +92,48 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const CustomAppBarTitle(),
-                          IconButton(
-                            icon: const Icon(Icons.notifications_none, color: AppColors.onSurfaceVariant),
-                            onPressed: () {},
+                          Row(
+                            children: [
+                              FutureBuilder<List<dynamic>>(
+                                future: _cartFuture,
+                                builder: (context, snapshot) {
+                                  int cartCount = 0;
+                                  if (snapshot.hasData && snapshot.data != null) {
+                                    cartCount = snapshot.data!.length;
+                                  }
+                                  return Stack(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.onSurfaceVariant),
+                                        onPressed: () {
+                                          Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
+                                        },
+                                      ),
+                                      if (cartCount > 0)
+                                        Positioned(
+                                          right: 8,
+                                          top: 8,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.error,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Text(
+                                              '$cartCount',
+                                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.notifications_none, color: AppColors.onSurfaceVariant),
+                                onPressed: () {},
+                              ),
+                            ],
                           )
                         ],
                       ),

@@ -43,7 +43,11 @@ class ApiService {
 
   static Future<UserModel> getProfile() async {
     final userId = await getUserId();
-    if (userId == null) throw Exception('Not logged in');
+    if (userId == null) {
+      final prefs = await SharedPreferences.getInstance();
+      final rawPrefs = prefs.getString('user_id');
+      throw Exception('Not logged in (Cache: $_cachedUserId, Prefs: $rawPrefs)');
+    }
 
     final response = await http.get(
       Uri.parse('$baseUrl/profile.php?user_id=$userId'),

