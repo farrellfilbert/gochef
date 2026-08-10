@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   return Stack(
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.onSurfaceVariant),
+                                        icon: const Icon(Icons.shopping_cart, color: AppColors.primary),
                                         onPressed: () {
                                           Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
                                         },
@@ -307,15 +307,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
 
                   // ─── Popular Meals ───
-                  if (popularMeals.isNotEmpty)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 24.0, left: 20.0, right: 20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Popular Meals', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                            const SizedBox(height: 16),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 24.0, left: 20.0, right: 20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Popular Meals', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                          const SizedBox(height: 16),
+                          if (popularMeals.isEmpty)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24.0),
+                                child: Text(
+                                  'No meals found in this category.',
+                                  style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                                ),
+                              ),
+                            )
+                          else
                             ...popularMeals.map((m) => Padding(
                                   padding: const EdgeInsets.only(bottom: 16.0),
                                   child: _buildPopularMeal(
