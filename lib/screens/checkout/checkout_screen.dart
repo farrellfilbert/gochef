@@ -149,8 +149,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(16),
+                GestureDetector(
+                  onTap: () async {
+                    final selected = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddressSelectionScreen(
+                          isSelectionMode: true,
+                          currentAddress: _primaryAddress,
+                        ),
+                      ),
+                    );
+                    if (selected != null && selected is AddressModel) {
+                      setState(() => _primaryAddress = selected);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainerLow.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(16),
@@ -175,6 +190,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       )
                     ],
                   ),
+                ),
                 ),
                 const SizedBox(height: 16),
 
