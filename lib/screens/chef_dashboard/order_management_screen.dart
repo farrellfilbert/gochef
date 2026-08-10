@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../services/api_service.dart';
+import '../../models/order_model.dart';
 
 class ChefOrdersScreen extends StatefulWidget {
   const ChefOrdersScreen({super.key});
@@ -10,34 +12,72 @@ class ChefOrdersScreen extends StatefulWidget {
 }
 
 class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
-  int _selectedTabIndex = 1; // 1 = Preparing
-  final List<String> _tabs = ['Pending', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
+  int _selectedTabIndex = 0;
+  final List<String> _tabs = ['Active', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
+  bool _isLoading = true;
+  List<OrderModel> _orders = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrders();
+  }
+
+  Future<void> _loadOrders() async {
+    setState(() => _isLoading = true);
+    try {
+      final orders = await ApiService.getOrders();
+      if (mounted) {
+        setState(() {
+          _orders = orders;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading orders: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _updateOrderStatus(String orderId, String newStatus) async {
+    final success = await ApiService.updateOrderStatus(orderId, newStatus);
+    if (success) {
+      _loadOrders(); // Refresh the list
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update order status')),
+        );
+      }
+    }
+  }
+
+  String _getNextStatus(String currentStatus) {
+    switch (currentStatus) {
+      case 'Active': return 'Preparing';
+      case 'Preparing': return 'Ready';
+      case 'Ready': return 'Completed';
+      default: return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Filter orders based on selected tab
+    final selectedStatus = _tabs[_selectedTabIndex];
+    final filteredOrders = _orders.where((o) => o.status == selectedStatus).toList();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface.withOpacity(0.8),
+        backgroundColor: AppColors.surface.withValues(alpha: 0.8),
         elevation: 0,
-        title: const Text('Active Prep', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Order Management', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16, top: 12, bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.outlineVariant.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.timer, color: AppColors.primary, size: 16),
-                const SizedBox(width: 4),
-                Text('Avg. 18m', style: AppTextStyles.labelSm(color: AppColors.primary)),
-              ],
-            ),
-          )
+          IconButton(
+            icon: const Icon(Icons.refresh, color: AppColors.primary),
+            onPressed: _loadOrders,
+          ),
         ],
       ),
       body: Column(
@@ -45,7 +85,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
           // Tabs
           Container(
             height: 50,
-            color: AppColors.background.withOpacity(0.95),
+            color: AppColors.background.withValues(alpha: 0.95),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -60,7 +100,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                     decoration: BoxDecoration(
                       color: isSelected ? AppColors.primaryContainer : Colors.transparent,
                       borderRadius: BorderRadius.circular(24),
-                      border: isSelected ? Border.all(color: AppColors.primary.withOpacity(0.2)) : null,
+                      border: isSelected ? Border.all(color: AppColors.primary.withValues(alpha: 0.2)) : null,
                     ),
                     child: Text(
                       _tabs[index],
@@ -75,53 +115,39 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
           ),
           
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildOrderCard(
-                  customerName: 'Julian Voss',
-                  orderNumber: '#2412',
-                  timeInfo: '12m elapsed',
-                  timeIsUrgent: true,
-                  subInfo: 'ASAP Delivery',
-                  items: [
-                    {'qty': 2, 'name': 'Black Truffle Risotto', 'price': '\$64.00'},
-                    {'qty': 1, 'name': 'Braised Short Rib', 'price': '\$42.00'},
-                  ],
-                  note: 'Please ensure the risotto is extra creamy. No parsley garnish.',
-                  primaryActionText: 'Finish',
-                ),
-                const SizedBox(height: 16),
-                _buildOrderCard(
-                  customerName: 'Elena Rossi',
-                  orderNumber: '#2415',
-                  timeInfo: '8m left',
-                  timeIsUrgent: false,
-                  subInfo: 'Pick-up @ 19:30',
-                  items: [
-                    {'qty': 1, 'name': 'Wagyu Beef Carpaccio', 'price': '\$38.00'},
-                    {'qty': 1, 'name': 'Lobster Thermidor', 'price': '\$85.00'},
-                  ],
-                  primaryActionText: 'Finish',
-                  hasOptions: true,
-                ),
-                const SizedBox(height: 16),
-                _buildOrderCard(
-                  customerName: 'Marcus Lee',
-                  orderNumber: '#2419',
-                  timeInfo: 'NEW',
-                  timeIsUrgent: false,
-                  subInfo: 'ASAP Delivery',
-                  items: [
-                    {'qty': 4, 'name': 'Pan-Seared Scallops', 'price': '\$112.00'},
-                  ],
-                  primaryActionText: 'Accept Order',
-                  secondaryActionText: 'Decline',
-                  isNew: true,
-                ),
-                const SizedBox(height: 80),
-              ],
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : filteredOrders.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No $selectedStatus orders',
+                          style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredOrders.length,
+                        itemBuilder: (context, index) {
+                          final order = filteredOrders[index];
+                          final nextStatus = _getNextStatus(order.status);
+                          
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildOrderCard(
+                              orderId: order.id,
+                              orderDate: order.orderDate,
+                              totalAmount: '\$${order.totalAmount.toStringAsFixed(2)}',
+                              status: order.status,
+                              items: order.items ?? [],
+                              note: order.notes,
+                              primaryActionText: nextStatus.isNotEmpty ? 'Mark $nextStatus' : '',
+                              secondaryActionText: order.status == 'Active' ? 'Cancel' : null,
+                              onPrimaryAction: nextStatus.isNotEmpty ? () => _updateOrderStatus(order.id, nextStatus) : null,
+                              onSecondaryAction: order.status == 'Active' ? () => _updateOrderStatus(order.id, 'Cancelled') : null,
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),
@@ -129,25 +155,24 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   }
 
   Widget _buildOrderCard({
-    required String customerName,
-    required String orderNumber,
-    required String timeInfo,
-    required bool timeIsUrgent,
-    required String subInfo,
-    required List<Map<String, dynamic>> items,
+    required String orderId,
+    required String orderDate,
+    required String totalAmount,
+    required String status,
+    required List<dynamic> items,
     String? note,
     required String primaryActionText,
     String? secondaryActionText,
-    bool hasOptions = false,
-    bool isNew = false,
+    VoidCallback? onPrimaryAction,
+    VoidCallback? onSecondaryAction,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isNew ? AppColors.primary.withOpacity(0.05) : AppColors.surfaceContainerHigh.withOpacity(0.7),
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isNew ? AppColors.primary.withOpacity(0.4) : Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
         ),
       ),
       child: Column(
@@ -160,80 +185,66 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                 children: [
                   CircleAvatar(
                     backgroundColor: AppColors.surfaceContainerLow,
-                    child: Icon(Icons.person, color: AppColors.onSurfaceVariant),
+                    child: const Icon(Icons.receipt, color: AppColors.onSurfaceVariant),
                   ),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(customerName, style: AppTextStyles.headlineMd(color: Colors.white)),
-                      Text(orderNumber, style: AppTextStyles.labelMono(color: AppColors.primary)),
+                      Text('Order $orderId', style: AppTextStyles.headlineMd(color: Colors.white)),
+                      Text(orderDate, style: AppTextStyles.labelMono(color: AppColors.primary)),
                     ],
                   ),
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: isNew ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4) : null,
-                    decoration: isNew ? BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ) : null,
-                    child: Text(
-                      timeInfo,
-                      style: AppTextStyles.labelMono(
-                        color: isNew ? AppColors.onPrimary : (timeIsUrgent ? AppColors.error : AppColors.primary),
-                      ).copyWith(fontWeight: timeIsUrgent ? FontWeight.bold : FontWeight.normal),
-                    ),
-                  ),
-                  if (!isNew)
-                    Text(subInfo, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withOpacity(0.6))),
-                ],
-              ),
+              Text(totalAmount, style: AppTextStyles.headlineMd(color: AppColors.primary)),
             ],
           ),
           const SizedBox(height: 16),
-          ...items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(4),
+          ...items.map((item) {
+             final qty = item['quantity'] ?? 1;
+             final name = item['name'] ?? 'Unknown Item';
+             final price = item['price'] ?? 0.0;
+             return Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text('$qty', style: AppTextStyles.labelMono(color: AppColors.primary)),
                       ),
-                      child: Text('${item['qty']}', style: AppTextStyles.labelMono(color: AppColors.primary)),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(item['name'], style: AppTextStyles.bodyMd(color: Colors.white)),
-                  ],
-                ),
-                Text(item['price'], style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-              ],
-            ),
-          )),
+                      const SizedBox(width: 12),
+                      Text(name, style: AppTextStyles.bodyMd(color: Colors.white)),
+                    ],
+                  ),
+                  Text('\$${(double.parse(price.toString()) * qty).toStringAsFixed(2)}', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                ],
+              ),
+            );
+          }),
           
-          if (note != null) ...[
+          if (note != null && note.isNotEmpty) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                  const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(note, style: AppTextStyles.labelSm(color: Colors.white)),
@@ -244,18 +255,18 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
           ],
           
           const SizedBox(height: 16),
-          Divider(color: AppColors.outlineVariant.withOpacity(0.1)),
+          Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
           const SizedBox(height: 8),
           Row(
             children: [
-              if (secondaryActionText != null) ...[
+              if (secondaryActionText != null && onSecondaryAction != null) ...[
                 Expanded(
                   child: MaterialButton(
-                    onPressed: () {},
+                    onPressed: onSecondaryAction,
                     color: AppColors.surfaceContainerHigh,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
-                      side: BorderSide(color: AppColors.outlineVariant),
+                      side: const BorderSide(color: AppColors.outlineVariant),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(secondaryActionText, style: AppTextStyles.headlineMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 14)),
@@ -263,42 +274,28 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                 ),
                 const SizedBox(width: 12),
               ],
-              Expanded(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: AppColors.magentaGloss,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      )
-                    ],
-                  ),
-                  child: MaterialButton(
-                    onPressed: () {},
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(primaryActionText, style: AppTextStyles.headlineMd(color: AppColors.onPrimary).copyWith(fontSize: 14)),
+              if (primaryActionText.isNotEmpty && onPrimaryAction != null)
+                Expanded(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: AppColors.magentaGloss,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: MaterialButton(
+                      onPressed: onPrimaryAction,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(primaryActionText, style: AppTextStyles.headlineMd(color: AppColors.onPrimary).copyWith(fontSize: 14)),
+                    ),
                   ),
                 ),
-              ),
-              if (hasOptions || secondaryActionText == null) ...[
-                const SizedBox(width: 12),
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.outlineVariant),
-                  ),
-                  child: IconButton(
-                    icon: Icon(hasOptions ? Icons.more_vert : Icons.print, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                )
-              ]
             ],
           ),
         ],

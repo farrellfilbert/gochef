@@ -19,7 +19,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
   List<MenuItemModel> _menuItems = [];
-  int _kitchenId = 1; // Default kitchen ID, in a real app this comes from user session
+  int? _kitchenId;
 
   @override
   void initState() {
@@ -30,12 +30,22 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
   Future<void> _loadMenu() async {
     setState(() => _isLoading = true);
     try {
-      // In a real app we'd fetch the chef's kitchen ID first. 
-      // Assuming kitchenId = 1 for the demo.
-      final items = await ApiService.getMenuItems(kitchenId: _kitchenId);
-      setState(() {
-        _menuItems = items;
-      });
+      final kitchenIdStr = await ApiService.getKitchenId();
+      if (kitchenIdStr != null) {
+        _kitchenId = int.tryParse(kitchenIdStr);
+      }
+      
+      if (_kitchenId != null) {
+        final items = await ApiService.getMenuItems(kitchenId: _kitchenId!);
+        setState(() {
+          _menuItems = items;
+        });
+      } else {
+        setState(() {
+          _menuItems = [];
+        });
+        debugPrint('Kitchen ID is null');
+      }
     } catch (e) {
       debugPrint('Error loading menu: $e');
     } finally {
@@ -175,16 +185,15 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                     String? imageUrl = await ApiService.uploadImage(selectedImage!);
 
                     if (imageUrl != null) {
-                      // Save Menu Item
-                      bool success = await ApiService.createMenuItem({
-                        'kitchen_id': _kitchenId,
-                        'category_id': 1, // Default category
-                        'name': nameController.text,
-                        'description': descriptionController.text,
-                        'price': double.parse(priceController.text),
-                        'image': imageUrl,
-                        'is_popular': 0,
-                      });
+                        bool success = await ApiService.createMenuItem({
+                          'kitchen_id': _kitchenId,
+                          'category_id': 1, // Default category
+                          'name': nameController.text,
+                          'description': descriptionController.text,
+                          'price': double.parse(priceController.text),
+                          'image': imageUrl,
+                          'is_popular': 0,
+                        });
 
                       if (success) {
                         Navigator.pop(context);

@@ -20,14 +20,21 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     $user_id = $_GET['user_id'] ?? null;
-    if (!$user_id) {
-        echo json_encode(['success' => false, 'error' => 'user_id is required', 'data' => []]);
+    $kitchen_id = $_GET['kitchen_id'] ?? null;
+    
+    if (!$user_id && !$kitchen_id) {
+        echo json_encode(['success' => false, 'error' => 'user_id or kitchen_id is required', 'data' => []]);
         exit();
     }
     
-    // Fetch orders for this user
-    $stmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC");
-    $stmt->execute([$user_id]);
+    // Fetch orders for this user or kitchen
+    if ($kitchen_id) {
+        $stmt = $pdo->prepare("SELECT * FROM orders WHERE kitchen_id = ? ORDER BY id DESC");
+        $stmt->execute([$kitchen_id]);
+    } else {
+        $stmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC");
+        $stmt->execute([$user_id]);
+    }
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     $response = [];

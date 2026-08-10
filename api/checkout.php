@@ -67,9 +67,9 @@ if ($method === 'POST') {
     $kitchenAvatar = $cartItems[0]['kitchen_avatar'];
 
     // Insert order
-    $stmt = $pdo->prepare("INSERT INTO orders (id, user_id, kitchen_name, order_date, status, total_amount, items_count, avatar, delivery_address, notes) VALUES (?, ?, ?, ?, 'Active', ?, ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO orders (id, user_id, kitchen_id, kitchen_name, order_date, status, total_amount, items_count, avatar, delivery_address, notes) VALUES (?, ?, ?, ?, ?, 'Active', ?, ?, ?, ?, ?)");
     $stmt->execute([
-        $orderId, $user_id, $kitchenName,
+        $orderId, $user_id, $kitchen_id, $kitchenName,
         date('M d, Y • H:i'), $total, $itemsCount,
         $kitchenAvatar, $deliveryAddress, $notes
     ]);

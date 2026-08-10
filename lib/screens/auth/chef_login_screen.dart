@@ -1,7 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../services/api_service.dart';
 import '../chef_dashboard/chef_main_navigation.dart';
 import 'chef_register_screen.dart';
 
@@ -18,12 +21,71 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  void _onLogin() {
-    // Navigate to the Chef Dashboard
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
-    );
+  void _onLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/login.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final user = data['user'];
+          if (user['role'] != 'chef') {
+             ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('This account is not registered as a chef')),
+             );
+             return;
+          }
+          await ApiService.saveUserId(
+            user['id'].toString(), 
+            role: user['role'], 
+            kitchenId: user['kitchen_id']?.toString()
+          );
+          
+          if (!mounted) return;
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
+            (route) => false,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['error'] ?? 'Login failed')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid email or password')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   @override

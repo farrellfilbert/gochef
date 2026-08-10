@@ -18,10 +18,12 @@ try {
         password VARCHAR(255) NOT NULL,
         phone VARCHAR(50) DEFAULT '',
         avatar VARCHAR(500) DEFAULT '',
+        role VARCHAR(20) DEFAULT 'user',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )");
     $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50) DEFAULT ''");
     $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar VARCHAR(500) DEFAULT ''");
+    $pdo->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'user'");
 
     // =============================================
     // CATEGORIES
@@ -191,6 +193,7 @@ try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS orders (
         id VARCHAR(50) PRIMARY KEY,
         user_id INT NOT NULL,
+        kitchen_id INT NULL,
         kitchen_name VARCHAR(100) NOT NULL,
         order_date VARCHAR(50) NOT NULL,
         status VARCHAR(20) NOT NULL DEFAULT 'Active',
@@ -199,8 +202,14 @@ try {
         avatar VARCHAR(500) DEFAULT '',
         delivery_address VARCHAR(300) DEFAULT '',
         notes TEXT,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE SET NULL
     )");
+    $pdo->exec("ALTER TABLE orders ADD COLUMN IF NOT EXISTS kitchen_id INT NULL");
+    // Only try to add foreign key if we know how, simpler to just add column on existing data.
+    // If we want to strictly add foreign key to existing table in mysql: 
+    // ALTER TABLE orders ADD CONSTRAINT fk_kitchen FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE SET NULL;
+    // but ignoring it for safety if the table exists.
 
     // =============================================
     // ORDER ITEMS (ensure exists)

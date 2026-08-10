@@ -25,6 +25,9 @@ if (!$input) {
 $name = $input['name'] ?? '';
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
+$phone = $input['phone'] ?? '';
+$role = $input['role'] ?? 'user';
+$kitchen_name = $input['kitchen_name'] ?? '';
 
 if (empty($name) || empty($email) || empty($password)) {
     http_response_code(400);
@@ -35,6 +38,12 @@ if (empty($name) || empty($email) || empty($password)) {
 if (strlen($password) < 6) {
     http_response_code(400);
     echo json_encode(['error' => 'Password must be at least 6 characters']);
+    exit();
+}
+
+if ($role === 'chef' && empty($kitchen_name)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Kitchen name is required for chefs']);
     exit();
 }
 
@@ -61,10 +70,17 @@ try {
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     
     // Insert new user
-    $insert = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
-    $insert->execute([$name, $email, $hashed_password]);
+    $insert = $pdo->prepare("INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)");
+    $insert->execute([$name, $email, $hashed_password, $phone, $role]);
     
     $user_id = $pdo->lastInsertId();
+    $kitchen_id = null;
+
+    if ($role === 'chef') {
+        $insert_kitchen = $pdo->prepare("INSERT INTO kitchens (user_id, name, description) VALUES (?, ?, ?)");
+        $insert_kitchen->execute([$user_id, $kitchen_name, 'A new kitchen on GoChef']);
+        $kitchen_id = $pdo->lastInsertId();
+    }
     
     echo json_encode([
         'success' => true,
@@ -72,7 +88,9 @@ try {
         'user' => [
             'id' => $user_id,
             'name' => $name,
-            'email' => $email
+            'email' => $email,
+            'role' => $role,
+            'kitchen_id' => $kitchen_id
         ]
     ]);
 

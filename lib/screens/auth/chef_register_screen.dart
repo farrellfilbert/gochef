@@ -1,7 +1,11 @@
 import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../services/api_service.dart';
+import '../chef_dashboard/chef_main_navigation.dart';
 
 class ChefRegisterScreen extends StatefulWidget {
   const ChefRegisterScreen({super.key});
@@ -19,11 +23,72 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  void _onRegister() {
-    // TODO: Implement Chef Registration API
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Chef registration feature coming soon!')),
-    );
+  void _onRegister() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final kitchenName = _kitchenController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty || kitchenName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/register.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'password': password,
+          'role': 'chef',
+          'kitchen_name': kitchenName,
+        }),
+      );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final user = data['user'];
+          await ApiService.saveUserId(
+            user['id'].toString(), 
+            role: user['role'], 
+            kitchenId: user['kitchen_id']?.toString()
+          );
+          
+          if (!mounted) return;
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
+            (route) => false,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['error'] ?? 'Registration failed')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Server error')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   @override

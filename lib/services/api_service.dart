@@ -17,6 +17,8 @@ class ApiService {
   static const String baseUrl = 'https://astroboomin.co/api';
   
   static String? _cachedUserId;
+  static String? _cachedRole;
+  static String? _cachedKitchenId;
 
   // =============================================
   // AUTH / USER
@@ -28,17 +30,43 @@ class ApiService {
     _cachedUserId = prefs.getString('user_id');
     return _cachedUserId;
   }
+  
+  static Future<String?> getUserRole() async {
+    if (_cachedRole != null) return _cachedRole;
+    final prefs = await SharedPreferences.getInstance();
+    _cachedRole = prefs.getString('user_role');
+    return _cachedRole;
+  }
+  
+  static Future<String?> getKitchenId() async {
+    if (_cachedKitchenId != null) return _cachedKitchenId;
+    final prefs = await SharedPreferences.getInstance();
+    _cachedKitchenId = prefs.getString('kitchen_id');
+    return _cachedKitchenId;
+  }
 
-  static Future<void> saveUserId(String userId) async {
+  static Future<void> saveUserId(String userId, {String role = 'user', String? kitchenId}) async {
     _cachedUserId = userId;
+    _cachedRole = role;
+    _cachedKitchenId = kitchenId;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_id', userId);
+    await prefs.setString('user_role', role);
+    if (kitchenId != null) {
+      await prefs.setString('kitchen_id', kitchenId);
+    } else {
+      await prefs.remove('kitchen_id');
+    }
   }
 
   static Future<void> logout() async {
     _cachedUserId = null;
+    _cachedRole = null;
+    _cachedKitchenId = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_id');
+    await prefs.remove('user_role');
+    await prefs.remove('kitchen_id');
   }
 
   static Future<UserModel> getProfile() async {
@@ -112,36 +140,84 @@ class ApiService {
     }
     return {'featured_kitchens': [], 'popular_meals': [], 'categories': [], 'promotions': []};
   }
+  // =============================================
+  // MOCK DATA FOR SIMULATION
+  // =============================================
+  
+  static final List<KitchenModel> _mockKitchens = [
+    KitchenModel(
+      id: 1,
+      name: "Chef's Kitchen",
+      coverImage: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop',
+      avatar: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop',
+      rating: 4.8,
+      deliveryTime: '15-25 min',
+      description: 'Premium quality meals cooked with passion.',
+    ),
+    KitchenModel(
+      id: 2,
+      name: 'Spice Symphony',
+      coverImage: 'https://images.unsplash.com/photo-1549488344-c5d0137a28eb?q=80&w=600&auto=format&fit=crop',
+      avatar: 'https://images.unsplash.com/photo-1549488344-c5d0137a28eb?q=80&w=600&auto=format&fit=crop',
+      rating: 4.6,
+      deliveryTime: '25-40 min',
+      description: 'Experience the magic of authentic spices.',
+    ),
+  ];
+
+  static final List<MenuItemModel> _mockMenuItems = [
+    MenuItemModel(
+      id: 1,
+      kitchenId: 1,
+      name: 'Grilled Salmon Bowl',
+      description: 'Fresh grilled salmon with quinoa and roasted vegetables.',
+      price: 45000,
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop',
+      isPopular: true,
+      categoryName: 'Healthy',
+    ),
+    MenuItemModel(
+      id: 2,
+      kitchenId: 1,
+      name: 'Avocado Toast',
+      description: 'Smashed avocado on sourdough with poached egg.',
+      price: 25000,
+      image: 'https://images.unsplash.com/photo-1525351484163-9e45e514869e?q=80&w=600&auto=format&fit=crop',
+      isPopular: false,
+      categoryName: 'Breakfast',
+    ),
+    MenuItemModel(
+      id: 3,
+      kitchenId: 2,
+      name: 'Spicy Chicken Burger',
+      description: 'Crispy chicken patty with spicy mayo and fresh lettuce.',
+      price: 35000,
+      image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?q=80&w=600&auto=format&fit=crop',
+      isPopular: true,
+      categoryName: 'Fast Food',
+    ),
+  ];
+
+  static final List<CartItemModel> _mockCart = [];
+  static int _cartIdCounter = 1;
+
 
   // =============================================
   // KITCHENS
   // =============================================
 
   static Future<List<KitchenModel>> getKitchens({bool featured = false, String? search, String? cuisine}) async {
-    var url = '$baseUrl/kitchens.php?';
-    if (featured) url += 'featured=1&';
-    if (search != null) url += 'q=${Uri.encodeComponent(search)}&';
-    if (cuisine != null) url += 'cuisine=${Uri.encodeComponent(cuisine)}&';
-
-    final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true) {
-        return (data['data'] as List).map((e) => KitchenModel.fromJson(e)).toList();
-      }
-    }
-    return [];
+    await Future.delayed(const Duration(milliseconds: 500));
+    return _mockKitchens;
   }
 
   static Future<KitchenModel?> getKitchenDetail(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/kitchen_detail.php?id=$id')).timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true) {
-        return KitchenModel.fromJson(data['data']);
-      }
+    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      return _mockKitchens.firstWhere((k) => k.id == id);
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
   // =============================================
@@ -149,31 +225,21 @@ class ApiService {
   // =============================================
 
   static Future<List<MenuItemModel>> getMenuItems({int? kitchenId, int? categoryId, bool popular = false, String? search}) async {
-    var url = '$baseUrl/menu_items.php?';
-    if (kitchenId != null) url += 'kitchen_id=$kitchenId&';
-    if (categoryId != null) url += 'category_id=$categoryId&';
-    if (popular) url += 'popular=1&';
-    if (search != null) url += 'q=${Uri.encodeComponent(search)}&';
-
-    final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true) {
-        return (data['data'] as List).map((e) => MenuItemModel.fromJson(e)).toList();
-      }
+    await Future.delayed(const Duration(milliseconds: 500));
+    var items = _mockMenuItems.toList();
+    if (kitchenId != null) {
+      items = items.where((i) => i.kitchenId == kitchenId).toList();
     }
-    return [];
+    return items;
   }
 
   static Future<MenuItemModel?> getMenuDetail(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/menu_detail.php?id=$id')).timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true) {
-        return MenuItemModel.fromJson(data['data']);
-      }
+    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      return _mockMenuItems.firstWhere((i) => i.id == id);
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
   // =============================================
@@ -181,66 +247,83 @@ class ApiService {
   // =============================================
 
   static Future<List<CartItemModel>> getCart() async {
-    final userId = await getUserId();
-    if (userId == null) return [];
-
-    final response = await http.get(Uri.parse('$baseUrl/cart.php?user_id=$userId')).timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true) {
-        return (data['data'] as List).map((e) => CartItemModel.fromJson(e)).toList();
-      }
-    }
-    return [];
+    await Future.delayed(const Duration(milliseconds: 500));
+    return _mockCart;
   }
 
   static Future<bool> addToCart(int menuItemId, {int quantity = 1, String notes = '', List<int> addonIds = const []}) async {
-    final userId = await getUserId();
-    if (userId == null) return false;
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/cart.php'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'user_id': int.parse(userId),
-        'menu_item_id': menuItemId,
-        'quantity': quantity,
-        'notes': notes,
-        'addon_ids': addonIds,
-      }),
-    ).timeout(const Duration(seconds: 10));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['success'] == true;
+    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      final menuItem = _mockMenuItems.firstWhere((i) => i.id == menuItemId);
+      final kitchen = _mockKitchens.firstWhere((k) => k.id == menuItem.kitchenId);
+      
+      // Check if already in cart
+      final existingIndex = _mockCart.indexWhere((c) => c.menuItemId == menuItemId);
+      if (existingIndex >= 0) {
+        final existing = _mockCart[existingIndex];
+        _mockCart[existingIndex] = CartItemModel(
+          cartItemId: existing.cartItemId,
+          menuItemId: existing.menuItemId,
+          quantity: existing.quantity + quantity,
+          notes: existing.notes,
+          name: existing.name,
+          price: existing.price,
+          image: existing.image,
+          kitchenName: existing.kitchenName,
+          kitchenAvatar: existing.kitchenAvatar,
+          kitchenId: existing.kitchenId,
+          addons: existing.addons,
+        );
+      } else {
+        _mockCart.add(CartItemModel(
+          cartItemId: _cartIdCounter++,
+          menuItemId: menuItemId,
+          quantity: quantity,
+          notes: notes,
+          name: menuItem.name,
+          price: menuItem.price,
+          image: menuItem.image,
+          kitchenName: kitchen.name,
+          kitchenAvatar: kitchen.avatar,
+          kitchenId: kitchen.id,
+          addons: [], // mock addons if needed
+        ));
+      }
+      return true;
+    } catch (e) {
+      return false;
     }
-    return false;
   }
 
   static Future<bool> removeFromCart(int cartItemId) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/cart.php'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'cart_item_id': cartItemId}),
-    ).timeout(const Duration(seconds: 10));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['success'] == true;
-    }
-    return false;
+    await Future.delayed(const Duration(milliseconds: 300));
+    _mockCart.removeWhere((c) => c.cartItemId == cartItemId);
+    return true;
   }
 
   static Future<bool> updateCartQuantity(int cartItemId, int quantity) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/cart.php'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'cart_item_id': cartItemId, 'quantity': quantity}),
-    ).timeout(const Duration(seconds: 10));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['success'] == true;
+    await Future.delayed(const Duration(milliseconds: 300));
+    final index = _mockCart.indexWhere((c) => c.cartItemId == cartItemId);
+    if (index >= 0) {
+      if (quantity <= 0) {
+        _mockCart.removeAt(index);
+      } else {
+        final existing = _mockCart[index];
+        _mockCart[index] = CartItemModel(
+          cartItemId: existing.cartItemId,
+          menuItemId: existing.menuItemId,
+          quantity: quantity,
+          notes: existing.notes,
+          name: existing.name,
+          price: existing.price,
+          image: existing.image,
+          kitchenName: existing.kitchenName,
+          kitchenAvatar: existing.kitchenAvatar,
+          kitchenId: existing.kitchenId,
+          addons: existing.addons,
+        );
+      }
+      return true;
     }
     return false;
   }
@@ -382,10 +465,19 @@ class ApiService {
 
   static Future<List<OrderModel>> getOrders() async {
     final userId = await getUserId();
+    final role = await getUserRole();
+    final kitchenId = await getKitchenId();
     if (userId == null) return [];
 
+    var url = '$baseUrl/orders.php?';
+    if (role == 'chef' && kitchenId != null) {
+      url += 'kitchen_id=$kitchenId';
+    } else {
+      url += 'user_id=$userId';
+    }
+
     final response = await http.get(
-      Uri.parse('$baseUrl/orders.php?user_id=$userId'),
+      Uri.parse(url),
     ).timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 200) {
@@ -402,27 +494,13 @@ class ApiService {
   // =============================================
 
   static Future<Map<String, dynamic>?> checkout({int? addressId, required int kitchenId, String notes = ''}) async {
-    final userId = await getUserId();
-    if (userId == null) return null;
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/checkout.php'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'user_id': int.parse(userId),
-        'address_id': addressId,
-        'kitchen_id': kitchenId,
-        'notes': notes,
-      }),
-    ).timeout(const Duration(seconds: 15));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true) {
-        return data;
-      }
-    }
-    return null;
+    await Future.delayed(const Duration(seconds: 1));
+    _mockCart.clear(); // Clear cart after mock checkout
+    return {
+      'success': true,
+      'order_id': 1001,
+      'total_amount': 85000,
+    };
   }
 
   // =============================================
@@ -451,17 +529,21 @@ class ApiService {
   // =============================================
 
   static Future<List<AddressModel>> getAddresses() async {
-    final userId = await getUserId();
-    if (userId == null) return [];
-
-    final response = await http.get(Uri.parse('$baseUrl/addresses.php?user_id=$userId')).timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true) {
-        return (data['data'] as List).map((e) => AddressModel.fromJson(e)).toList();
-      }
-    }
-    return [];
+    await Future.delayed(const Duration(milliseconds: 500));
+    return [
+      AddressModel(
+        id: 1,
+        label: 'Home',
+        address: '123 Baker Street, London',
+        isDefault: true,
+      ),
+      AddressModel(
+        id: 2,
+        label: 'Work',
+        address: '456 Business Park, Suite 100',
+        isDefault: false,
+      ),
+    ];
   }
 
   static Future<bool> addAddress(String address, {String label = 'Home', bool isDefault = false}) async {
@@ -562,6 +644,23 @@ class ApiService {
     if (response.statusCode == 200) {
       final resData = json.decode(response.body);
       return resData['success'] == true;
+    }
+    return false;
+  }
+  
+  static Future<bool> updateOrderStatus(String orderId, String status) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/update_order_status.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'order_id': orderId,
+        'status': status,
+      }),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['success'] == true;
     }
     return false;
   }
