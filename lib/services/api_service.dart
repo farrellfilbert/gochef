@@ -74,7 +74,8 @@ class ApiService {
 
     if (avatarImage != null) {
       final bytes = await avatarImage.readAsBytes();
-      request.files.add(http.MultipartFile.fromBytes('avatar', bytes, filename: avatarImage.name));
+      final String fileName = avatarImage.name.isNotEmpty ? avatarImage.name : 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      request.files.add(http.MultipartFile.fromBytes('avatar', bytes, filename: fileName));
     }
 
     try {
@@ -83,11 +84,12 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return data['success'] == true;
+      } else {
+        throw Exception('Server error: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      // ignore
+      throw Exception('Network error: $e');
     }
-    return false;
   }
 
   // =============================================

@@ -114,19 +114,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ElevatedButton(
                   onPressed: isSaving ? null : () async {
                     setDialogState(() => isSaving = true);
-                    final success = await ApiService.updateProfile(
-                      name: nameController.text.trim(),
-                      phone: phoneController.text.trim(),
-                      avatarImage: selectedImage,
-                    );
-                    setDialogState(() => isSaving = false);
-                    if (success && context.mounted) {
-                      Navigator.pop(context);
-                      _refreshProfile();
-                    } else if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Failed to update profile')),
+                    try {
+                      final success = await ApiService.updateProfile(
+                        name: nameController.text.trim(),
+                        phone: phoneController.text.trim(),
+                        avatarImage: selectedImage,
                       );
+                      setDialogState(() => isSaving = false);
+                      if (success && context.mounted) {
+                        Navigator.pop(context);
+                        _refreshProfile();
+                      } else if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to update profile')),
+                        );
+                      }
+                    } catch (e) {
+                      setDialogState(() => isSaving = false);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(e.toString()), duration: const Duration(seconds: 4)),
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
