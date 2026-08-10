@@ -19,7 +19,7 @@ class ChefProfileScreen extends StatefulWidget {
 class _ChefProfileScreenState extends State<ChefProfileScreen> {
   bool _isLoading = true;
   KitchenModel? _kitchen;
-  final int _kitchenId = 1; // Assuming 1 for demo purposes
+  int? _kitchenId;
 
   @override
   void initState() {
@@ -30,10 +30,16 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
   Future<void> _loadProfile() async {
     setState(() => _isLoading = true);
     try {
-      final kitchenData = await ApiService.getKitchenDetail(_kitchenId);
-      setState(() {
-        _kitchen = kitchenData;
-      });
+      final kitchenIdStr = await ApiService.getKitchenId();
+      if (kitchenIdStr != null) {
+        _kitchenId = int.tryParse(kitchenIdStr);
+        if (_kitchenId != null) {
+          final kitchenData = await ApiService.getKitchenDetail(_kitchenId!);
+          setState(() {
+            _kitchen = kitchenData;
+          });
+        }
+      }
     } catch (e) {
       debugPrint('Error loading chef profile: $e');
     } finally {
@@ -136,6 +142,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     final nameController = TextEditingController(text: _kitchen!.name);
     final aboutController = TextEditingController(text: _kitchen!.description);
     final timeController = TextEditingController(text: _kitchen!.deliveryTime);
+    final cuisineController = TextEditingController(text: _kitchen!.cuisineType);
     bool isSaving = false;
 
     showDialog(
@@ -168,6 +175,12 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                     style: const TextStyle(color: AppColors.onSurface),
                     decoration: const InputDecoration(labelText: 'Delivery Time', labelStyle: TextStyle(color: AppColors.onSurfaceVariant)),
                   ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: cuisineController,
+                    style: const TextStyle(color: AppColors.onSurface),
+                    decoration: const InputDecoration(labelText: 'Cuisine Type', labelStyle: TextStyle(color: AppColors.onSurfaceVariant)),
+                  ),
                 ],
               ),
             ),
@@ -180,12 +193,14 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                 onPressed: isSaving ? null : () async {
                   setDialogState(() => isSaving = true);
                   try {
-                    bool success = await ApiService.updateKitchen({
+                    Map<String, dynamic> updateData = {
                       'kitchen_id': _kitchenId,
-                      'name': nameController.text,
-                      'description': aboutController.text,
-                      'deliveryTime': timeController.text,
-                    });
+                      'name': nameController.text.trim(),
+                      'description': aboutController.text.trim(),
+                      'delivery_time': timeController.text.trim(),
+                      'cuisine_type': cuisineController.text.trim(),
+                    };
+                    bool success = await ApiService.updateKitchen(updateData);
                     
                     if (success) {
                       Navigator.pop(context);
