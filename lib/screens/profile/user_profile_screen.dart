@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
@@ -5,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'settings_screen.dart';
 import '../cart/cart_screen.dart';
+import 'address_selection_screen.dart';
 
 import '../../services/api_service.dart';
 import '../../models/user_model.dart';
@@ -457,7 +460,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.credit_card, 'Payment Methods', _showComingSoon),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.location_on, 'Delivery Addresses', _showComingSoon),
+                  _buildListTile(Icons.location_on, 'Delivery Addresses', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressSelectionScreen(isSelectionMode: false)));
+                  }),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.receipt_long, 'Order History', _showComingSoon),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),

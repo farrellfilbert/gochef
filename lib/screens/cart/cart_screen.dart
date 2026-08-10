@@ -6,6 +6,7 @@ import '../checkout/checkout_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/cart_item_model.dart';
 import '../../models/address_model.dart';
+import '../profile/address_selection_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -141,8 +142,23 @@ class _CartScreenState extends State<CartScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // ─── Delivery Address ───
-                        Container(
-                          padding: const EdgeInsets.all(16),
+                        GestureDetector(
+                          onTap: () async {
+                            final selected = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddressSelectionScreen(
+                                  isSelectionMode: true,
+                                  currentAddress: _primaryAddress,
+                                ),
+                              ),
+                            );
+                            if (selected != null && selected is AddressModel) {
+                              setState(() => _primaryAddress = selected);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: AppColors.glassBackground,
                             borderRadius: BorderRadius.circular(12),
@@ -205,6 +221,7 @@ class _CartScreenState extends State<CartScreen> {
                               ),
                             ],
                           ),
+                        ),
                         ),
                         const SizedBox(height: 24),
 

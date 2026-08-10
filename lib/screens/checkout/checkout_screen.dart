@@ -5,6 +5,7 @@ import 'order_complete_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/address_model.dart';
 import '../../models/cart_item_model.dart';
+import '../profile/address_selection_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final int kitchenId;
@@ -129,7 +130,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Text('Delivery Address',
                         style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final selected = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddressSelectionScreen(
+                              isSelectionMode: true,
+                              currentAddress: _primaryAddress,
+                            ),
+                          ),
+                        );
+                        if (selected != null && selected is AddressModel) {
+                          setState(() => _primaryAddress = selected);
+                        }
+                      },
                       child: Text('Edit', style: AppTextStyles.labelMono(color: AppColors.primary)),
                     )
                   ],
