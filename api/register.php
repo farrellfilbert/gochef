@@ -31,6 +31,7 @@ $kitchen_name = $input['kitchen_name'] ?? '';
 $kitchen_description = $input['kitchen_description'] ?? 'A new kitchen on GoChef';
 $kitchen_avatar = $input['kitchen_avatar'] ?? '';
 $kitchen_cover = $input['kitchen_cover'] ?? '';
+$avatar = $input['avatar'] ?? '';
 
 if (empty($name) || empty($email) || empty($password)) {
     http_response_code(400);
@@ -73,8 +74,8 @@ try {
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     
     // Insert new user
-    $insert = $pdo->prepare("INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)");
-    $insert->execute([$name, $email, $hashed_password, $phone, $role]);
+    $insert = $pdo->prepare("INSERT INTO users (name, email, password, phone, role, avatar) VALUES (?, ?, ?, ?, ?, ?)");
+    $insert->execute([$name, $email, $hashed_password, $phone, $role, $avatar]);
     
     $user_id = $pdo->lastInsertId();
     $kitchen_id = null;

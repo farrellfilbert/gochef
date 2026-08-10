@@ -26,6 +26,7 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   XFile? _selectedImage;
+  XFile? _selectedChefImage;
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -50,6 +51,28 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
     }
   }
 
+  Future<void> _pickChefImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: image.path,
+        uiSettings: [
+          WebUiSettings(
+            context: context,
+            presentStyle: WebPresentStyle.dialog,
+          ),
+        ],
+      );
+      if (croppedFile != null) {
+        setState(() {
+          _selectedChefImage = XFile(croppedFile.path);
+        });
+      }
+    }
+  }
+
+
   void _onRegister() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
@@ -65,9 +88,9 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
       return;
     }
 
-    if (_selectedImage == null) {
+    if (_selectedImage == null || _selectedChefImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please upload a kitchen photo')),
+        const SnackBar(content: Text('Please upload both a kitchen photo and a personal photo')),
       );
       return;
     }
@@ -75,9 +98,11 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Upload image first
-      String? imageUrl = await ApiService.uploadImage(_selectedImage!);
-      if (imageUrl == null) {
+      // 1. Upload images first
+      String? kitchenImageUrl = await ApiService.uploadImage(_selectedImage!);
+      String? chefImageUrl = await ApiService.uploadImage(_selectedChefImage!);
+      
+      if (kitchenImageUrl == null || chefImageUrl == null) {
         throw Exception('Failed to upload image. Please try again.');
       }
 
@@ -93,8 +118,9 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
           'role': 'chef',
           'kitchen_name': kitchenName,
           'kitchen_description': description,
-          'kitchen_cover': imageUrl,
-          'kitchen_avatar': imageUrl, // Using same image for both
+          'kitchen_cover': kitchenImageUrl,
+          'kitchen_avatar': kitchenImageUrl, // Kitchen's avatar is the same as kitchen cover
+          'avatar': chefImageUrl, // Chef's personal avatar
         }),
       );
 
@@ -194,9 +220,9 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
                                 ? const Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.add_a_photo, color: AppColors.primary, size: 32),
+                                      Icon(Icons.storefront_outlined, color: AppColors.primary, size: 32),
                                       SizedBox(height: 8),
-                                      Text('Tap to upload resto photo', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                                      Text('Tap to upload kitchen photo', style: TextStyle(color: AppColors.onSurfaceVariant)),
                                     ],
                                   )
                                 : ClipRRect(
@@ -204,6 +230,36 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
                                     child: kIsWeb 
                                         ? Image.network(_selectedImage!.path, fit: BoxFit.cover)
                                         : Image.file(File(_selectedImage!.path), fit: BoxFit.cover),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        _buildLabel('Personal Photo (Chef)'),
+                        GestureDetector(
+                          onTap: _pickChefImage,
+                          child: Container(
+                            height: 140,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                            ),
+                            child: _selectedChefImage == null
+                                ? const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.person_outline, color: AppColors.primary, size: 32),
+                                      SizedBox(height: 8),
+                                      Text('Tap to upload your personal photo', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                                    ],
+                                  )
+                                : ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: kIsWeb 
+                                        ? Image.network(_selectedChefImage!.path, fit: BoxFit.cover)
+                                        : Image.file(File(_selectedChefImage!.path), fit: BoxFit.cover),
                                   ),
                           ),
                         ),
