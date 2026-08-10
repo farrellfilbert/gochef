@@ -63,6 +63,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       onTap: () async {
                         final picked = await _picker.pickImage(source: ImageSource.gallery);
                         if (picked != null) {
+                          if (kIsWeb) {
+                            setDialogState(() {
+                              selectedImage = picked;
+                            });
+                            return;
+                          }
                           final croppedFile = await ImageCropper().cropImage(
                             sourcePath: picked.path,
                             uiSettings: [

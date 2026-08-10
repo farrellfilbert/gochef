@@ -46,6 +46,44 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
     
     if (picked != null && mounted) {
+      if (kIsWeb) {
+        final image = picked;
+        setState(() => _isLoading = true);
+        try {
+          String? imageUrl = await ApiService.uploadImage(image);
+          if (imageUrl != null) {
+            Map<String, dynamic> updateData = {
+              'kitchen_id': _kitchenId,
+            };
+            if (isAvatar) {
+              updateData['avatar'] = imageUrl;
+            } else {
+              updateData['cover_image'] = imageUrl;
+            }
+            
+            bool success = await ApiService.updateKitchen(updateData);
+            if (success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Profile updated successfully')),
+              );
+              _loadProfile();
+            } else {
+              throw Exception('Failed to update kitchen');
+            }
+          } else {
+            throw Exception('Failed to upload image');
+          }
+        } catch (e) {
+          if (mounted) {
+            setState(() => _isLoading = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: $e')),
+            );
+          }
+        }
+        return;
+      }
+
       final croppedFile = await ImageCropper().cropImage(
         sourcePath: picked.path,
         uiSettings: [

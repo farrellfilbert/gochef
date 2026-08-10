@@ -34,6 +34,12 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      if (kIsWeb) {
+        setState(() {
+          _selectedImage = image;
+        });
+        return;
+      }
       final croppedFile = await ImageCropper().cropImage(
         sourcePath: image.path,
         uiSettings: [
@@ -55,6 +61,12 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      if (kIsWeb) {
+        setState(() {
+          _selectedChefImage = image;
+        });
+        return;
+      }
       final croppedFile = await ImageCropper().cropImage(
         sourcePath: image.path,
         uiSettings: [

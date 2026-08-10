@@ -91,6 +91,12 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                       final ImagePicker picker = ImagePicker();
                       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
                       if (image != null) {
+                        if (kIsWeb) {
+                          setDialogState(() {
+                            selectedImage = image;
+                          });
+                          return;
+                        }
                         final croppedFile = await ImageCropper().cropImage(
                           sourcePath: image.path,
                           uiSettings: [
