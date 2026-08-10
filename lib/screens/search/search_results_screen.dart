@@ -27,6 +27,52 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.initialQuery);
+    
+    // Add dummy data for visual feedback
+    _kitchens = [
+      KitchenModel(
+        id: 1,
+        name: 'Fresh Kitchen',
+        coverImage: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop',
+        avatar: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop',
+        rating: 4.8,
+        deliveryTime: '20-30 min',
+        description: 'Healthy and fresh meals.',
+      ),
+      KitchenModel(
+        id: 2,
+        name: 'Chef Marco Italiano',
+        coverImage: 'https://images.unsplash.com/photo-1549488344-c5d0137a28eb?q=80&w=600&auto=format&fit=crop',
+        avatar: 'https://images.unsplash.com/photo-1549488344-c5d0137a28eb?q=80&w=600&auto=format&fit=crop',
+        rating: 4.9,
+        deliveryTime: '30-45 min',
+        description: 'Authentic Italian cuisine.',
+      ),
+    ];
+    
+    _dishes = [
+      MenuItemModel(
+        id: 1,
+        kitchenId: 1,
+        name: 'Rainbow Poke Symphony',
+        description: 'Fresh salmon, tuna, mango, and avocado.',
+        price: 18.50,
+        image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop',
+        isPopular: true,
+        categoryName: 'Healthy',
+      ),
+      MenuItemModel(
+        id: 2,
+        kitchenId: 2,
+        name: 'Truffle Mushroom Pasta',
+        description: 'Creamy fettuccine with black truffle.',
+        price: 24.00,
+        image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?q=80&w=600&auto=format&fit=crop',
+        isPopular: true,
+        categoryName: 'Pasta',
+      ),
+    ];
+
     if (widget.initialQuery.isNotEmpty) {
       _performSearch(widget.initialQuery);
     }
