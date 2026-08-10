@@ -28,6 +28,9 @@ $password = $input['password'] ?? '';
 $phone = $input['phone'] ?? '';
 $role = $input['role'] ?? 'user';
 $kitchen_name = $input['kitchen_name'] ?? '';
+$kitchen_description = $input['kitchen_description'] ?? 'A new kitchen on GoChef';
+$kitchen_avatar = $input['kitchen_avatar'] ?? '';
+$kitchen_cover = $input['kitchen_cover'] ?? '';
 
 if (empty($name) || empty($email) || empty($password)) {
     http_response_code(400);
@@ -77,8 +80,8 @@ try {
     $kitchen_id = null;
 
     if ($role === 'chef') {
-        $insert_kitchen = $pdo->prepare("INSERT INTO kitchens (user_id, name, description) VALUES (?, ?, ?)");
-        $insert_kitchen->execute([$user_id, $kitchen_name, 'A new kitchen on GoChef']);
+        $insert_kitchen = $pdo->prepare("INSERT INTO kitchens (user_id, name, description, avatar, cover_image) VALUES (?, ?, ?, ?, ?)");
+        $insert_kitchen->execute([$user_id, $kitchen_name, $kitchen_description, $kitchen_avatar, $kitchen_cover]);
         $kitchen_id = $pdo->lastInsertId();
     }
     

@@ -207,17 +207,33 @@ class ApiService {
   // =============================================
 
   static Future<List<KitchenModel>> getKitchens({bool featured = false, String? search, String? cuisine}) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return _mockKitchens;
+    var url = '$baseUrl/kitchens.php?';
+    if (featured) url += 'featured=1&';
+    if (search != null) url += 'q=${Uri.encodeComponent(search)}&';
+    if (cuisine != null) url += 'cuisine=${Uri.encodeComponent(cuisine)}&';
+
+    final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['success'] == true) {
+        return (data['data'] as List).map((e) => KitchenModel.fromJson(e)).toList();
+      }
+    }
+    return [];
   }
 
   static Future<KitchenModel?> getKitchenDetail(int id) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    try {
-      return _mockKitchens.firstWhere((k) => k.id == id);
-    } catch (e) {
-      return null;
+    final response = await http.get(Uri.parse('$baseUrl/kitchens.php?id=$id')).timeout(const Duration(seconds: 10));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['success'] == true) {
+        final list = (data['data'] as List);
+        if (list.isNotEmpty) {
+           return KitchenModel.fromJson(list[0]);
+        }
+      }
     }
+    return null;
   }
 
   // =============================================
@@ -225,21 +241,31 @@ class ApiService {
   // =============================================
 
   static Future<List<MenuItemModel>> getMenuItems({int? kitchenId, int? categoryId, bool popular = false, String? search}) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    var items = _mockMenuItems.toList();
-    if (kitchenId != null) {
-      items = items.where((i) => i.kitchenId == kitchenId).toList();
+    var url = '$baseUrl/menu_items.php?';
+    if (kitchenId != null) url += 'kitchen_id=$kitchenId&';
+    if (categoryId != null) url += 'category_id=$categoryId&';
+    if (popular) url += 'popular=1&';
+    if (search != null) url += 'q=${Uri.encodeComponent(search)}&';
+
+    final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['success'] == true) {
+        return (data['data'] as List).map((e) => MenuItemModel.fromJson(e)).toList();
+      }
     }
-    return items;
+    return [];
   }
 
   static Future<MenuItemModel?> getMenuDetail(int id) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    try {
-      return _mockMenuItems.firstWhere((i) => i.id == id);
-    } catch (e) {
-      return null;
+    final response = await http.get(Uri.parse('$baseUrl/menu_detail.php?id=$id')).timeout(const Duration(seconds: 10));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['success'] == true) {
+        return MenuItemModel.fromJson(data['data']);
+      }
     }
+    return null;
   }
 
   // =============================================

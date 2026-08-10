@@ -1,7 +1,11 @@
 import 'dart:ui';
+import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
@@ -19,20 +23,51 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _kitchenController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  XFile? _selectedImage;
   bool _isLoading = false;
   bool _obscurePassword = true;
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: image.path,
+        uiSettings: [
+          WebUiSettings(
+            context: context,
+            presentStyle: WebPresentStyle.dialog,
+          ),
+        ],
+      );
+      if (croppedFile != null) {
+        setState(() {
+          _selectedImage = XFile(croppedFile.path);
+        });
+      }
+    }
+  }
 
   void _onRegister() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
     final kitchenName = _kitchenController.text.trim();
+    final description = _descriptionController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty || kitchenName.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty || kitchenName.isEmpty || description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
+
+    if (_selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please upload a kitchen photo')),
       );
       return;
     }
@@ -40,6 +75,13 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // 1. Upload image first
+      String? imageUrl = await ApiService.uploadImage(_selectedImage!);
+      if (imageUrl == null) {
+        throw Exception('Failed to upload image. Please try again.');
+      }
+
+      // 2. Register chef
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/register.php'),
         headers: {'Content-Type': 'application/json'},
@@ -50,6 +92,9 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
           'password': password,
           'role': 'chef',
           'kitchen_name': kitchenName,
+          'kitchen_description': description,
+          'kitchen_cover': imageUrl,
+          'kitchen_avatar': imageUrl, // Using same image for both
         }),
       );
 
@@ -134,6 +179,36 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
                         ),
                         const SizedBox(height: 32),
                         
+                        _buildLabel('Kitchen Photo'),
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            height: 140,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                            ),
+                            child: _selectedImage == null
+                                ? const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.add_a_photo, color: AppColors.primary, size: 32),
+                                      SizedBox(height: 8),
+                                      Text('Tap to upload resto photo', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                                    ],
+                                  )
+                                : ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: kIsWeb 
+                                        ? Image.network(_selectedImage!.path, fit: BoxFit.cover)
+                                        : Image.file(File(_selectedImage!.path), fit: BoxFit.cover),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
                         _buildLabel('Full Name'),
                         _buildTextField(_nameController, 'Gordon Ramsay', Icons.person_outline),
                         const SizedBox(height: 16),
@@ -148,6 +223,10 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
                         
                         _buildLabel('Kitchen / Restaurant Name'),
                         _buildTextField(_kitchenController, "Hell's Kitchen", Icons.storefront_outlined),
+                        const SizedBox(height: 16),
+
+                        _buildLabel('About the Kitchen'),
+                        _buildTextField(_descriptionController, "Describe your culinary style...", Icons.description_outlined, maxLines: 3),
                         const SizedBox(height: 16),
 
                         _buildLabel('Password'),
@@ -165,10 +244,12 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
                             child: MaterialButton(
                               onPressed: _isLoading ? null : _onRegister,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
-                              child: Text(
-                                'Register as Chef',
-                                style: AppTextStyles.headlineMd(color: Colors.white),
-                              ),
+                              child: _isLoading 
+                                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                : Text(
+                                    'Register as Chef',
+                                    style: AppTextStyles.headlineMd(color: Colors.white),
+                                  ),
                             ),
                           ),
                         ),
@@ -194,7 +275,7 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isPassword = false}) {
+  Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {bool isPassword = false, int maxLines = 1}) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
@@ -205,10 +286,14 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
         controller: controller,
         obscureText: isPassword ? _obscurePassword : false,
         style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+        maxLines: maxLines,
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant.withValues(alpha: 0.4)),
-          prefixIcon: Icon(icon, size: 20, color: AppColors.onSurfaceVariant),
+          prefixIcon: maxLines == 1 ? Icon(icon, size: 20, color: AppColors.onSurfaceVariant) : Padding(
+            padding: const EdgeInsets.only(bottom: 40),
+            child: Icon(icon, size: 20, color: AppColors.onSurfaceVariant),
+          ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: AppColors.onSurfaceVariant),
