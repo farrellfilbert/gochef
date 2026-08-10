@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>Clearing Cache...</title></head>
+<body>
+<h2>Updating GoChef...</h2>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      for(let registration of registrations) {
+        registration.unregister();
+      }
+      setTimeout(() => {
+        window.location.href = '/?timestamp=' + new Date().getTime();
+      }, 1000);
+    });
+  } else {
+    window.location.href = '/?timestamp=' + new Date().getTime();
+  }
+</script>
+</body>
+</html>
