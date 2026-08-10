@@ -18,6 +18,7 @@ class _CartScreenState extends State<CartScreen> {
   bool _isLoading = true;
   List<CartItemModel> _cartItems = [];
   AddressModel? _primaryAddress;
+  int? _selectedKitchenId;
 
   @override
   void initState() {
@@ -33,6 +34,9 @@ class _CartScreenState extends State<CartScreen> {
       
       setState(() {
         _cartItems = items;
+        if (_cartItems.isNotEmpty) {
+          _selectedKitchenId = _cartItems.first.kitchenId;
+        }
         if (addresses.isNotEmpty) {
           try {
             _primaryAddress = addresses.firstWhere(
@@ -96,13 +100,26 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate totals
-    double subtotal = 0;
+    // Group items by kitchen
+    Map<int, List<CartItemModel>> groupedItems = {};
     for (var item in _cartItems) {
+      groupedItems.putIfAbsent(item.kitchenId, () => []).add(item);
+    }
+    
+    // Fallback if selected kitchen is no longer in cart
+    if (_selectedKitchenId != null && !groupedItems.containsKey(_selectedKitchenId)) {
+      _selectedKitchenId = groupedItems.keys.isNotEmpty ? groupedItems.keys.first : null;
+    }
+
+    final selectedItems = _cartItems.where((i) => i.kitchenId == _selectedKitchenId).toList();
+
+    // Calculate totals for selected kitchen only
+    double subtotal = 0;
+    for (var item in selectedItems) {
       subtotal += item.totalPrice;
     }
-    double deliveryFee = _cartItems.isNotEmpty ? 4.00 : 0.00;
-    double serviceFee = _cartItems.isNotEmpty ? 2.50 : 0.00;
+    double deliveryFee = selectedItems.isNotEmpty ? 4.00 : 0.00;
+    double serviceFee = selectedItems.isNotEmpty ? 2.50 : 0.00;
     double grandTotal = subtotal + deliveryFee + serviceFee;
 
     return Scaffold(
@@ -206,10 +223,44 @@ class _CartScreenState extends State<CartScreen> {
                             ),
                           )
                         else
-                          ..._cartItems.map((item) {
+                          ...groupedItems.entries.map((entry) {
+                            final kId = entry.key;
+                            final kItems = entry.value;
+                            final isSelected = _selectedKitchenId == kId;
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _buildCartItem(item),
+                              padding: const EdgeInsets.only(bottom: 24),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: isSelected ? AppColors.primary : AppColors.glassBorder),
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: AppColors.glassBackground,
+                                ),
+                                child: Column(
+                                  children: [
+                                    ListTile(
+                                      leading: Radio<int>(
+                                        value: kId,
+                                        groupValue: _selectedKitchenId,
+                                        activeColor: AppColors.primary,
+                                        onChanged: (val) {
+                                          setState(() => _selectedKitchenId = val);
+                                        },
+                                      ),
+                                      title: Text(
+                                        kItems.first.kitchenName, 
+                                        style: AppTextStyles.headlineMd(color: AppColors.onSurface)
+                                      ),
+                                    ),
+                                    const Divider(color: AppColors.ghostBorder),
+                                    ...kItems.map((item) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                                        child: _buildCartItem(item),
+                                      );
+                                    }),
+                                  ],
+                                ),
+                              ),
                             );
                           }),
                         
@@ -421,10 +472,10 @@ class _CartScreenState extends State<CartScreen> {
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
-                              onTap: () {
+                              onTap: _selectedKitchenId == null ? null : () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+                                  MaterialPageRoute(builder: (context) => CheckoutScreen(kitchenId: _selectedKitchenId!)),
                                 );
                               },
                               borderRadius: BorderRadius.circular(28),

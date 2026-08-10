@@ -7,6 +7,7 @@ if ($method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
     $user_id = intval($input['user_id'] ?? 0);
     $address_id = intval($input['address_id'] ?? 0);
+    $kitchen_id = intval($input['kitchen_id'] ?? 0);
     $notes = $input['notes'] ?? '';
 
     if (!$user_id) {
@@ -14,20 +15,25 @@ if ($method === 'POST') {
         exit;
     }
 
-    // Get cart items
+    if (!$kitchen_id) {
+        echo json_encode(['success' => false, 'error' => 'kitchen_id required']);
+        exit;
+    }
+
+    // Get cart items for specific kitchen
     $stmt = $pdo->prepare("
         SELECT ci.*, mi.name, mi.price, mi.image, 
                k.name as kitchen_name, k.avatar as kitchen_avatar, k.id as kitchen_id
         FROM cart_items ci
         JOIN menu_items mi ON ci.menu_item_id = mi.id
         JOIN kitchens k ON mi.kitchen_id = k.id
-        WHERE ci.user_id = ?
+        WHERE ci.user_id = ? AND k.id = ?
     ");
-    $stmt->execute([$user_id]);
+    $stmt->execute([$user_id, $kitchen_id]);
     $cartItems = $stmt->fetchAll();
 
     if (empty($cartItems)) {
-        echo json_encode(['success' => false, 'error' => 'Cart is empty']);
+        echo json_encode(['success' => false, 'error' => 'Cart is empty for this kitchen']);
         exit;
     }
 
@@ -74,8 +80,12 @@ if ($method === 'POST') {
         $itemStmt->execute([$orderId, $item['name'], '', $item['quantity'], $item['price']]);
     }
 
-    // Clear cart
-    $pdo->prepare("DELETE FROM cart_items WHERE user_id = ?")->execute([$user_id]);
+    // Clear cart items for this kitchen only
+    $pdo->prepare("
+        DELETE ci FROM cart_items ci
+        JOIN menu_items mi ON ci.menu_item_id = mi.id
+        WHERE ci.user_id = ? AND mi.kitchen_id = ?
+    ")->execute([$user_id, $kitchen_id]);
 
     // Create notification
     $pdo->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'order')")->execute([

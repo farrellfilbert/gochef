@@ -7,7 +7,8 @@ import '../../models/address_model.dart';
 import '../../models/cart_item_model.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  final int kitchenId;
+  const CheckoutScreen({super.key, required this.kitchenId});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -31,7 +32,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _loadCheckoutData() async {
     setState(() => _isLoading = true);
     try {
-      final items = await ApiService.getCart();
+      final allItems = await ApiService.getCart();
+      final items = allItems.where((i) => i.kitchenId == widget.kitchenId).toList();
       final addresses = await ApiService.getAddresses();
       
       double subtotal = 0;
@@ -71,6 +73,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final result = await ApiService.checkout(
       addressId: _primaryAddress!.id,
+      kitchenId: widget.kitchenId,
       notes: isAsap ? 'ASAP Delivery' : 'Scheduled Delivery',
     );
 

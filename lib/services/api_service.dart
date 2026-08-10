@@ -401,7 +401,7 @@ class ApiService {
   // CHECKOUT
   // =============================================
 
-  static Future<Map<String, dynamic>?> checkout({int? addressId, String notes = ''}) async {
+  static Future<Map<String, dynamic>?> checkout({int? addressId, required int kitchenId, String notes = ''}) async {
     final userId = await getUserId();
     if (userId == null) return null;
 
@@ -411,9 +411,10 @@ class ApiService {
       body: json.encode({
         'user_id': int.parse(userId),
         'address_id': addressId,
+        'kitchen_id': kitchenId,
         'notes': notes,
       }),
-    ).timeout(const Duration(seconds: 10));
+    ).timeout(const Duration(seconds: 15));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
