@@ -13,10 +13,15 @@ if (!isset($_FILES['image'])) {
 }
 
 $file = $_FILES['image'];
-$allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+$allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/octet-stream'];
 
 if (!in_array($file['type'], $allowedTypes)) {
-    echo json_encode(['success' => false, 'error' => 'Invalid file type. Allowed: jpg, png, webp, gif']);
+    echo json_encode(['success' => false, 'error' => 'Invalid file type sent by client: ' . $file['type']]);
+    exit;
+}
+
+if (getimagesize($file['tmp_name']) === false) {
+    echo json_encode(['success' => false, 'error' => 'File is not a valid image']);
     exit;
 }
 
@@ -33,7 +38,10 @@ if (!is_dir($uploadDir)) {
 }
 
 // Generate unique filename
-$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+$ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+if (empty($ext)) {
+    $ext = 'jpg';
+}
 $filename = uniqid('img_') . '_' . time() . '.' . $ext;
 $filepath = $uploadDir . $filename;
 
