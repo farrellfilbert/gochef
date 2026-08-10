@@ -32,21 +32,21 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     _kitchens = [
       KitchenModel(
         id: 1,
-        name: 'Fresh Kitchen',
+        name: "Chef's Kitchen",
         coverImage: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop',
         avatar: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop',
         rating: 4.8,
-        deliveryTime: '20-30 min',
-        description: 'Healthy and fresh meals.',
+        deliveryTime: '15-25 min',
+        description: 'Premium quality meals cooked with passion.',
       ),
       KitchenModel(
         id: 2,
-        name: 'Chef Marco Italiano',
+        name: 'Spice Symphony',
         coverImage: 'https://images.unsplash.com/photo-1549488344-c5d0137a28eb?q=80&w=600&auto=format&fit=crop',
         avatar: 'https://images.unsplash.com/photo-1549488344-c5d0137a28eb?q=80&w=600&auto=format&fit=crop',
-        rating: 4.9,
-        deliveryTime: '30-45 min',
-        description: 'Authentic Italian cuisine.',
+        rating: 4.6,
+        deliveryTime: '25-40 min',
+        description: 'Experience the magic of authentic spices.',
       ),
     ];
     
@@ -54,9 +54,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       MenuItemModel(
         id: 1,
         kitchenId: 1,
-        name: 'Rainbow Poke Symphony',
-        description: 'Fresh salmon, tuna, mango, and avocado.',
-        price: 18.50,
+        name: 'Grilled Salmon Bowl',
+        description: 'Fresh grilled salmon with quinoa and roasted vegetables.',
+        price: 45000,
         image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop',
         isPopular: true,
         categoryName: 'Healthy',
@@ -64,12 +64,12 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       MenuItemModel(
         id: 2,
         kitchenId: 2,
-        name: 'Truffle Mushroom Pasta',
-        description: 'Creamy fettuccine with black truffle.',
-        price: 24.00,
+        name: 'Spicy Chicken Burger',
+        description: 'Crispy chicken patty with spicy mayo and fresh lettuce.',
+        price: 35000,
         image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?q=80&w=600&auto=format&fit=crop',
         isPopular: true,
-        categoryName: 'Pasta',
+        categoryName: 'Fast Food',
       ),
     ];
 
@@ -270,10 +270,10 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                         padding: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
                         child: Row(
                           children: [
-                            _buildFilterChip('Sort by: Relevance', true, hasDropdown: true),
-                            _buildFilterChip('Price: \$\$', false),
-                            _buildFilterChip('Rating: 4.5+', false),
-                            _buildFilterChip('Dietary', false, hasAdd: true),
+                            _buildFilterChip('Sort by: Relevance', true, hasDropdown: true, onTap: () {}),
+                            _buildFilterChip('Price: \$\$', false, onTap: () {}),
+                            _buildFilterChip('Rating: 4.5+', false, onTap: () {}),
+                            _buildFilterChip('Dietary', false, hasAdd: true, onTap: () {}),
                           ],
                         ),
                       ),
@@ -289,42 +289,46 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected, {bool hasDropdown = false, bool hasAdd = false}) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.primaryContainer : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? AppColors.primaryContainer : AppColors.outlineVariant,
-        ),
-      ),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: AppTextStyles.labelSm(
-              color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
-            ),
+  Widget _buildFilterChip(String label, bool isSelected, {bool hasDropdown = false, bool hasAdd = false, VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryContainer : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryContainer : AppColors.outlineVariant,
           ),
-          if (hasDropdown) ...[
-            const SizedBox(width: 4),
-            Icon(
-              Icons.expand_more,
-              size: 16,
-              color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
+        ),
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: AppTextStyles.labelSm(
+                color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
+              ),
             ),
+            if (hasDropdown) ...[
+              const SizedBox(width: 4),
+              Icon(
+                Icons.expand_more,
+                size: 16,
+                color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
+              ),
+            ],
+            if (hasAdd) ...[
+              const SizedBox(width: 4),
+              Icon(
+                Icons.add,
+                size: 16,
+                color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
+              ),
+            ],
           ],
-          if (hasAdd) ...[
-            const SizedBox(width: 4),
-            Icon(
-              Icons.add,
-              size: 16,
-              color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
