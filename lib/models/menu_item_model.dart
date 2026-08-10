@@ -28,6 +28,7 @@ class MenuItemModel {
   final bool isPopular;
   final String kitchenName;
   final String kitchenAvatar;
+  final int categoryId;
   final String categoryName;
   final List<AddonModel>? addons;
 
@@ -45,6 +46,7 @@ class MenuItemModel {
     this.isPopular = false,
     this.kitchenName = '',
     this.kitchenAvatar = '',
+    this.categoryId = 0,
     this.categoryName = '',
     this.addons,
   });
@@ -64,6 +66,7 @@ class MenuItemModel {
       isPopular: json['is_popular']?.toString() == '1',
       kitchenName: json['kitchen_name'] ?? '',
       kitchenAvatar: json['kitchen_avatar'] ?? '',
+      categoryId: int.tryParse(json['category_id']?.toString() ?? '0') ?? 0,
       categoryName: json['category_name'] ?? '',
       addons: json['addons'] != null
           ? (json['addons'] as List).map((e) => AddonModel.fromJson(e)).toList()

@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<Map<String, dynamic>> _homeDataFuture;
   late Future<UserModel> _profileFuture;
   late Future<List<dynamic>> _cartFuture;
+  int _selectedCategoryId = 1;
 
   @override
   void initState() {
@@ -78,9 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
               final data = snapshot.data ?? {};
               final List<KitchenModel> featuredKitchens = data['featured_kitchens'] ?? [];
-              final List<MenuItemModel> popularMeals = data['popular_meals'] ?? [];
+              final List<MenuItemModel> allPopularMeals = data['popular_meals'] ?? [];
               final List<CategoryModel> categories = data['categories'] ?? [];
               final List<PromotionModel> promotions = data['promotions'] ?? [];
+
+              final List<MenuItemModel> popularMeals = _selectedCategoryId == 1 
+                  ? allPopularMeals 
+                  : allPopularMeals.where((m) => m.categoryId == _selectedCategoryId).toList();
 
               return CustomScrollView(
                 slivers: [
@@ -189,10 +194,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: Row(
-                            children: categories.asMap().entries.map((entry) {
+                            children: categories.map((category) {
                               return Padding(
                                 padding: const EdgeInsets.only(right: 12.0),
-                                child: _buildCategoryChip(entry.value.name, isSelected: entry.key == 0),
+                                child: _buildCategoryChip(
+                                  category.name,
+                                  isSelected: category.id == _selectedCategoryId,
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedCategoryId = category.id;
+                                    });
+                                  },
+                                ),
                               );
                             }).toList(),
                           ),
@@ -323,20 +336,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategoryChip(String label, {bool isSelected = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.primary : AppColors.surface.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isSelected ? Colors.transparent : AppColors.outlineVariant.withValues(alpha: 0.1),
+  Widget _buildCategoryChip(String label, {bool isSelected = false, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.surface.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : AppColors.outlineVariant.withValues(alpha: 0.1),
+          ),
         ),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.labelMono(
-            color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceVariant),
+        child: Text(
+          label,
+          style: AppTextStyles.labelMono(
+              color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceVariant),
+        ),
       ),
     );
   }
