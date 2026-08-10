@@ -135,7 +135,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                             padding: const EdgeInsets.only(bottom: 16),
                             child: _buildOrderCard(
                               orderId: order.id,
-                              orderDate: order.orderDate,
+                              orderDate: order.date,
                               totalAmount: '\$${order.totalAmount.toStringAsFixed(2)}',
                               status: order.status,
                               items: order.items ?? [],

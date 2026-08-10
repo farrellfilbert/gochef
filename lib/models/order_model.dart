@@ -29,6 +29,7 @@ class OrderModel {
   final double totalAmount;
   final int itemsCount;
   final String avatar;
+  final String? notes;
   final List<OrderItemModel> items;
 
   OrderModel({
@@ -39,6 +40,7 @@ class OrderModel {
     required this.totalAmount,
     required this.itemsCount,
     required this.avatar,
+    this.notes,
     required this.items,
   });
 
@@ -54,6 +56,7 @@ class OrderModel {
       totalAmount: (json['totalAmount'] ?? 0.0).toDouble(),
       itemsCount: json['itemsCount'] ?? parsedItems.length,
       avatar: json['avatar'] ?? '',
+      notes: json['notes'],
       items: parsedItems,
     );
   }
