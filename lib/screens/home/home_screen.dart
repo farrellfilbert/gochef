@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   return Stack(
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.shopping_cart, color: AppColors.primary),
+                                        icon: const Icon(Icons.shopping_bag_outlined, color: AppColors.onSurfaceVariant),
                                         onPressed: () {
                                           Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
                                         },
