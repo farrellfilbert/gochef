@@ -55,6 +55,8 @@ try {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
     )");
+    $pdo->exec("ALTER TABLE kitchens ADD COLUMN IF NOT EXISTS avatar VARCHAR(500) DEFAULT ''");
+    $pdo->exec("ALTER TABLE kitchens ADD COLUMN IF NOT EXISTS cover_image VARCHAR(500) DEFAULT ''");
 
     // =============================================
     // MENU ITEMS
