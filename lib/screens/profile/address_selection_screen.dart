@@ -85,7 +85,6 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   }
 
   void _addNewAddress() {
-    // Show a dialog to add a new address (simplified for now)
     final labelController = TextEditingController();
     final addressController = TextEditingController();
 
@@ -94,19 +93,19 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surface,
-          title: Text('Tambahkan Alamat Baru', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+          title: Text('Add New Address', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: labelController,
-                decoration: const InputDecoration(labelText: 'Label (e.g., Rumah, Kantor)'),
+                decoration: const InputDecoration(labelText: 'Label (e.g., Home, Office)'),
                 style: const TextStyle(color: AppColors.onSurface),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: addressController,
-                decoration: const InputDecoration(labelText: 'Alamat Lengkap'),
+                decoration: const InputDecoration(labelText: 'Full Address'),
                 maxLines: 3,
                 style: const TextStyle(color: AppColors.onSurface),
               ),
@@ -115,7 +114,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Batal', style: TextStyle(color: AppColors.onSurfaceVariant)),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -135,7 +134,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Simpan'),
+              child: const Text('Save'),
             ),
           ],
         );
@@ -146,25 +145,26 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.midnight,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.onSurface),
         title: Container(
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: AppColors.surfaceContainerLow,
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
             decoration: InputDecoration(
-              hintText: 'Cari lokasi',
-              hintStyle: AppTextStyles.bodyMd(color: Colors.grey),
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              hintText: 'Search location',
+              hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+              prefixIcon: const Icon(Icons.search, color: AppColors.onSurfaceVariant),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 10),
             ),
+            style: const TextStyle(color: AppColors.onSurface),
           ),
         ),
         actions: [
@@ -180,16 +180,16 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
               children: [
                 // Warning Banner
                 Container(
-                  color: const Color(0xFFFFF3CD),
+                  color: const Color(0xFF3A3520),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
-                      const Icon(Icons.notifications_active, color: Color(0xFF856404), size: 20),
+                      const Icon(Icons.notifications_active, color: Color(0xFFFFD54F), size: 20),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Mohon periksa pin lokasimu, kami akan mengirimkan pesananmu sesuai pin lokasi',
-                          style: AppTextStyles.labelSm(color: const Color(0xFF856404)),
+                          'Please verify your pin location. We will deliver your order to the pinned location.',
+                          style: AppTextStyles.labelSm(color: const Color(0xFFFFD54F)),
                         ),
                       ),
                     ],
@@ -231,7 +231,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                 // Deliver To
                 Container(
                   padding: const EdgeInsets.all(16),
-                  color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow.withValues(alpha: 0.6),
+                    border: Border(bottom: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.1))),
+                  ),
                   child: Row(
                     children: [
                       const Icon(Icons.location_on, color: AppColors.primary),
@@ -242,11 +245,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                           children: [
                             Row(
                               children: [
-                                const Text('Antar Ke: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text('Deliver To: ', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
                                 Expanded(
                                   child: Text(
-                                    _selectedAddress?.label ?? 'Pilih Lokasi',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    _selectedAddress?.label ?? 'Select Location',
+                                    style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -255,8 +258,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              _selectedAddress?.address ?? 'Tentukan lokasi pengiriman',
-                              style: AppTextStyles.labelSm(color: Colors.grey[600]),
+                              _selectedAddress?.address ?? 'Set your delivery location',
+                              style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -265,8 +268,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                       ),
                       TextButton.icon(
                         onPressed: () {},
-                        icon: const Icon(Icons.my_location, size: 16),
-                        label: const Text('Lokasi Saat Ini'),
+                        icon: const Icon(Icons.my_location, size: 16, color: AppColors.primary),
+                        label: Text('Current Location', style: AppTextStyles.labelSm(color: AppColors.primary)),
                       )
                     ],
                   ),
@@ -277,7 +280,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                 // Saved Addresses
                 Expanded(
                   child: Container(
-                    color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
                     child: Column(
                       children: [
                         Padding(
@@ -285,11 +291,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Alamat Saya', style: AppTextStyles.headlineMd(color: Colors.black)),
+                              Text('My Addresses', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                               TextButton.icon(
                                 onPressed: _addNewAddress,
                                 icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 18),
-                                label: const Text('Tambahkan Alamat Baru', style: TextStyle(color: AppColors.primary)),
+                                label: Text('Add New Address', style: AppTextStyles.labelSm(color: AppColors.primary)),
                               ),
                             ],
                           ),
@@ -297,7 +303,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                         Expanded(
                           child: ListView.separated(
                             itemCount: _addresses.length,
-                            separatorBuilder: (context, index) => const Divider(height: 1),
+                            separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.outlineVariant.withValues(alpha: 0.1)),
                             itemBuilder: (context, index) {
                               final address = _addresses[index];
                               final isSelected = _selectedAddress?.id == address.id;
@@ -305,7 +311,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                               return InkWell(
                                 onTap: () => _onAddressSelected(address),
                                 child: Container(
-                                  color: isSelected ? AppColors.primaryContainer.withValues(alpha: 0.1) : Colors.white,
+                                  color: isSelected ? AppColors.primaryContainer.withValues(alpha: 0.1) : Colors.transparent,
                                   padding: const EdgeInsets.all(16),
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,13 +321,13 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                         children: [
                                           Icon(
                                             isSelected ? Icons.bookmark : Icons.bookmark_border,
-                                            color: isSelected ? AppColors.primary : Colors.grey,
+                                            color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
                                             size: 20,
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
                                             '${(2.5 + index * 1.5).toStringAsFixed(1)}km', 
-                                            style: AppTextStyles.labelSm(color: Colors.grey)
+                                            style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)
                                           ),
                                         ],
                                       ),
@@ -335,7 +341,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                                 Expanded(
                                                   child: Text(
                                                     address.label,
-                                                    style: AppTextStyles.bodyMd(color: Colors.black)
+                                                    style: AppTextStyles.bodyMd(color: AppColors.onSurface)
                                                         .copyWith(fontWeight: FontWeight.bold),
                                                   ),
                                                 ),
@@ -343,11 +349,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                                   Container(
                                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                     decoration: BoxDecoration(
-                                                      color: AppColors.primary.withValues(alpha: 0.1),
+                                                      color: AppColors.primary.withValues(alpha: 0.15),
                                                       borderRadius: BorderRadius.circular(4),
                                                     ),
                                                     child: const Text(
-                                                      'Terakhir Digunakan',
+                                                      'Last Used',
                                                       style: TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold),
                                                     ),
                                                   ),
@@ -356,19 +362,19 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                             const SizedBox(height: 4),
                                             Text(
                                               address.address,
-                                              style: AppTextStyles.labelSm(color: Colors.grey[700]),
+                                              style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
                                             ),
                                             const SizedBox(height: 8),
                                             Text(
-                                              'User Name | (+62) 812-3456-7890', // Hardcoded contact for UI matching
-                                              style: AppTextStyles.labelSm(color: Colors.grey[500]),
+                                              'User Name | (+62) 812-3456-7890',
+                                              style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6)),
                                             ),
                                           ],
                                         ),
                                       ),
                                       const SizedBox(width: 16),
                                       IconButton(
-                                        icon: const Icon(Icons.edit, color: Colors.grey, size: 20),
+                                        icon: const Icon(Icons.edit, color: AppColors.onSurfaceVariant, size: 20),
                                         onPressed: () {
                                           // Edit functionality
                                         },
