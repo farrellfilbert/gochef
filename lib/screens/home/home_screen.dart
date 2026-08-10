@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const CustomAppBarTitle(),
+                          const Expanded(child: CustomAppBarTitle()),
                           Row(
                             children: [
                               FutureBuilder<List<dynamic>>(
