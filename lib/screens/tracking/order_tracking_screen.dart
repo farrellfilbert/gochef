@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
+import 'package:go_chef_app/services/api_service.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
   final String orderId;
@@ -24,6 +26,36 @@ class OrderTrackingScreen extends StatefulWidget {
 
 class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   bool isDetailsExpanded = false;
+  String _currentStatus = 'Active';
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startPolling();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startPolling() {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      try {
+        final orders = await ApiService.getOrders();
+        final currentOrder = orders.firstWhere((o) => o.id == widget.orderId);
+        if (mounted && _currentStatus != currentOrder.status) {
+          setState(() {
+            _currentStatus = currentOrder.status;
+          });
+        }
+      } catch (e) {
+        // ignore errors
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -218,36 +250,54 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Order Status', style: AppTextStyles.headlineMd(color: Colors.white)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Order Status', style: AppTextStyles.headlineMd(color: Colors.white)),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _currentStatus == 'Cancelled' ? Colors.red.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  _currentStatus.toUpperCase(),
+                                  style: AppTextStyles.labelMono(color: _currentStatus == 'Cancelled' ? Colors.red : AppColors.primary),
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 32),
                           // Custom timeline implementation
                           _buildTimelineStep(
-                            time: '18:42',
+                            time: '',
                             title: 'Order Confirmed',
                             desc: 'Your gourmet selection is in the queue.',
-                            status: 'done',
+                            status: _currentStatus == 'Cancelled' ? 'active' : (['Preparing', 'Ready', 'Completed'].contains(_currentStatus) ? 'done' : 'active'),
                           ),
-                          _buildTimelineLine(),
-                          _buildTimelineStep(
-                            time: '18:55',
-                            title: 'Chef is Preparing',
-                            desc: 'Artisan plating in progress at the kitchen.',
-                            status: 'done',
-                          ),
-                          _buildTimelineLine(),
-                          _buildTimelineStep(
-                            time: '19:12',
-                            title: 'Driver is Heading to You',
-                            desc: 'Marcus is 1.2 miles away from your location.',
-                            status: 'active',
-                          ),
-                          _buildTimelineLine(dim: true),
-                          _buildTimelineStep(
-                            time: 'Expected 19:24',
-                            title: 'Delivered',
-                            desc: 'Bon appétit!',
-                            status: 'upcoming',
-                          ),
+                          if (_currentStatus != 'Cancelled') ...[
+                            _buildTimelineLine(dim: !['Preparing', 'Ready', 'Completed'].contains(_currentStatus)),
+                            _buildTimelineStep(
+                              time: '',
+                              title: 'Chef is Preparing',
+                              desc: 'Artisan plating in progress at the kitchen.',
+                              status: ['Ready', 'Completed'].contains(_currentStatus) ? 'done' : (_currentStatus == 'Preparing' ? 'active' : 'upcoming'),
+                            ),
+                            _buildTimelineLine(dim: !['Ready', 'Completed'].contains(_currentStatus)),
+                            _buildTimelineStep(
+                              time: '',
+                              title: 'Order is Ready',
+                              desc: 'Your order is ready to be picked up or delivered.',
+                              status: _currentStatus == 'Completed' ? 'done' : (_currentStatus == 'Ready' ? 'active' : 'upcoming'),
+                            ),
+                            _buildTimelineLine(dim: _currentStatus != 'Completed'),
+                            _buildTimelineStep(
+                              time: '',
+                              title: 'Completed',
+                              desc: 'Bon appétit!',
+                              status: _currentStatus == 'Completed' ? 'done' : 'upcoming',
+                            ),
+                          ],
                         ],
                       ),
                     ),

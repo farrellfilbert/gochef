@@ -5,6 +5,7 @@ import '../notifications/notifications_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/order_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
+import '../tracking/order_tracking_screen.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -133,14 +134,30 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         : '${order.itemsCount} items';
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 24),
-                      child: _buildOrderCard(
-                        chefName: order.kitchenName,
-                        dateStr: order.date.split(' • ')[0],
-                        orderId: order.id,
-                        status: order.status == 'Active' ? 'Scheduled' : order.status,
-                        avatar: order.avatar.isNotEmpty ? order.avatar : 'https://via.placeholder.com/150',
-                        itemsStr: itemsStr,
-                        price: '\$${order.totalAmount.toStringAsFixed(2)}',
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OrderTrackingScreen(
+                                orderId: order.id,
+                                kitchenName: order.kitchenName,
+                                totalAmount: order.totalAmount,
+                                itemsCount: order.itemsCount,
+                                kitchenAvatar: order.avatar.isNotEmpty ? order.avatar : 'https://via.placeholder.com/150',
+                              ),
+                            ),
+                          );
+                        },
+                        child: _buildOrderCard(
+                          chefName: order.kitchenName,
+                          dateStr: order.date.split(' • ')[0],
+                          orderId: order.id,
+                          status: order.status == 'Active' ? 'Scheduled' : order.status,
+                          avatar: order.avatar.isNotEmpty ? order.avatar : 'https://via.placeholder.com/150',
+                          itemsStr: itemsStr,
+                          price: '\$${order.totalAmount.toStringAsFixed(2)}',
+                        ),
                       ),
                     );
                   }).toList(),
