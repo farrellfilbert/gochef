@@ -15,8 +15,8 @@ class OrderItemModel {
     return OrderItemModel(
       name: json['name'] ?? '',
       options: json['options'] ?? '',
-      quantity: json['quantity'] ?? 1,
-      price: (json['price'] ?? 0.0).toDouble(),
+      quantity: json['quantity'] != null ? int.tryParse(json['quantity'].toString()) ?? 1 : 1,
+      price: json['price'] != null ? double.tryParse(json['price'].toString()) ?? 0.0 : 0.0,
     );
   }
 }
@@ -50,11 +50,15 @@ class OrderModel {
     
     return OrderModel(
       id: json['id']?.toString() ?? '',
-      kitchenName: json['kitchenName'] ?? '',
+      kitchenName: json['kitchen_name'] ?? json['kitchenName'] ?? '',
       date: json['date'] ?? '',
       status: json['status'] ?? 'Completed',
-      totalAmount: (json['totalAmount'] ?? 0.0).toDouble(),
-      itemsCount: json['itemsCount'] ?? parsedItems.length,
+      totalAmount: json['total_amount'] != null 
+          ? double.tryParse(json['total_amount'].toString()) ?? 0.0 
+          : (json['totalAmount'] != null ? double.tryParse(json['totalAmount'].toString()) ?? 0.0 : 0.0),
+      itemsCount: json['items_count'] != null 
+          ? int.tryParse(json['items_count'].toString()) ?? parsedItems.length
+          : (json['itemsCount'] != null ? int.tryParse(json['itemsCount'].toString()) ?? parsedItems.length : parsedItems.length),
       avatar: json['avatar'] ?? '',
       notes: json['notes'],
       items: parsedItems,
