@@ -33,10 +33,48 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255, 64, 129, 0.2);
+      border-radius: 50%;
+      border-top-color: #FF4081;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+    .loading-text {
+      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
   </style>
 </head>
 <body>
+  <div class="loading-container" id="app-loader">
+    <div class="spinner"></div>
+    <div class="loading-text">Preparing GoChef...</div>
+  </div>
   <script>
     // Unregister ALL old service workers to prevent stale cache
     if ('serviceWorker' in navigator) {
