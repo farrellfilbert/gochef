@@ -270,83 +270,88 @@ class ApiService {
   // =============================================
 
   static Future<List<CartItemModel>> getCart() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return _mockCart;
+    final userId = await getUserId();
+    if (userId == null) return [];
+    
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/cart.php?user_id=$userId')).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return (data['data'] as List).map((e) => CartItemModel.fromJson(e)).toList();
+        }
+      }
+    } catch (e) {
+      print('Error getting cart: $e');
+    }
+    return [];
   }
 
   static Future<bool> addToCart(int menuItemId, {int quantity = 1, String notes = '', List<int> addonIds = const []}) async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    final userId = await getUserId();
+    if (userId == null) return false;
+    
     try {
-      final menuItem = _mockMenuItems.firstWhere((i) => i.id == menuItemId);
-      final kitchen = _mockKitchens.firstWhere((k) => k.id == menuItem.kitchenId);
+      final response = await http.post(
+        Uri.parse('$baseUrl/cart.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'user_id': int.parse(userId),
+          'menu_item_id': menuItemId,
+          'quantity': quantity,
+          'notes': notes,
+          'addon_ids': addonIds,
+        }),
+      ).timeout(const Duration(seconds: 10));
       
-      // Check if already in cart
-      final existingIndex = _mockCart.indexWhere((c) => c.menuItemId == menuItemId);
-      if (existingIndex >= 0) {
-        final existing = _mockCart[existingIndex];
-        _mockCart[existingIndex] = CartItemModel(
-          cartItemId: existing.cartItemId,
-          menuItemId: existing.menuItemId,
-          quantity: existing.quantity + quantity,
-          notes: existing.notes,
-          name: existing.name,
-          price: existing.price,
-          image: existing.image,
-          kitchenName: existing.kitchenName,
-          kitchenAvatar: existing.kitchenAvatar,
-          kitchenId: existing.kitchenId,
-          addons: existing.addons,
-        );
-      } else {
-        _mockCart.add(CartItemModel(
-          cartItemId: _cartIdCounter++,
-          menuItemId: menuItemId,
-          quantity: quantity,
-          notes: notes,
-          name: menuItem.name,
-          price: menuItem.price,
-          image: menuItem.image,
-          kitchenName: kitchen.name,
-          kitchenAvatar: kitchen.avatar,
-          kitchenId: kitchen.id,
-          addons: [], // mock addons if needed
-        ));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
       }
-      return true;
     } catch (e) {
-      return false;
+      print('Error adding to cart: $e');
     }
+    return false;
   }
 
   static Future<bool> removeFromCart(int cartItemId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    _mockCart.removeWhere((c) => c.cartItemId == cartItemId);
-    return true;
+    final userId = await getUserId();
+    if (userId == null) return false;
+    
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/cart.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'cart_item_id': cartItemId}),
+      ).timeout(const Duration(seconds: 10));
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
+      }
+    } catch (e) {
+      print('Error removing from cart: $e');
+    }
+    return false;
   }
 
   static Future<bool> updateCartQuantity(int cartItemId, int quantity) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    final index = _mockCart.indexWhere((c) => c.cartItemId == cartItemId);
-    if (index >= 0) {
-      if (quantity <= 0) {
-        _mockCart.removeAt(index);
-      } else {
-        final existing = _mockCart[index];
-        _mockCart[index] = CartItemModel(
-          cartItemId: existing.cartItemId,
-          menuItemId: existing.menuItemId,
-          quantity: quantity,
-          notes: existing.notes,
-          name: existing.name,
-          price: existing.price,
-          image: existing.image,
-          kitchenName: existing.kitchenName,
-          kitchenAvatar: existing.kitchenAvatar,
-          kitchenId: existing.kitchenId,
-          addons: existing.addons,
-        );
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/cart.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'cart_item_id': cartItemId,
+          'quantity': quantity,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
       }
-      return true;
+    } catch (e) {
+      print('Error updating cart quantity: $e');
     }
     return false;
   }
@@ -517,13 +522,28 @@ class ApiService {
   // =============================================
 
   static Future<Map<String, dynamic>?> checkout({int? addressId, required int kitchenId, String notes = ''}) async {
-    await Future.delayed(const Duration(seconds: 1));
-    _mockCart.clear(); // Clear cart after mock checkout
-    return {
-      'success': true,
-      'order_id': 1001,
-      'total_amount': 85000,
-    };
+    final userId = await getUserId();
+    if (userId == null) return null;
+    
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/checkout.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'user_id': int.parse(userId),
+          'kitchen_id': kitchenId,
+          'address_id': addressId,
+          'notes': notes,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (e) {
+      print('Error during checkout: $e');
+    }
+    return null;
   }
 
   // =============================================
