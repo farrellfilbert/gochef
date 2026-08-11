@@ -34,7 +34,7 @@ try {
     
     if ($user) {
         $kitchen_id = null;
-        if (isset($user['role']) && $user['role'] === 'chef') {
+        if (true) {
             $kStmt = $pdo->prepare("SELECT id FROM kitchens WHERE user_id = ? LIMIT 1");
             $kStmt->execute([$user['id']]);
             $kitchen = $kStmt->fetch(PDO::FETCH_ASSOC);
