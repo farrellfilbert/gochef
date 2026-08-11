@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -16,11 +17,38 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   final List<String> _tabs = ['Active', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
   bool _isLoading = true;
   List<OrderModel> _orders = [];
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
     _loadOrders();
+    _startPolling();
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      _silentLoadOrders();
+    });
+  }
+
+  Future<void> _silentLoadOrders() async {
+    try {
+      final orders = await ApiService.getOrders();
+      if (mounted) {
+        setState(() {
+          _orders = orders;
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
   }
 
   Future<void> _loadOrders() async {
