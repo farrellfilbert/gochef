@@ -269,9 +269,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             });
                           },
                           leading: const Icon(Icons.receipt_long, color: AppColors.primary),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
                           title: Text(
                             'Order #${widget.orderId}\n${widget.kitchenName}',
                             style: AppTextStyles.labelLg(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
