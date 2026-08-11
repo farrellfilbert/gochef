@@ -101,7 +101,8 @@ if ($method === 'POST') {
             'order_id' => $orderId,
             'total' => $total,
             'items_count' => $itemsCount,
-            'kitchen_name' => $kitchenName
+            'kitchen_name' => $kitchenName,
+            'kitchen_avatar' => $kitchenAvatar
         ]);
     } catch (Exception $e) {
         file_put_contents('checkout_log.txt', date('Y-m-d H:i:s') . ' - ERROR: ' . $e->getMessage() . "\n", FILE_APPEND); echo json_encode(['success' => false, 'error' => $e->getMessage()]);
