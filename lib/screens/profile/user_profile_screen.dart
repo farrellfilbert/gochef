@@ -183,8 +183,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         elevation: 0,
         title: Row(
           children: [
-            const Icon(Icons.menu, color: AppColors.primary),
-            const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -469,18 +467,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
               child: Column(
                 children: [
-                  if (user.role == 'chef' || user.kitchenId != null)
-                    _buildListTile(Icons.storefront, 'Switch to Chef Dashboard', () async {
-                      await ApiService.saveUserId(user.id, role: 'chef', kitchenId: user.kitchenId);
-                      if (context.mounted) {
-                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const ChefMainNavigation()), (route) => false);
-                      }
-                    })
-                  else
-                    _buildListTile(Icons.storefront, 'Become a Chef', () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => BecomeChefScreen(userId: user.id)));
-                    }),
-                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.person_outline, 'Personal Information', () => _showEditProfileDialog(user)),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.credit_card, 'Payment Methods', () {
@@ -536,6 +522,59 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
             const SizedBox(height: 32),
             
+            // Switch to Chef / Become a Chef Button
+            if (user.role == 'chef' || user.kitchenId != null)
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await ApiService.saveUserId(user.id, role: 'chef', kitchenId: user.kitchenId);
+                    if (context.mounted) {
+                      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const ChefMainNavigation()), (route) => false);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.onPrimary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.storefront),
+                      const SizedBox(width: 8),
+                      Text('Switch to Chef Dashboard', style: AppTextStyles.bodyMd(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => BecomeChefScreen(userId: user.id)));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.onPrimary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.storefront),
+                      const SizedBox(width: 8),
+                      Text('Become a Chef', style: AppTextStyles.bodyMd(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ),
+            
+            const SizedBox(height: 16),
+
             // Logout Button
             SizedBox(
               width: double.infinity,
