@@ -1,1 +1,1 @@
-<?php require "db_connect.php"; try { $stmt = $pdo->query("DESCRIBE orders"); print_r($stmt->fetchAll()); } catch(Exception $e) { echo $e->getMessage(); } ?>
+<?php require "db_connect.php"; try { $pdo->exec("ALTER TABLE orders ADD COLUMN delivery_address VARCHAR(300) DEFAULT ''"); $pdo->exec("ALTER TABLE orders ADD COLUMN notes TEXT"); echo "Added delivery_address and notes."; } catch(Exception $e) { echo $e->getMessage(); } ?>
