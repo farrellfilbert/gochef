@@ -159,7 +159,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
     required String orderDate,
     required String totalAmount,
     required String status,
-    required List<dynamic> items,
+    required List<OrderItemModel> items,
     String? note,
     required String primaryActionText,
     String? secondaryActionText,
@@ -202,9 +202,9 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
           ),
           const SizedBox(height: 16),
           ...items.map((item) {
-             final qty = item['quantity'] ?? 1;
-             final name = item['name'] ?? 'Unknown Item';
-             final price = item['price'] ?? 0.0;
+             final qty = item.quantity;
+             final name = item.name;
+             final price = item.price;
              return Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Row(
