@@ -7,6 +7,7 @@ import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../chef_dashboard/chef_main_navigation.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class BecomeChefScreen extends StatefulWidget {
   final String userId;
@@ -22,13 +23,13 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
   final _kitchenNameController = TextEditingController();
   final _descriptionController = TextEditingController();
   bool _isLoading = false;
-  File? _kitchenImage;
+  XFile? _kitchenImage;
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
-      setState(() => _kitchenImage = File(picked.path));
+      setState(() => _kitchenImage = picked);
     }
   }
 
@@ -124,9 +125,11 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                       color: AppColors.surfaceContainerHighest,
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
-                      image: _kitchenImage != null
-                          ? DecorationImage(image: FileImage(_kitchenImage!), fit: BoxFit.cover)
-                          : null,
+                      image: _kitchenImage != null && !kIsWeb
+                          ? DecorationImage(image: FileImage(File(_kitchenImage!.path)), fit: BoxFit.cover)
+                          : _kitchenImage != null && kIsWeb
+                            ? DecorationImage(image: NetworkImage(_kitchenImage!.path), fit: BoxFit.cover)
+                            : null,
                     ),
                     child: _kitchenImage == null
                         ? const Column(
@@ -196,7 +199,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: AppColors.onPrimary)
-                      : Text('Open Kitchen', style: AppTextStyles.labelLg(color: AppColors.onPrimary)),
+                      : Text('Open Kitchen', style: AppTextStyles.bodyLg(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
