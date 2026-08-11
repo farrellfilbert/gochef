@@ -4,17 +4,17 @@ require_once 'db_connect.php';
 // Home page aggregate data
 $data = [];
 
-// Featured kitchens
-$stmt = $pdo->query("SELECT * FROM kitchens WHERE is_featured = 1 ORDER BY rating DESC LIMIT 5");
+// Featured kitchens (Latest kitchens for demo purposes)
+$stmt = $pdo->query("SELECT * FROM kitchens ORDER BY id DESC LIMIT 10");
 $data['featured_kitchens'] = $stmt->fetchAll();
 
-// Popular meals
+// Popular meals (Latest available meals for demo purposes)
 $stmt = $pdo->query("
     SELECT mi.*, k.name as kitchen_name, k.avatar as kitchen_avatar
     FROM menu_items mi
     JOIN kitchens k ON mi.kitchen_id = k.id
-    WHERE mi.is_popular = 1 AND mi.is_available = 1
-    ORDER BY mi.rating DESC LIMIT 10
+    WHERE mi.is_available = 1
+    ORDER BY mi.id DESC LIMIT 15
 ");
 $data['popular_meals'] = $stmt->fetchAll();
 
