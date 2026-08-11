@@ -5,7 +5,18 @@ import '../home/home_screen.dart';
 import '../tracking/order_tracking_screen.dart';
 
 class OrderCompleteScreen extends StatelessWidget {
-  const OrderCompleteScreen({super.key});
+  final String orderId;
+  final String kitchenName;
+  final double totalAmount;
+  final int itemsCount;
+
+  const OrderCompleteScreen({
+    super.key,
+    required this.orderId,
+    required this.kitchenName,
+    required this.totalAmount,
+    required this.itemsCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +108,7 @@ class OrderCompleteScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 Text(
-                  'Order #GC-99210',
+                  'Order #$orderId',
                   style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
@@ -133,8 +144,8 @@ class OrderCompleteScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Truffle Risotto & Fine Wine', style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontSize: 16)),
-                                Text('2 Items • Arriving in 35-45 min', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                Text(kitchenName, style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontSize: 16)),
+                                Text('$itemsCount Items • Arriving in 35-45 min', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
                               ],
                             ),
                           )
@@ -153,7 +164,7 @@ class OrderCompleteScreen extends StatelessWidget {
                               Text('Estimated Arrival: 8:45 PM', style: AppTextStyles.labelSm(color: AppColors.onSurface)),
                             ],
                           ),
-                          Text('\$63.00', style: AppTextStyles.headlineMd(color: AppColors.primary)),
+                          Text('\$${totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: AppColors.primary)),
                         ],
                       )
                     ],

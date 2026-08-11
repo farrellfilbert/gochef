@@ -82,7 +82,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (result != null && result['success'] == true) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const OrderCompleteScreen()),
+          MaterialPageRoute(builder: (context) => OrderCompleteScreen(
+            orderId: result['order_id'] ?? 'Unknown',
+            kitchenName: result['kitchen_name'] ?? 'Unknown Kitchen',
+            totalAmount: (result['total'] ?? 0).toDouble(),
+            itemsCount: result['items_count'] ?? 0,
+          )),
         );
       } else {
         setState(() {
