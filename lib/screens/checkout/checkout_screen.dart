@@ -88,8 +88,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         setState(() {
           isOrdering = false;
         });
+        final errorMsg = (result != null && result['error'] != null) ? result['error'].toString() : 'Failed to place order';
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to place order'), backgroundColor: AppColors.error),
+          SnackBar(content: Text(errorMsg), backgroundColor: AppColors.error, duration: const Duration(seconds: 5)),
         );
       }
     }

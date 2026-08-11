@@ -1,1 +1,1 @@
-<?php require "db_connect.php"; try { $stmt = $pdo->query("SELECT * FROM orders ORDER BY id DESC LIMIT 1"); $order = $stmt->fetch(); print_r($order); $itemStmt = $pdo->prepare("SELECT * FROM order_items WHERE order_id = ?"); $itemStmt->execute([$order["id"]]); print_r($itemStmt->fetchAll()); } catch(Exception $e) { echo $e->getMessage(); } ?>
+<?php require "db_connect.php"; try { $stmt = $pdo->query("SELECT * FROM cart_items WHERE user_id = 9"); print_r($stmt->fetchAll()); } catch(Exception $e) { echo $e->getMessage(); } ?>
