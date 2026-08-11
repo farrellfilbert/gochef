@@ -9,6 +9,7 @@ class OrderCompleteScreen extends StatelessWidget {
   final String kitchenName;
   final double totalAmount;
   final int itemsCount;
+  final String kitchenAvatar;
 
   const OrderCompleteScreen({
     super.key,
@@ -16,6 +17,7 @@ class OrderCompleteScreen extends StatelessWidget {
     required this.kitchenName,
     required this.totalAmount,
     required this.itemsCount,
+    required this.kitchenAvatar,
   });
 
   @override
@@ -132,9 +134,8 @@ class OrderCompleteScreen extends StatelessWidget {
                             height: 64,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
-                              image: const DecorationImage(
-                                image: NetworkImage(
-                                    'https://lh3.googleusercontent.com/aida-public/AB6AXuB46OgfjAhCCn-4KrgUa2u6_enMtNRSDF7MGR-yGf1cfaEr3fmHSSGB-npBtKJqARBnfjRP8ZfOQ7zXp91w5TBKWpCQGsttu2lZhpOmG-F9tlR45OCwfYic8OfiTlwYr_UlRRMY84YKPA4qc23r1JV1v-pNhymi4t8qX5B4ewxmRic8sfEj-QCs9glx3GORoaqHoDriDCYpowXNBnWs7DCJnE__z0MkrvsduMiECJWP69bMUSCEtzDFPA'),
+                              image: DecorationImage(
+                                image: NetworkImage(kitchenAvatar.isNotEmpty ? kitchenAvatar : 'https://gochef.my.id/assets/default_avatar.png'),
                                 fit: BoxFit.cover,
                               ),
                             ),

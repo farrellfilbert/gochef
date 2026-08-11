@@ -87,6 +87,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             kitchenName: result['kitchen_name'] ?? 'Unknown Kitchen',
             totalAmount: (result['total'] ?? 0).toDouble(),
             itemsCount: result['items_count'] ?? 0,
+            kitchenAvatar: result['kitchen_avatar'] ?? '',
           )),
         );
       } else {
