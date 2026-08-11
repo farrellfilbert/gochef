@@ -1,6 +1,9 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/astroboomin/public_html/
-    - /bin/cp -a build/web/* $DEPLOYPATH
-    - /bin/cp -a api $DEPLOYPATH
+    - /bin/cp -a build/web/* /home/gochefmy/public_html/ || true
+    - /bin/cp -a api /home/gochefmy/public_html/ || true
+    - /bin/cp -a build/web/* /home/astroboomin/public_html/ || true
+    - /bin/cp -a api /home/astroboomin/public_html/ || true
+    - /bin/cp -a build/web/* /home/gochefmy/astroboomin.co/ || true
+    - /bin/cp -a api /home/gochefmy/astroboomin.co/ || true
