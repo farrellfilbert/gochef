@@ -28,11 +28,21 @@ try {
         exit();
     }
     
-    $stmt = $pdo->prepare("SELECT id, name, email, phone, avatar FROM users WHERE id = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, name, email, phone, avatar, role FROM users WHERE id = ? LIMIT 1");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if ($user) {
+        $kitchen_id = null;
+        if (isset($user['role']) && $user['role'] === 'chef') {
+            $kStmt = $pdo->prepare("SELECT id FROM kitchens WHERE user_id = ? LIMIT 1");
+            $kStmt->execute([$user['id']]);
+            $kitchen = $kStmt->fetch(PDO::FETCH_ASSOC);
+            if ($kitchen) {
+                $kitchen_id = $kitchen['id'];
+            }
+        }
+        
         echo json_encode([
             'success' => true,
             'data' => [
@@ -40,7 +50,9 @@ try {
                 'name' => $user['name'],
                 'email' => $user['email'],
                 'phone' => $user['phone'] ?? '+00 000 0000 0000',
-                'avatar' => $user['avatar'] ?? 'https://gochef.my.id/assets/default_avatar.png'
+                'avatar' => $user['avatar'] ?? 'https://gochef.my.id/assets/default_avatar.png',
+                'role' => $user['role'],
+                'kitchen_id' => $kitchen_id
             ]
         ]);
     } else {

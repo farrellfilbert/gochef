@@ -11,10 +11,12 @@ import '../screens/map_screen.dart';
 
 class CustomAppBarTitle extends StatefulWidget {
   final String subtitle;
+  final bool isChefMode;
 
   const CustomAppBarTitle({
     super.key,
     this.subtitle = '',
+    this.isChefMode = false,
   });
 
   @override
@@ -30,9 +32,33 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
   @override
   void initState() {
     super.initState();
-    _fetchProfile();
+    if (widget.isChefMode) {
+      _fetchKitchenProfile();
+    } else {
+      _fetchProfile();
+    }
     _fetchAddresses();
     _fetchDeviceLocation();
+  }
+
+  void _fetchKitchenProfile() async {
+    try {
+      final kitchenIdStr = await ApiService.getKitchenId();
+      if (kitchenIdStr != null) {
+        final kitchenId = int.tryParse(kitchenIdStr);
+        if (kitchenId != null) {
+          final kitchen = await ApiService.getKitchenDetail(kitchenId);
+          if (mounted && kitchen != null) {
+            setState(() {
+              if (kitchen.name.isNotEmpty) _name = kitchen.name;
+              if (kitchen.avatar.isNotEmpty) _avatarUrl = kitchen.avatar;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      // Fallback to default
+    }
   }
 
   void _fetchProfile() async {

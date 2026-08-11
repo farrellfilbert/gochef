@@ -17,6 +17,8 @@ import 'security_password_screen.dart';
 import 'help_center_screen.dart';
 import 'contact_support_screen.dart';
 import 'about_screen.dart';
+import 'become_chef_screen.dart';
+import '../chef_dashboard/chef_main_navigation.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -467,6 +469,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
               child: Column(
                 children: [
+                  if (user.role == 'chef' || user.kitchenId != null)
+                    _buildListTile(Icons.storefront, 'Switch to Chef Dashboard', () async {
+                      await ApiService.saveUserId(user.id, role: 'chef', kitchenId: user.kitchenId);
+                      if (context.mounted) {
+                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const ChefMainNavigation()), (route) => false);
+                      }
+                    })
+                  else
+                    _buildListTile(Icons.storefront, 'Become a Chef', () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => BecomeChefScreen(userId: user.id)));
+                    }),
+                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.person_outline, 'Personal Information', () => _showEditProfileDialog(user)),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.credit_card, 'Payment Methods', () {

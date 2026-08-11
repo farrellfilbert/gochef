@@ -8,6 +8,8 @@ import '../../theme/app_text_styles.dart';
 import 'earnings_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/kitchen_model.dart';
+import '../../main.dart';
+import '../auth/login_screen.dart';
 
 class ChefProfileScreen extends StatefulWidget {
   const ChefProfileScreen({super.key});
@@ -420,6 +422,35 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                       _buildSettingsTile(context, Icons.local_shipping, 'Delivery Radius', 'Set your service area (currently 5mi)'),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.shield, 'Kitchen Inspection', 'Renew your safety certifications'),
+                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.person, color: AppColors.primary),
+                        title: Text('Switch to Foodie App', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                        subtitle: Text('Order food as a user', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                        trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
+                        onTap: () async {
+                          // Change role to user to open foodie app
+                          final userIdStr = await ApiService.getUserId();
+                          if (userIdStr != null) {
+                             await ApiService.saveUserId(userIdStr, role: 'user', kitchenId: _kitchen?.id.toString());
+                          }
+                          if (mounted) {
+                            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainNavigation()), (route) => false);
+                          }
+                        },
+                      ),
+                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.redAccent),
+                        title: Text('Log Out', style: AppTextStyles.bodyMd(color: Colors.redAccent).copyWith(fontWeight: FontWeight.bold)),
+                        trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
+                        onTap: () async {
+                          await ApiService.logout();
+                          if (mounted) {
+                            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false);
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),

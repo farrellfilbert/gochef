@@ -223,14 +223,11 @@ class ApiService {
   }
 
   static Future<KitchenModel?> getKitchenDetail(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/kitchens.php?id=$id')).timeout(const Duration(seconds: 10));
+    final response = await http.get(Uri.parse('$baseUrl/kitchen_detail.php?id=$id')).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      if (data['success'] == true) {
-        final list = (data['data'] as List);
-        if (list.isNotEmpty) {
-           return KitchenModel.fromJson(list[0]);
-        }
+      if (data['success'] == true && data['data'] != null) {
+        return KitchenModel.fromJson(data['data']);
       }
     }
     return null;
