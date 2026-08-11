@@ -213,7 +213,13 @@ class OrderCompleteScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => const OrderTrackingScreen()),
+                      MaterialPageRoute(builder: (context) => OrderTrackingScreen(
+                        orderId: orderId,
+                        kitchenName: kitchenName,
+                        totalAmount: totalAmount,
+                        itemsCount: itemsCount,
+                        kitchenAvatar: kitchenAvatar,
+                      )),
                     );
                   },
                   child: Container(

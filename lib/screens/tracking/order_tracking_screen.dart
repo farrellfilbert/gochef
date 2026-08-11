@@ -3,7 +3,20 @@ import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
-  const OrderTrackingScreen({super.key});
+  final String orderId;
+  final String kitchenName;
+  final double totalAmount;
+  final int itemsCount;
+  final String kitchenAvatar;
+
+  const OrderTrackingScreen({
+    super.key,
+    required this.orderId,
+    required this.kitchenName,
+    required this.totalAmount,
+    required this.itemsCount,
+    required this.kitchenAvatar,
+  });
 
   @override
   State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
@@ -259,12 +272,18 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           title: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Order #GC-99210', style: AppTextStyles.labelMono(color: AppColors.onSurfaceVariant)),
-                              Text('Truffle Risotto & Fine Wine', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 14)),
+                          title: Text(
+                            'Order #${widget.orderId}\n${widget.kitchenName}',
+                            style: AppTextStyles.labelLg(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: AppColors.primary).copyWith(fontSize: 16)),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.expand_more, color: AppColors.onSurfaceVariant),
                             ],
                           ),
-                          iconColor: AppColors.primary,
-                          collapsedIconColor: AppColors.primary,
                           children: [
                             Container(
                               padding: const EdgeInsets.all(16),
@@ -276,16 +295,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text('1x Wild Mushroom Truffle Risotto', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 12)),
-                                      Text('\$32.00', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontSize: 12)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text('1x Cabernet Sauvignon (Glass)', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 12)),
-                                      Text('\$14.00', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontSize: 12)),
+                                      Text('${widget.itemsCount}x Items', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 12)),
+                                      Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontSize: 12)),
                                     ],
                                   ),
                                   const SizedBox(height: 12),
@@ -295,7 +306,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text('Total', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
-                                      Text('\$46.00', style: AppTextStyles.headlineMd(color: const Color(0xFFE42278)).copyWith(fontSize: 16)),
+                                      Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: const Color(0xFFE42278)).copyWith(fontSize: 16)),
                                     ],
                                   )
                                 ],
