@@ -5,6 +5,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
+    file_put_contents("checkout_log.txt", date("Y-m-d H:i:s") . " - " . print_r($input, true) . "\n", FILE_APPEND);
     $user_id = intval($input['user_id'] ?? 0);
     $address_id = intval($input['address_id'] ?? 0);
     $kitchen_id = intval($input['kitchen_id'] ?? 0);
@@ -103,7 +104,7 @@ if ($method === 'POST') {
             'kitchen_name' => $kitchenName
         ]);
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        file_put_contents('checkout_log.txt', date('Y-m-d H:i:s') . ' - ERROR: ' . $e->getMessage() . "\n", FILE_APPEND); echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
 }
 ?>
