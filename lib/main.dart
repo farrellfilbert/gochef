@@ -89,7 +89,13 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
       if (userId != null && userId.isNotEmpty) {
         try {
           final profile = await ApiService.getProfile().timeout(const Duration(seconds: 3));
-          role = (profile.role == 'chef') ? 'chef' : 'user';
+          final localRole = await ApiService.getUserRole();
+          
+          if (localRole != null && localRole.isNotEmpty) {
+            role = localRole;
+          } else {
+            role = (profile.role == 'chef') ? 'chef' : 'user';
+          }
           await ApiService.saveUserId(profile.id, role: role, kitchenId: profile.kitchenId);
         } catch (_) {
           final localRole = await ApiService.getUserRole();
