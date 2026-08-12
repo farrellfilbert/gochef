@@ -208,6 +208,11 @@ try {
         FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE SET NULL
     )");
     $pdo->exec("ALTER TABLE orders ADD COLUMN IF NOT EXISTS kitchen_id INT NULL");
+    
+    // Safely add missing columns if they don't exist (MySQL < 8.0 compat)
+    try { $pdo->exec("ALTER TABLE orders ADD COLUMN delivery_address VARCHAR(300) DEFAULT ''"); } catch(PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE orders ADD COLUMN notes TEXT"); } catch(PDOException $e) {}
+    
     // Only try to add foreign key if we know how, simpler to just add column on existing data.
     // If we want to strictly add foreign key to existing table in mysql: 
     // ALTER TABLE orders ADD CONSTRAINT fk_kitchen FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE SET NULL;
