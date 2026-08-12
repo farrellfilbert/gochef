@@ -615,21 +615,24 @@ class ApiService {
   // =============================================
 
   static Future<List<AddressModel>> getAddresses() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return [
-      AddressModel(
-        id: 1,
-        label: 'Home',
-        address: '123 Baker Street, London',
-        isDefault: true,
-      ),
-      AddressModel(
-        id: 2,
-        label: 'Work',
-        address: '456 Business Park, Suite 100',
-        isDefault: false,
-      ),
-    ];
+    final userId = await getUserId();
+    if (userId == null) return [];
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/addresses.php?user_id=$userId'),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return (data['data'] as List).map((e) => AddressModel.fromJson(e)).toList();
+        }
+      }
+    } catch (e) {
+      print('Error getting addresses: $e');
+    }
+    return [];
   }
 
   static Future<bool> addAddress(String address, {String label = 'Home', bool isDefault = false}) async {
