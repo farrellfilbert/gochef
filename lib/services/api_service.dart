@@ -221,7 +221,7 @@ class ApiService {
         }
       }
     } catch (e) {
-      debugPrint('Error getting analytics: $e');
+      print('Error getting analytics: $e');
     }
     return null;
   }
