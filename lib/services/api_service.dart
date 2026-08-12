@@ -204,6 +204,29 @@ class ApiService {
 
 
   // =============================================
+  // KITCHEN
+  // =============================================
+
+  static Future<Map<String, dynamic>?> getKitchenAnalytics(int kitchenId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/analytics.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'kitchen_id': kitchenId}),
+      ).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return data['data'];
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting analytics: $e');
+    }
+    return null;
+  }
+
+  // =============================================
   // KITCHENS
   // =============================================
 

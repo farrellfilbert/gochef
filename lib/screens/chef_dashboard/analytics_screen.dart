@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../services/api_service.dart';
+import '../../models/user_model.dart';
 
 class ChefAnalyticsScreen extends StatefulWidget {
   const ChefAnalyticsScreen({super.key});
@@ -10,6 +12,22 @@ class ChefAnalyticsScreen extends StatefulWidget {
 }
 
 class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
+  late Future<Map<String, dynamic>?> _analyticsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _analyticsFuture = _loadData();
+  }
+
+  Future<Map<String, dynamic>?> _loadData() async {
+    final user = await ApiService.getProfile();
+    if (user != null && user.kitchenId != null) {
+      return await ApiService.getKitchenAnalytics(int.parse(user.kitchenId!));
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,15 +60,34 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
             const SizedBox(height: 24),
             
             // Stats Grid
-            Row(
-              children: [
-                Expanded(child: _buildStatCard('Today\'s Orders', '32', '+12%', Icons.shopping_bag)),
-                const SizedBox(width: 16),
-                Expanded(child: _buildStatCard('Revenue', '\$420.50', '+8%', Icons.payments)),
-              ],
+            FutureBuilder<Map<String, dynamic>?>(
+              future: _analyticsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                }
+                
+                final data = snapshot.data;
+                final todaysOrders = data?['todays_orders']?.toString() ?? '0';
+                final revenue = data?['revenue'] != null ? '\$${(data!['revenue'] as num).toStringAsFixed(2)}' : '\$0.00';
+                final monthly = data?['monthly'] != null ? '\$${(data!['monthly'] as num).toStringAsFixed(2)}' : '\$0.00';
+                final totalOrders = data?['total_orders']?.toString() ?? '0';
+
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: _buildStatCard('Today\'s Orders', todaysOrders, 'Total orders today', Icons.shopping_bag)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildStatCard('Revenue', revenue, 'Total revenue', Icons.payments)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildStatCard('Monthly Earnings', monthly, 'Total $totalOrders orders lifetime', Icons.account_balance_wallet, isWide: true),
+                  ],
+                );
+              },
             ),
-            const SizedBox(height: 16),
-            _buildStatCard('Monthly Earnings', '\$5.2k', 'Top 5% Chef Rating', Icons.account_balance_wallet, isWide: true),
             
             const SizedBox(height: 32),
             Text(
