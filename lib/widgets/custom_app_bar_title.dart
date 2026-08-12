@@ -24,7 +24,7 @@ class CustomAppBarTitle extends StatefulWidget {
 
 class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
   String _deviceLocation = '';
-  String _dbLocation = 'University District';
+  String _dbLocation = 'Please set your address';
   String _name = 'GoChef';
   String _avatarUrl = 'https://ui-avatars.com/api/?name=User';
 
@@ -77,11 +77,17 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
   void _fetchAddresses() async {
     try {
       final addresses = await ApiService.getAddresses();
-      if (mounted && addresses.isNotEmpty) {
-        final defaultAddress = addresses.firstWhere((a) => a.isDefault, orElse: () => addresses.first);
-        setState(() {
-          _dbLocation = defaultAddress.address;
-        });
+      if (mounted) {
+        if (addresses.isNotEmpty) {
+          final defaultAddress = addresses.firstWhere((a) => a.isDefault, orElse: () => addresses.first);
+          setState(() {
+            _dbLocation = defaultAddress.address;
+          });
+        } else {
+          setState(() {
+            _dbLocation = 'Please set your address';
+          });
+        }
       }
     } catch (e) {
       // Fallback
