@@ -41,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _profileFuture = ApiService.getProfile();
       _cartFuture = ApiService.getCart();
     });
+    await Future.wait([_homeDataFuture, _profileFuture, _cartFuture]);
   }
 
   @override

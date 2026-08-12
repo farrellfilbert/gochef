@@ -26,6 +26,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     _ordersFuture = ApiService.getOrders();
   }
 
+  Future<void> _refreshOrders() async {
+    setState(() {
+      _ordersFuture = ApiService.getOrders();
+    });
+    await _ordersFuture;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,9 +55,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           child: Container(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 120),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: _refreshOrders,
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 120),
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Order History', style: AppTextStyles.headlineLgMobile(color: AppColors.onBackground)),

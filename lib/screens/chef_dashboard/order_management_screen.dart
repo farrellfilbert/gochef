@@ -145,17 +145,27 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                : filteredOrders.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No $selectedStatus orders',
-                          style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: filteredOrders.length,
-                        itemBuilder: (context, index) {
+                : RefreshIndicator(
+                    onRefresh: _loadOrders,
+                    color: AppColors.primary,
+                    child: filteredOrders.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                              Center(
+                                child: Text(
+                                  'No $selectedStatus orders',
+                                  style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant),
+                                ),
+                              ),
+                            ],
+                          )
+                        : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.all(16),
+                            itemCount: filteredOrders.length,
+                            itemBuilder: (context, index) {
                           final order = filteredOrders[index];
                           final nextStatus = _getNextStatus(order.status);
                           
