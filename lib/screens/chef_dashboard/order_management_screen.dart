@@ -186,6 +186,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                           );
                         },
                       ),
+                    ),
           ),
         ],
       ),
