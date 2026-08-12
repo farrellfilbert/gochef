@@ -34,12 +34,14 @@ try {
     
     if ($user) {
         $kitchen_id = null;
+        $kitchen_name = null;
         if (true) {
-            $kStmt = $pdo->prepare("SELECT id FROM kitchens WHERE user_id = ? LIMIT 1");
+            $kStmt = $pdo->prepare("SELECT id, name FROM kitchens WHERE user_id = ? LIMIT 1");
             $kStmt->execute([$user['id']]);
             $kitchen = $kStmt->fetch(PDO::FETCH_ASSOC);
             if ($kitchen) {
                 $kitchen_id = $kitchen['id'];
+                $kitchen_name = $kitchen['name'];
             }
         }
         
@@ -52,7 +54,8 @@ try {
                 'phone' => $user['phone'] ?? '+00 000 0000 0000',
                 'avatar' => $user['avatar'] ?? 'https://gochef.my.id/assets/default_avatar.png',
                 'role' => $user['role'],
-                'kitchen_id' => $kitchen_id
+                'kitchen_id' => $kitchen_id,
+                'kitchen_name' => $kitchen_name
             ]
         ]);
     } else {
