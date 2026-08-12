@@ -11,6 +11,7 @@ import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 import '../auth/login_screen.dart';
 import '../orders/order_history_screen.dart';
+import '../chat/inbox_screen.dart';
 import 'address_selection_screen.dart';
 import 'payment_methods_screen.dart';
 import 'security_password_screen.dart';
@@ -468,6 +469,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               child: Column(
                 children: [
                   _buildListTile(Icons.person_outline, 'Personal Information', () => _showEditProfileDialog(user)),
+                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                  _buildListTile(Icons.inbox, 'Messages / Inbox', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const InboxScreen()));
+                  }),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.credit_card, 'Payment Methods', () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()));

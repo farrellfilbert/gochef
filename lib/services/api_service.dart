@@ -207,6 +207,24 @@ class ApiService {
   // KITCHEN
   // =============================================
 
+  static Future<List<ReviewModel>> getKitchenReviews(int kitchenId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/reviews.php?kitchen_id=$kitchenId'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] && data['data'] != null) {
+          return (data['data'] as List).map((e) => ReviewModel.fromJson(e)).toList();
+        }
+      }
+    } catch (e) {
+      print('Error getting kitchen reviews: $e');
+    }
+    return [];
+  }
+
   static Future<Map<String, dynamic>?> getKitchenAnalytics(int kitchenId) async {
     try {
       final response = await http.post(

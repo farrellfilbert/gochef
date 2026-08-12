@@ -14,6 +14,7 @@ class KitchenModel {
   final String location;
   final bool isVerified;
   final bool isFeatured;
+  final String createdAt;
   final List<MenuItemModel>? menuItems;
   final List<ReviewModel>? reviews;
 
@@ -30,6 +31,7 @@ class KitchenModel {
     this.location = '',
     this.isVerified = false,
     this.isFeatured = false,
+    this.createdAt = '',
     this.menuItems,
     this.reviews,
   });
@@ -48,6 +50,7 @@ class KitchenModel {
       location: json['location'] ?? '',
       isVerified: json['is_verified']?.toString() == '1',
       isFeatured: json['is_featured']?.toString() == '1',
+      createdAt: json['created_at'] ?? '',
       menuItems: json['menu_items'] != null
           ? (json['menu_items'] as List).map((e) => MenuItemModel.fromJson(e)).toList()
           : null,

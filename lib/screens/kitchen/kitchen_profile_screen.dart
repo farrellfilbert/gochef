@@ -8,6 +8,7 @@ import '../../services/api_service.dart';
 import '../../models/kitchen_model.dart';
 import '../../models/menu_item_model.dart';
 import '../../models/review_model.dart';
+import '../chat/chat_screen.dart';
 
 class KitchenProfileScreen extends StatefulWidget {
   final int kitchenId;
@@ -231,6 +232,31 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                               padding: const EdgeInsets.symmetric(horizontal: 24),
                                             ),
                                             child: const Text('Follow', style: TextStyle(fontWeight: FontWeight.bold)),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                                            ),
+                                            child: IconButton(
+                                              icon: const Icon(Icons.chat_bubble_outline, size: 20, color: AppColors.onSurface),
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => ChatScreen(
+                                                      otherParticipantName: kitchen.name,
+                                                      otherParticipantAvatar: kitchen.avatar,
+                                                      isOnline: true,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              padding: EdgeInsets.zero,
+                                            ),
                                           ),
                                           const SizedBox(width: 8),
                                           Container(

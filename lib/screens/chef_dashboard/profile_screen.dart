@@ -10,6 +10,8 @@ import '../../services/api_service.dart';
 import '../../models/kitchen_model.dart';
 import '../../main.dart';
 import '../auth/login_screen.dart';
+import 'reviews_screen.dart';
+import '../chat/inbox_screen.dart';
 
 class ChefProfileScreen extends StatefulWidget {
   const ChefProfileScreen({super.key});
@@ -22,6 +24,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
   bool _isLoading = true;
   KitchenModel? _kitchen;
   int? _kitchenId;
+  Map<String, dynamic>? _analytics;
 
   @override
   void initState() {
@@ -37,8 +40,10 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
         _kitchenId = int.tryParse(kitchenIdStr);
         if (_kitchenId != null) {
           final kitchenData = await ApiService.getKitchenDetail(_kitchenId!);
+          final analyticsData = await ApiService.getKitchenAnalytics(_kitchenId!);
           setState(() {
             _kitchen = kitchenData;
+            _analytics = analyticsData;
           });
         }
       }
@@ -137,6 +142,25 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
         }
       }
       }
+    }
+  }
+
+  String _calculateActiveTime(String createdAt) {
+    if (createdAt.isEmpty) return 'New';
+    try {
+      final DateTime createdDate = DateTime.parse(createdAt);
+      final Duration difference = DateTime.now().difference(createdDate);
+      if (difference.inDays < 30) {
+        return '${difference.inDays}d';
+      } else if (difference.inDays < 365) {
+        final months = (difference.inDays / 30).floor();
+        return '${months}m';
+      } else {
+        final years = (difference.inDays / 365).toStringAsFixed(1);
+        return '${years}y';
+      }
+    } catch (e) {
+      return 'New';
     }
   }
 
@@ -359,11 +383,11 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                 // Stats Row
                 Row(
                   children: [
-                    Expanded(child: _buildStatItem('2.4k', 'Total Orders')),
+                    Expanded(child: _buildStatItem(_analytics?['total_orders']?.toString() ?? '-', 'Total Orders')),
                     Container(width: 1, height: 40, color: AppColors.outlineVariant.withValues(alpha: 0.2)),
                     Expanded(child: _buildStatItem(_kitchen!.rating.toStringAsFixed(1), 'Avg Rating', highlight: true)),
                     Container(width: 1, height: 40, color: AppColors.outlineVariant.withValues(alpha: 0.2)),
-                    Expanded(child: _buildStatItem('3.5', 'Years Active')),
+                    Expanded(child: _buildStatItem(_calculateActiveTime(_kitchen!.createdAt), 'Active')),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -415,6 +439,14 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   ),
                   child: Column(
                     children: [
+                      _buildSettingsTile(context, Icons.star_border, 'Customer Reviews', 'Read feedback from foodies', onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewsScreen(kitchenId: _kitchen!.id)));
+                      }),
+                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                      _buildSettingsTile(context, Icons.inbox, 'Messages / Inbox', 'Chat with your customers', onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const InboxScreen()));
+                      }),
+                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Manage your operating times'),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.payments, 'Payout Methods', 'Manage your earnings & bank info', destination: const ChefEarningsScreen()),
@@ -485,13 +517,13 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     );
   }
 
-  Widget _buildSettingsTile(BuildContext context, IconData icon, String title, String subtitle, {Widget? destination}) {
+  Widget _buildSettingsTile(BuildContext context, IconData icon, String title, String subtitle, {Widget? destination, VoidCallback? onTap}) {
     return ListTile(
       leading: Icon(icon, color: AppColors.primary),
       title: Text(title, style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
       subtitle: Text(subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
       trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
-      onTap: () {
+      onTap: onTap ?? () {
         if (destination != null) {
           Navigator.push(context, MaterialPageRoute(builder: (context) => destination));
         }

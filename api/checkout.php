@@ -72,7 +72,7 @@ if ($method === 'POST') {
         $stmt = $pdo->prepare("INSERT INTO orders (id, user_id, kitchen_id, kitchen_name, order_date, status, total_amount, items_count, avatar, delivery_address, notes) VALUES (?, ?, ?, ?, ?, 'Active', ?, ?, ?, ?, ?)");
         $stmt->execute([
             $orderId, $user_id, $kitchen_id, $kitchenName,
-            date('M d, Y - H:i'), $total, $itemsCount,
+            gmdate('Y-m-d\TH:i:s\Z'), $total, $itemsCount,
             $kitchenAvatar, $deliveryAddress, $notes
         ]);
 

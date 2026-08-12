@@ -75,6 +75,25 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
     }
   }
 
+  InputDecoration _buildInputDecoration(String label, {IconData? prefixIcon}) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+      filled: true,
+      fillColor: AppColors.surfaceContainerLow,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppColors.onSurfaceVariant) : null,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
   void _showEditDishDialog(MenuItemModel item) {
     final nameController = TextEditingController(text: item.name);
     final descriptionController = TextEditingController(text: item.description);
@@ -96,186 +115,205 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
       barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(builder: (context, setDialogState) {
-          return AlertDialog(
+          return Dialog(
             backgroundColor: AppColors.surfaceContainerHigh,
-            title: Text('Edit Dish', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    onTap: () async {
-                      final ImagePicker picker = ImagePicker();
-                      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                      if (image != null) {
-                        if (kIsWeb) {
-                          setDialogState(() {
-                            selectedImage = image;
-                          });
-                          return;
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Edit Dish', style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
+                    GestureDetector(
+                      onTap: () async {
+                        final ImagePicker picker = ImagePicker();
+                        final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                        if (image != null) {
+                          if (kIsWeb) {
+                            setDialogState(() {
+                              selectedImage = image;
+                            });
+                            return;
+                          }
+                          final croppedFile = await ImageCropper().cropImage(
+                            sourcePath: image.path,
+                            uiSettings: [
+                              WebUiSettings(
+                                context: context,
+                                presentStyle: WebPresentStyle.dialog,
+                              ),
+                            ],
+                          );
+                          if (croppedFile != null) {
+                            setDialogState(() {
+                              selectedImage = XFile(croppedFile.path);
+                            });
+                          }
                         }
-                        final croppedFile = await ImageCropper().cropImage(
-                          sourcePath: image.path,
-                          uiSettings: [
-                            WebUiSettings(
-                              context: context,
-                              presentStyle: WebPresentStyle.dialog,
-                            ),
-                          ],
-                        );
-                        if (croppedFile != null) {
-                          setDialogState(() {
-                            selectedImage = XFile(croppedFile.path);
-                          });
-                        }
-                      }
-                    },
-                    child: Container(
-                      height: 120,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.outlineVariant),
-                      ),
-                      child: selectedImage == null
-                          ? (item.image.isNotEmpty 
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(item.image, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
-                                )
-                              : const Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.add_a_photo, color: AppColors.primary, size: 32),
-                                    SizedBox(height: 8),
-                                    Text('Tap to pick image', style: TextStyle(color: AppColors.onSurfaceVariant)),
-                                  ],
-                                ))
-                          : ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: kIsWeb 
-                                  ? Image.network(selectedImage!.path, fit: BoxFit.cover)
-                                  : Image.file(File(selectedImage!.path), fit: BoxFit.cover),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_categories.isNotEmpty) ...[
-                    DropdownButtonFormField<int>(
-                      value: selectedCategoryId,
-                      decoration: const InputDecoration(
-                        labelText: 'Category',
-                        labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
-                      ),
-                      dropdownColor: AppColors.surfaceContainerHigh,
-                      style: const TextStyle(color: AppColors.onSurface),
-                      items: _categories.map((cat) {
-                        return DropdownMenuItem<int>(
-                          value: cat.id,
-                          child: Text(cat.name),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        setDialogState(() {
-                          selectedCategoryId = val;
-                        });
                       },
+                      child: Container(
+                        height: 160,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5),
+                        ),
+                        child: selectedImage == null
+                            ? (item.image.isNotEmpty 
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.network(item.image, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary.withValues(alpha: 0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.add_a_photo, color: AppColors.primary, size: 28),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      const Text('Tap to pick image', style: TextStyle(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.w500)),
+                                    ],
+                                  ))
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: kIsWeb 
+                                    ? Image.network(selectedImage!.path, fit: BoxFit.cover)
+                                    : Image.file(File(selectedImage!.path), fit: BoxFit.cover),
+                              ),
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 24),
+                    if (_categories.isNotEmpty) ...[
+                      DropdownButtonFormField<int>(
+                        value: selectedCategoryId,
+                        decoration: _buildInputDecoration('Category', prefixIcon: Icons.category),
+                        dropdownColor: AppColors.surfaceContainerHigh,
+                        style: const TextStyle(color: AppColors.onSurface),
+                        items: _categories.map((cat) {
+                          return DropdownMenuItem<int>(
+                            value: cat.id,
+                            child: Text(cat.name),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          setDialogState(() {
+                            selectedCategoryId = val;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    TextField(
+                      controller: nameController,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      decoration: _buildInputDecoration('Dish Name', prefixIcon: Icons.restaurant_menu),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: descriptionController,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      maxLines: 3,
+                      decoration: _buildInputDecoration('Description').copyWith(alignLabelWithHint: true),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: priceController,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: _buildInputDecoration('Price', prefixIcon: Icons.attach_money),
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: isUploading ? null : () => Navigator.pop(context),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: isUploading ? null : () async {
+                              if (nameController.text.isEmpty || priceController.text.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Name and price are required!')),
+                                );
+                                return;
+                              }
+
+                              if (selectedCategoryId == null && _categories.isNotEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please select a category!')),
+                                );
+                                return;
+                              }
+
+                              setDialogState(() => isUploading = true);
+
+                              try {
+                                String? imageUrl;
+                                if (selectedImage != null) {
+                                  imageUrl = await ApiService.uploadImage(selectedImage!);
+                                  if (imageUrl == null) {
+                                    throw Exception('Failed to upload image');
+                                  }
+                                }
+
+                                bool success = await ApiService.updateMenuItem({
+                                  'id': item.id,
+                                  'kitchen_id': _kitchenId,
+                                  'category_id': selectedCategoryId ?? 1,
+                                  'name': nameController.text,
+                                  'description': descriptionController.text,
+                                  'price': double.parse(priceController.text),
+                                  if (imageUrl != null) 'image': imageUrl,
+                                });
+
+                                if (success) {
+                                  Navigator.pop(context);
+                                  _loadMenu();
+                                } else {
+                                  throw Exception('Failed to update menu item');
+                                }
+                              } catch (e) {
+                                setDialogState(() => isUploading = false);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error: $e')),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            child: isUploading 
+                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) 
+                              : const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                  TextField(
-                    controller: nameController,
-                    style: const TextStyle(color: AppColors.onSurface),
-                    decoration: const InputDecoration(
-                      labelText: 'Dish Name',
-                      labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: descriptionController,
-                    style: const TextStyle(color: AppColors.onSurface),
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
-                      labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: priceController,
-                    style: const TextStyle(color: AppColors.onSurface),
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Price',
-                      labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: isUploading ? null : () => Navigator.pop(context),
-                child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant)),
-              ),
-              ElevatedButton(
-                onPressed: isUploading ? null : () async {
-                  if (nameController.text.isEmpty || priceController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Name and price are required!')),
-                    );
-                    return;
-                  }
-
-                  if (selectedCategoryId == null && _categories.isNotEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please select a category!')),
-                    );
-                    return;
-                  }
-
-                  setDialogState(() => isUploading = true);
-
-                  try {
-                    String? imageUrl;
-                    if (selectedImage != null) {
-                      imageUrl = await ApiService.uploadImage(selectedImage!);
-                      if (imageUrl == null) {
-                        throw Exception('Failed to upload image');
-                      }
-                    }
-
-                    bool success = await ApiService.updateMenuItem({
-                      'id': item.id,
-                      'kitchen_id': _kitchenId,
-                      'category_id': selectedCategoryId ?? 1,
-                      'name': nameController.text,
-                      'description': descriptionController.text,
-                      'price': double.parse(priceController.text),
-                      if (imageUrl != null) 'image': imageUrl,
-                    });
-
-                    if (success) {
-                      Navigator.pop(context);
-                      _loadMenu();
-                    } else {
-                      throw Exception('Failed to update menu item');
-                    }
-                  } catch (e) {
-                    setDialogState(() => isUploading = false);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                child: isUploading 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
-                  : const Text('Save', style: TextStyle(color: Colors.white)),
-              ),
-            ],
           );
         });
       },
@@ -295,180 +333,199 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
       barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(builder: (context, setDialogState) {
-          return AlertDialog(
+          return Dialog(
             backgroundColor: AppColors.surfaceContainerHigh,
-            title: Text('Add New Dish', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    onTap: () async {
-                      final ImagePicker picker = ImagePicker();
-                      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                      if (image != null) {
-                        if (kIsWeb) {
-                          setDialogState(() {
-                            selectedImage = image;
-                          });
-                          return;
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Add New Dish', style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
+                    GestureDetector(
+                      onTap: () async {
+                        final ImagePicker picker = ImagePicker();
+                        final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                        if (image != null) {
+                          if (kIsWeb) {
+                            setDialogState(() {
+                              selectedImage = image;
+                            });
+                            return;
+                          }
+                          final croppedFile = await ImageCropper().cropImage(
+                            sourcePath: image.path,
+                            uiSettings: [
+                              WebUiSettings(
+                                context: context,
+                                presentStyle: WebPresentStyle.dialog,
+                              ),
+                            ],
+                          );
+                          if (croppedFile != null) {
+                            setDialogState(() {
+                              selectedImage = XFile(croppedFile.path);
+                            });
+                          }
                         }
-                        final croppedFile = await ImageCropper().cropImage(
-                          sourcePath: image.path,
-                          uiSettings: [
-                            WebUiSettings(
-                              context: context,
-                              presentStyle: WebPresentStyle.dialog,
-                            ),
-                          ],
-                        );
-                        if (croppedFile != null) {
-                          setDialogState(() {
-                            selectedImage = XFile(croppedFile.path);
-                          });
-                        }
-                      }
-                    },
-                    child: Container(
-                      height: 120,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.outlineVariant),
-                      ),
-                      child: selectedImage == null
-                          ? const Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_a_photo, color: AppColors.primary, size: 32),
-                                SizedBox(height: 8),
-                                Text('Tap to pick image', style: TextStyle(color: AppColors.onSurfaceVariant)),
-                              ],
-                            )
-                          : ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: kIsWeb 
-                                  ? Image.network(selectedImage!.path, fit: BoxFit.cover)
-                                  : Image.file(File(selectedImage!.path), fit: BoxFit.cover),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_categories.isNotEmpty) ...[
-                    DropdownButtonFormField<int>(
-                      value: selectedCategoryId,
-                      decoration: const InputDecoration(
-                        labelText: 'Category',
-                        labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
-                      ),
-                      dropdownColor: AppColors.surfaceContainerHigh,
-                      style: const TextStyle(color: AppColors.onSurface),
-                      items: _categories.map((cat) {
-                        return DropdownMenuItem<int>(
-                          value: cat.id,
-                          child: Text(cat.name),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        setDialogState(() {
-                          selectedCategoryId = val;
-                        });
                       },
+                      child: Container(
+                        height: 160,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5),
+                        ),
+                        child: selectedImage == null
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(alpha: 0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.add_a_photo, color: AppColors.primary, size: 28),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text('Tap to pick image', style: TextStyle(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.w500)),
+                                ],
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: kIsWeb 
+                                    ? Image.network(selectedImage!.path, fit: BoxFit.cover)
+                                    : Image.file(File(selectedImage!.path), fit: BoxFit.cover),
+                              ),
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 24),
+                    if (_categories.isNotEmpty) ...[
+                      DropdownButtonFormField<int>(
+                        value: selectedCategoryId,
+                        decoration: _buildInputDecoration('Category', prefixIcon: Icons.category),
+                        dropdownColor: AppColors.surfaceContainerHigh,
+                        style: const TextStyle(color: AppColors.onSurface),
+                        items: _categories.map((cat) {
+                          return DropdownMenuItem<int>(
+                            value: cat.id,
+                            child: Text(cat.name),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          setDialogState(() {
+                            selectedCategoryId = val;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    TextField(
+                      controller: nameController,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      decoration: _buildInputDecoration('Dish Name', prefixIcon: Icons.restaurant_menu),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: descriptionController,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      maxLines: 3,
+                      decoration: _buildInputDecoration('Description').copyWith(alignLabelWithHint: true),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: priceController,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: _buildInputDecoration('Price', prefixIcon: Icons.attach_money),
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: isUploading ? null : () => Navigator.pop(context),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: isUploading ? null : () async {
+                              if (nameController.text.isEmpty || priceController.text.isEmpty || selectedImage == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Name, price and image are required!')),
+                                );
+                                return;
+                              }
+
+                              if (selectedCategoryId == null && _categories.isNotEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please select a category!')),
+                                );
+                                return;
+                              }
+
+                              setDialogState(() => isUploading = true);
+
+                              try {
+                                // Upload Image
+                                String? imageUrl = await ApiService.uploadImage(selectedImage!);
+
+                                if (imageUrl != null) {
+                                    bool success = await ApiService.createMenuItem({
+                                      'kitchen_id': _kitchenId,
+                                      'category_id': selectedCategoryId ?? 1,
+                                      'name': nameController.text,
+                                      'description': descriptionController.text,
+                                      'price': double.parse(priceController.text),
+                                      'image': imageUrl,
+                                      'is_popular': 0,
+                                    });
+
+                                  if (success) {
+                                    Navigator.pop(context);
+                                    _loadMenu();
+                                  } else {
+                                    throw Exception('Failed to save menu item');
+                                  }
+                                } else {
+                                  throw Exception('Failed to upload image');
+                                }
+                              } catch (e) {
+                                setDialogState(() => isUploading = false);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error: $e')),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            child: isUploading 
+                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) 
+                              : const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                  TextField(
-                    controller: nameController,
-                    style: const TextStyle(color: AppColors.onSurface),
-                    decoration: const InputDecoration(
-                      labelText: 'Dish Name',
-                      labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: descriptionController,
-                    style: const TextStyle(color: AppColors.onSurface),
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
-                      labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: priceController,
-                    style: const TextStyle(color: AppColors.onSurface),
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Price',
-                      labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: isUploading ? null : () => Navigator.pop(context),
-                child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant)),
-              ),
-              ElevatedButton(
-                onPressed: isUploading ? null : () async {
-                  if (nameController.text.isEmpty || priceController.text.isEmpty || selectedImage == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Name, price and image are required!')),
-                    );
-                    return;
-                  }
-
-                  if (selectedCategoryId == null && _categories.isNotEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please select a category!')),
-                    );
-                    return;
-                  }
-
-                  setDialogState(() => isUploading = true);
-
-                  try {
-                    // Upload Image
-                    String? imageUrl = await ApiService.uploadImage(selectedImage!);
-
-                    if (imageUrl != null) {
-                        bool success = await ApiService.createMenuItem({
-                          'kitchen_id': _kitchenId,
-                          'category_id': selectedCategoryId ?? 1,
-                          'name': nameController.text,
-                          'description': descriptionController.text,
-                          'price': double.parse(priceController.text),
-                          'image': imageUrl,
-                          'is_popular': 0,
-                        });
-
-                      if (success) {
-                        Navigator.pop(context);
-                        _loadMenu();
-                      } else {
-                        throw Exception('Failed to save menu item');
-                      }
-                    } else {
-                      throw Exception('Failed to upload image');
-                    }
-                  } catch (e) {
-                    setDialogState(() => isUploading = false);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                child: isUploading 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
-                  : const Text('Save', style: TextStyle(color: Colors.white)),
-              ),
-            ],
           );
         });
       },

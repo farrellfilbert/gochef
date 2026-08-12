@@ -254,6 +254,13 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               ],
             ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primary,
+        onPressed: () {
+          _mapController.move(_baseLocation, 13.0);
+        },
+        child: const Icon(Icons.my_location, color: AppColors.onPrimary),
+      ),
     );
   }
 }

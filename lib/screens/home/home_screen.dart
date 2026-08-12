@@ -5,6 +5,7 @@ import '../../theme/app_text_styles.dart';
 import '../kitchen/kitchen_profile_screen.dart';
 import '../food/food_details_screen.dart';
 import '../search/search_results_screen.dart';
+import '../search/search_modal.dart';
 import '../cart/cart_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/kitchen_model.dart';
@@ -26,6 +27,108 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<UserModel> _profileFuture;
   late Future<List<dynamic>> _cartFuture;
   int _selectedCategoryId = 1;
+  double? _maxPriceFilter;
+  double _dummyDistance = 5.0; // km
+
+  void _showFilterModal(BuildContext context) {
+    double currentMaxPrice = _maxPriceFilter ?? 50.0;
+    double currentDistance = _dummyDistance;
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceContainerHigh,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Filters', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: AppColors.onSurfaceVariant),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Max Price', style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
+                      Text('\$${currentMaxPrice.toStringAsFixed(0)}', style: AppTextStyles.bodyMd(color: AppColors.primary)),
+                    ],
+                  ),
+                  Slider(
+                    value: currentMaxPrice,
+                    min: 5.0,
+                    max: 100.0,
+                    divisions: 19,
+                    activeColor: AppColors.primary,
+                    inactiveColor: AppColors.outlineVariant.withValues(alpha: 0.3),
+                    onChanged: (value) {
+                      setModalState(() {
+                        currentMaxPrice = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Distance (km)', style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
+                      Text('${currentDistance.toStringAsFixed(1)} km', style: AppTextStyles.bodyMd(color: AppColors.primary)),
+                    ],
+                  ),
+                  Slider(
+                    value: currentDistance,
+                    min: 1.0,
+                    max: 20.0,
+                    divisions: 19,
+                    activeColor: AppColors.primary,
+                    inactiveColor: AppColors.outlineVariant.withValues(alpha: 0.3),
+                    onChanged: (value) {
+                      setModalState(() {
+                        currentDistance = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _maxPriceFilter = currentMaxPrice;
+                          _dummyDistance = currentDistance;
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Text('Apply Filters', style: AppTextStyles.labelSm(color: AppColors.onPrimary)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -84,9 +187,11 @@ class _HomeScreenState extends State<HomeScreen> {
               final List<CategoryModel> categories = data['categories'] ?? [];
               final List<PromotionModel> promotions = data['promotions'] ?? [];
 
-              final List<MenuItemModel> popularMeals = _selectedCategoryId == 1 
-                  ? allPopularMeals 
-                  : allPopularMeals.where((m) => m.categoryId == _selectedCategoryId).toList();
+              final List<MenuItemModel> popularMeals = allPopularMeals.where((m) {
+                if (_selectedCategoryId != 1 && m.categoryId != _selectedCategoryId) return false;
+                if (_maxPriceFilter != null && m.price > _maxPriceFilter!) return false;
+                return true;
+              }).toList();
 
               return CustomScrollView(
                 slivers: [
@@ -164,15 +269,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: TextField(
-                                style: AppTextStyles.bodyMd(color: AppColors.onSurface),
-                                onSubmitted: (value) {
-                                  if (value.isNotEmpty) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => SearchResultsScreen(initialQuery: value)),
-                                    );
-                                  }
+                                readOnly: true,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const SearchModal(),
+                                      fullscreenDialog: true,
+                                    ),
+                                  );
                                 },
+                                style: AppTextStyles.bodyMd(color: AppColors.onSurface),
                                 decoration: InputDecoration(
                                   hintText: 'Search student chefs or meals...',
                                   hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
@@ -185,34 +292,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-
-                  // ─── Categories ───
-                  if (categories.isNotEmpty)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 24.0, bottom: 8.0),
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Row(
-                            children: categories.map((category) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 12.0),
-                                child: _buildCategoryChip(
-                                  category.name,
-                                  isSelected: category.id == _selectedCategoryId,
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedCategoryId = category.id;
-                                    });
-                                  },
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
 
                   // ─── Promotions Carousel ───
                   if (promotions.isNotEmpty)
@@ -310,34 +389,68 @@ class _HomeScreenState extends State<HomeScreen> {
                   // ─── Popular Meals ───
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 24.0, left: 20.0, right: 20.0),
+                      padding: const EdgeInsets.only(bottom: 24.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Popular Meals', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Popular Meals', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                                IconButton(
+                                  icon: const Icon(Icons.tune, color: AppColors.primary),
+                                  onPressed: () => _showFilterModal(context),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          if (categories.isNotEmpty)
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Row(
+                                children: categories.map((category) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 12.0),
+                                    child: _buildCategoryChip(
+                                      category.name,
+                                      isSelected: category.id == _selectedCategoryId,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedCategoryId = category.id;
+                                        });
+                                      },
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
                           const SizedBox(height: 16),
                           if (popularMeals.isEmpty)
                             Center(
                               child: Padding(
                                 padding: const EdgeInsets.all(24.0),
                                 child: Text(
-                                  'No meals found in this category.',
+                                  'No meals found matching your filters.',
                                   style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
                                 ),
                               ),
                             )
                           else
                             ...popularMeals.map((m) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 16.0),
+                                  padding: const EdgeInsets.only(bottom: 16.0, left: 20.0, right: 20.0),
                                   child: _buildPopularMeal(
                                     context: context,
                                     meal: m,
                                   ),
                                 )),
-                          ],
-                        ),
+                        ],
                       ),
                     ),
+                  ),
                 ],
               );
             },
