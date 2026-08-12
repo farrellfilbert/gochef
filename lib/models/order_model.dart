@@ -50,11 +50,26 @@ class OrderModel {
     var itemsList = json['items'] as List? ?? [];
     List<OrderItemModel> parsedItems = itemsList.map((i) => OrderItemModel.fromJson(i)).toList();
     
+    String dateStr = json['date'] ?? '';
+    try {
+      if (dateStr.contains('T')) {
+        final utcDate = DateTime.parse(dateStr);
+        final localDate = utcDate.toLocal();
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        final month = months[localDate.month - 1];
+        final day = localDate.day.toString().padLeft(2, '0');
+        final year = localDate.year;
+        final hour = localDate.hour.toString().padLeft(2, '0');
+        final minute = localDate.minute.toString().padLeft(2, '0');
+        dateStr = '$month $day, $year - $hour:$minute';
+      }
+    } catch (e) {}
+
     return OrderModel(
       id: json['id']?.toString() ?? '',
       kitchenId: json['kitchen_id']?.toString() ?? '',
       kitchenName: json['kitchen_name'] ?? json['kitchenName'] ?? '',
-      date: json['date'] ?? '',
+      date: dateStr,
       status: json['status'] ?? 'Completed',
       totalAmount: json['total_amount'] != null 
           ? double.tryParse(json['total_amount'].toString()) ?? 0.0 
