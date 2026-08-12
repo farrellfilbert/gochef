@@ -235,27 +235,42 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-                      image: DecorationImage(image: NetworkImage(avatar), fit: BoxFit.cover),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+                        image: DecorationImage(image: NetworkImage(avatar), fit: BoxFit.cover),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(chefName, style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                      Text('$dateStr • $orderId', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                    ],
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            chefName, 
+                            style: AppTextStyles.headlineMd(color: AppColors.onSurface),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '$dateStr • $orderId', 
+                            style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
