@@ -143,7 +143,7 @@ class _InboxScreenState extends State<InboxScreen> {
                       ),
                       if (chat.unreadCount > 0)
                         Container(
-                          margin: const EdgeInsets.left(8),
+                          margin: const EdgeInsets.only(left: 8),
                           padding: const EdgeInsets.all(6),
                           decoration: const BoxDecoration(
                             color: AppColors.primary,
