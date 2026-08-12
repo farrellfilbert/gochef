@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../models/chat_model.dart';
+import '../../services/api_service.dart';
 import 'chat_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -13,26 +14,37 @@ class InboxScreen extends StatefulWidget {
 }
 
 class _InboxScreenState extends State<InboxScreen> {
-  final List<ChatModel> _chats = [
-    ChatModel(
-      id: '1',
-      otherParticipantName: 'Le Petit Chef',
-      otherParticipantAvatar: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c',
-      lastMessage: 'Your order will be ready in 15 mins.',
-      lastMessageTime: DateTime.now().subtract(const Duration(minutes: 5)),
-      unreadCount: 2,
-      isOnline: true,
-    ),
-    ChatModel(
-      id: '2',
-      otherParticipantName: 'Green Bowl',
-      otherParticipantAvatar: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
-      lastMessage: 'Thanks for ordering!',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 2)),
-      unreadCount: 0,
-      isOnline: false,
-    ),
-  ];
+  List<ChatModel> _chats = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInbox();
+  }
+  
+  Future<void> _loadInbox() async {
+    setState(() => _isLoading = true);
+    
+    final inboxRaw = await ApiService.getChatInbox();
+    
+    if (mounted) {
+      setState(() {
+        _chats = inboxRaw.map((c) {
+          return ChatModel(
+            id: c['other_user_id'].toString(),
+            otherParticipantName: c['name'] ?? 'Unknown',
+            otherParticipantAvatar: c['avatar'] ?? '',
+            lastMessage: c['last_message'] ?? '',
+            lastMessageTime: DateTime.parse(c['created_at']),
+            unreadCount: int.tryParse(c['unread_count']?.toString() ?? '0') ?? 0,
+            isOnline: true, // we don't have online status in backend yet
+          );
+        }).toList();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,19 +56,24 @@ class _InboxScreenState extends State<InboxScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.onSurface),
       ),
-      body: _chats.isEmpty
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+        : _chats.isEmpty
           ? Center(
               child: Text(
                 'No messages yet',
                 style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
               ),
             )
-          : ListView.builder(
-              itemCount: _chats.length,
-              itemBuilder: (context, index) {
-                final chat = _chats[index];
-                return _buildChatTile(chat);
-              },
+          : RefreshIndicator(
+              onRefresh: _loadInbox,
+              child: ListView.builder(
+                itemCount: _chats.length,
+                itemBuilder: (context, index) {
+                  final chat = _chats[index];
+                  return _buildChatTile(chat);
+                },
+              ),
             ),
     );
   }
@@ -68,12 +85,16 @@ class _InboxScreenState extends State<InboxScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => ChatScreen(
+              otherParticipantId: chat.id,
               otherParticipantName: chat.otherParticipantName,
               otherParticipantAvatar: chat.otherParticipantAvatar,
               isOnline: chat.isOnline,
             ),
           ),
-        );
+        ).then((_) {
+          // reload inbox when coming back from chat to update unread counts
+          _loadInbox();
+        });
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -86,8 +107,13 @@ class _InboxScreenState extends State<InboxScreen> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundImage: NetworkImage(chat.otherParticipantAvatar),
+                  backgroundImage: chat.otherParticipantAvatar.isNotEmpty 
+                      ? NetworkImage(chat.otherParticipantAvatar) 
+                      : null,
                   backgroundColor: AppColors.surfaceContainerHighest,
+                  child: chat.otherParticipantAvatar.isEmpty
+                      ? const Icon(Icons.person, color: AppColors.onSurfaceVariant)
+                      : null,
                 ),
                 if (chat.isOnline)
                   Positioned(

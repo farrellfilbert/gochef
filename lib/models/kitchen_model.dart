@@ -3,6 +3,7 @@ import 'review_model.dart';
 
 class KitchenModel {
   final int id;
+  final int userId;
   final String name;
   final String description;
   final String avatar;
@@ -20,6 +21,7 @@ class KitchenModel {
 
   KitchenModel({
     required this.id,
+    this.userId = 0,
     required this.name,
     this.description = '',
     this.avatar = '',
@@ -39,6 +41,7 @@ class KitchenModel {
   factory KitchenModel.fromJson(Map<String, dynamic> json) {
     return KitchenModel(
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      userId: int.tryParse(json['user_id']?.toString() ?? '0') ?? 0,
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       avatar: json['avatar'] ?? '',

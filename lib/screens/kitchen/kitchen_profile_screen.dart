@@ -248,6 +248,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                                   context,
                                                   MaterialPageRoute(
                                                     builder: (context) => ChatScreen(
+                                                      otherParticipantId: kitchen.userId.toString(),
                                                       otherParticipantName: kitchen.name,
                                                       otherParticipantAvatar: kitchen.avatar,
                                                       isOnline: true,

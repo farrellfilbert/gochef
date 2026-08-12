@@ -825,4 +825,82 @@ class ApiService {
     }
     return false;
   }
+  // =============================================
+  // CHAT
+  // =============================================
+  
+  static Future<bool> sendChatMessage(String receiverId, String message, {String? kitchenId}) async {
+    try {
+      final senderId = await getUserId();
+      if (senderId == null) return false;
+      
+      final url = Uri.parse('$baseUrl/chat_send.php');
+      final body = {
+        'sender_id': senderId,
+        'receiver_id': receiverId,
+        'message': message,
+      };
+      if (kitchenId != null) {
+        body['kitchen_id'] = kitchenId;
+      }
+      
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error sending message: $e');
+      return false;
+    }
+  }
+  
+  static Future<List<Map<String, dynamic>>> getChatMessages(String otherUserId) async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) return [];
+      
+      final url = Uri.parse('$baseUrl/chat_messages.php?user1_id=$userId&user2_id=$otherUserId');
+      final response = await http.get(url);
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return List<Map<String, dynamic>>.from(data['messages']);
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getting messages: $e');
+      return [];
+    }
+  }
+  
+  static Future<List<Map<String, dynamic>>> getChatInbox() async {
+    try {
+      final userId = await getUserId();
+      final role = await getUserRole() ?? 'user';
+      if (userId == null) return [];
+      
+      final url = Uri.parse('$baseUrl/chat_inbox.php?user_id=$userId&role=$role');
+      final response = await http.get(url);
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return List<Map<String, dynamic>>.from(data['inbox']);
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getting inbox: $e');
+      return [];
+    }
+  }
 }

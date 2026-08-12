@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../models/chat_model.dart';
+import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 
 class ChatScreen extends StatefulWidget {
+  final String otherParticipantId;
   final String otherParticipantName;
   final String otherParticipantAvatar;
+  final String? kitchenId;
   final bool isOnline;
 
   const ChatScreen({
     super.key,
+    required this.otherParticipantId,
     required this.otherParticipantName,
     required this.otherParticipantAvatar,
+    this.kitchenId,
     this.isOnline = false,
   });
 
@@ -24,67 +30,113 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   
-  final List<MessageModel> _messages = [
-    MessageModel(
-      id: '1',
-      text: 'Hi there! I have a question about your menu.',
-      isMe: true,
-      timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
-    ),
-    MessageModel(
-      id: '2',
-      text: 'Hello! Sure, what would you like to know?',
-      isMe: false,
-      timestamp: DateTime.now().subtract(const Duration(minutes: 9)),
-    ),
-  ];
+  List<MessageModel> _messages = [];
+  bool _isLoading = true;
+  Timer? _timer;
+  String? _myUserId;
 
-  void _sendMessage() {
+  @override
+  void initState() {
+    super.initState();
+    _initChat();
+  }
+
+  Future<void> _initChat() async {
+    _myUserId = await ApiService.getUserId();
+    await _loadMessages();
+    
+    // Polling every 5 seconds for new messages
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      _loadMessages(isPolling: true);
+    });
+  }
+
+  Future<void> _loadMessages({bool isPolling = false}) async {
+    if (!isPolling && mounted) {
+      setState(() => _isLoading = true);
+    }
+    
+    final messagesRaw = await ApiService.getChatMessages(widget.otherParticipantId);
+    
+    if (mounted) {
+      setState(() {
+        _messages = messagesRaw.map((m) {
+          return MessageModel(
+            id: m['id'].toString(),
+            text: m['message'],
+            isMe: m['sender_id'].toString() == _myUserId,
+            timestamp: DateTime.parse(m['created_at']),
+          );
+        }).toList();
+        _isLoading = false;
+      });
+      
+      if (!isPolling && _messages.isNotEmpty) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
     
+    final text = _messageController.text.trim();
+    _messageController.clear();
+    
+    // Optimistic UI update
     setState(() {
       _messages.add(
         MessageModel(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          text: _messageController.text.trim(),
+          id: DateTime.now().millisecondsSinceEpoch.toString(), // temp ID
+          text: text,
           isMe: true,
           timestamp: DateTime.now(),
         ),
       );
-      _messageController.clear();
     });
     
     Future.delayed(const Duration(milliseconds: 100), () {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    });
-
-    // Simulate a reply
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _messages.add(
-            MessageModel(
-              id: DateTime.now().millisecondsSinceEpoch.toString(),
-              text: 'Thanks for the message! I will get back to you shortly.',
-              isMe: false,
-              timestamp: DateTime.now(),
-            ),
-          );
-        });
-        
-        Future.delayed(const Duration(milliseconds: 100), () {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        });
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     });
+
+    final success = await ApiService.sendChatMessage(
+      widget.otherParticipantId, 
+      text,
+      kitchenId: widget.kitchenId,
+    );
+    
+    if (!success) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to send message')),
+        );
+      }
+      // Ideally remove the optimistic message here or mark as failed
+    } else {
+      _loadMessages(isPolling: true); // fetch real ID and timestamp
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -101,8 +153,13 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundImage: NetworkImage(widget.otherParticipantAvatar),
+                  backgroundImage: widget.otherParticipantAvatar.isNotEmpty
+                      ? NetworkImage(widget.otherParticipantAvatar)
+                      : null,
                   backgroundColor: AppColors.surfaceContainerHighest,
+                  child: widget.otherParticipantAvatar.isEmpty
+                      ? const Icon(Icons.person, color: AppColors.onSurfaceVariant)
+                      : null,
                 ),
                 if (widget.isOnline)
                   Positioned(
@@ -128,6 +185,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   Text(
                     widget.otherParticipantName,
                     style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontSize: 16),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     widget.isOnline ? 'Online' : 'Offline',
@@ -141,22 +200,31 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _buildMessageBubble(message);
-              },
-            ),
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+        : Column(
+            children: [
+              Expanded(
+                child: _messages.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No messages yet. Say hi!',
+                        style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                      ),
+                    )
+                  : ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        final message = _messages[index];
+                        return _buildMessageBubble(message);
+                      },
+                    ),
+              ),
+              _buildMessageInput(),
+            ],
           ),
-          _buildMessageInput(),
-        ],
-      ),
     );
   }
 
@@ -171,7 +239,13 @@ class _ChatScreenState extends State<ChatScreen> {
           if (!isMe) ...[
             CircleAvatar(
               radius: 14,
-              backgroundImage: NetworkImage(widget.otherParticipantAvatar),
+              backgroundImage: widget.otherParticipantAvatar.isNotEmpty
+                  ? NetworkImage(widget.otherParticipantAvatar)
+                  : null,
+              backgroundColor: AppColors.surfaceContainerHighest,
+              child: widget.otherParticipantAvatar.isEmpty
+                  ? const Icon(Icons.person, size: 16, color: AppColors.onSurfaceVariant)
+                  : null,
             ),
             const SizedBox(width: 8),
           ],
@@ -206,7 +280,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
           ),
-          if (isMe) const SizedBox(width: 22), // Balance the avatar space
+          if (isMe) const SizedBox(width: 22),
         ],
       ),
     );
@@ -255,12 +329,5 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
   }
 }

@@ -231,6 +231,22 @@ try {
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
     )");
 
+    // =============================================
+    // CHAT MESSAGES
+    // =============================================
+    $pdo->exec("CREATE TABLE IF NOT EXISTS chat_messages (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        sender_id INT NOT NULL,
+        receiver_id INT NOT NULL,
+        kitchen_id INT NULL,
+        message TEXT NOT NULL,
+        is_read TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE CASCADE
+    )");
+
     echo json_encode(['success' => true, 'message' => 'All tables created/updated successfully!']);
 
 } catch (PDOException $e) {
