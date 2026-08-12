@@ -20,6 +20,7 @@ class MenuItemModel {
   final String categoryName;
   final List<ReviewModel>? reviews;
   final List<MenuAddonModel>? addons;
+  final List<MenuAddonCategoryModel>? addonCategories;
 
   MenuItemModel({
     required this.id,
@@ -40,6 +41,7 @@ class MenuItemModel {
     this.categoryName = '',
     this.reviews,
     this.addons,
+    this.addonCategories,
   });
 
   factory MenuItemModel.fromJson(Map<String, dynamic> json) {
@@ -65,6 +67,9 @@ class MenuItemModel {
           : null,
       addons: json['addons'] != null
           ? (json['addons'] as List).map((i) => MenuAddonModel.fromJson(i)).toList()
+          : null,
+      addonCategories: json['addon_categories'] != null
+          ? (json['addon_categories'] as List).map((i) => MenuAddonCategoryModel.fromJson(i)).toList()
           : null,
     );
   }

@@ -37,14 +37,30 @@ $stmt = $pdo->prepare($query);
 if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular])) {
     $menu_item_id = $pdo->lastInsertId();
     
-    // Process addons if provided
-    if (isset($data->addons) && is_array($data->addons)) {
-        $addonQuery = "INSERT INTO menu_addons (menu_item_id, name, price) VALUES (?, ?, ?)";
+    // Process addon categories if provided
+    if (isset($data->addon_categories) && is_array($data->addon_categories)) {
+        $categoryQuery = "INSERT INTO menu_addon_categories (menu_item_id, name, is_required, is_multiple) VALUES (?, ?, ?, ?)";
+        $categoryStmt = $pdo->prepare($categoryQuery);
+        
+        $addonQuery = "INSERT INTO menu_addons (category_id, name, price) VALUES (?, ?, ?)";
         $addonStmt = $pdo->prepare($addonQuery);
-        foreach ($data->addons as $addon) {
-            if (isset($addon->name)) {
-                $addonPrice = isset($addon->price) ? floatval($addon->price) : 0.00;
-                $addonStmt->execute([$menu_item_id, $addon->name, $addonPrice]);
+        
+        foreach ($data->addon_categories as $category) {
+            if (isset($category->name)) {
+                $isRequired = isset($category->is_required) && $category->is_required ? 1 : 0;
+                $isMultiple = isset($category->is_multiple) && $category->is_multiple ? 1 : 0;
+                
+                $categoryStmt->execute([$menu_item_id, $category->name, $isRequired, $isMultiple]);
+                $categoryId = $pdo->lastInsertId();
+                
+                if (isset($category->options) && is_array($category->options)) {
+                    foreach ($category->options as $addon) {
+                        if (isset($addon->name)) {
+                            $addonPrice = isset($addon->price) ? floatval($addon->price) : 0.00;
+                            $addonStmt->execute([$categoryId, $addon->name, $addonPrice]);
+                        }
+                    }
+                }
             }
         }
     }

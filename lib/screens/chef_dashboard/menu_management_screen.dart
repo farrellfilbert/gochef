@@ -1,4 +1,14 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../models/menu_item_model.dart';
+import '../../models/category_model.dart';
+import '../../models/menu_addon_model.dart';
+import '../../services/api_service.dart';
+import '../../services/auth_service.dart';
+import 'addon_category_manager.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../../theme/app_colors.dart';
@@ -101,19 +111,11 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
     final priceController = TextEditingController(text: item.price.toString());
     XFile? selectedImage;
     bool isUploading = false;
-    int? selectedCategoryId = item.categoryId;
-    if (_categories.isNotEmpty) {
-      bool categoryExists = _categories.any((c) => c.id == selectedCategoryId);
-      if (!categoryExists) {
-        selectedCategoryId = _categories.first.id;
-      }
-    } else {
-      selectedCategoryId = null;
-    }
+    int? selectedCategoryId = item.categoryId > 0 ? item.categoryId : (_categories.isNotEmpty ? _categories.first.id : null);
     
-    List<MenuAddonModel> addons = [];
-    if (item.addons != null) {
-      addons = List.from(item.addons!);
+    List<MenuAddonCategoryModel> addonCategories = [];
+    if (item.addonCategories != null) {
+      addonCategories = List.from(item.addonCategories!);
     }
 
     showDialog(
@@ -238,86 +240,12 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                       decoration: _buildInputDecoration('Price', prefixIcon: Icons.attach_money),
                     ),
                     const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Customization Options', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                        TextButton.icon(
-                          onPressed: () {
-                            setDialogState(() {
-                              addons.add(MenuAddonModel(id: 0, name: '', price: 0));
-                            });
-                          },
-                          icon: const Icon(Icons.add, size: 16),
-                          label: const Text('Add'),
-                        ),
-                      ],
+                    AddonCategoryManager(
+                      initialCategories: addonCategories,
+                      onChanged: (categories) {
+                        addonCategories = categories;
+                      },
                     ),
-                    if (addons.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: addons.asMap().entries.map((entry) {
-                            int idx = entry.key;
-                            MenuAddonModel addon = entry.value;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextFormField(
-                                      initialValue: addon.name,
-                                      style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
-                                      decoration: const InputDecoration(
-                                        hintText: 'Name (e.g. Extra Spicy)',
-                                        isDense: true,
-                                      ),
-                                      onChanged: (val) {
-                                        addons[idx] = MenuAddonModel(id: addon.id, name: val, price: addon.price);
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    flex: 1,
-                                    child: TextFormField(
-                                      initialValue: addon.price > 0 ? addon.price.toString() : '',
-                                      style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      decoration: const InputDecoration(
-                                        hintText: '+\$0.00',
-                                        isDense: true,
-                                      ),
-                                      onChanged: (val) {
-                                        addons[idx] = MenuAddonModel(
-                                          id: addon.id, 
-                                          name: addon.name, 
-                                          price: double.tryParse(val) ?? 0.0,
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.close, color: Colors.red, size: 20),
-                                    onPressed: () {
-                                      setDialogState(() {
-                                        addons.removeAt(idx);
-                                      });
-                                    },
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
                     const SizedBox(height: 32),
                     Row(
                       children: [
@@ -368,7 +296,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                                   'description': descriptionController.text,
                                   'price': double.parse(priceController.text),
                                   'image': selectedImage != null ? imageUrl : '',
-                                  'addons': addons.map((a) => {'name': a.name, 'price': a.price}).toList(),
+                                  'addon_categories': addonCategories.map((c) => c.toJson()).toList(),
                                 });
 
                                 if (success) {
@@ -415,7 +343,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
     XFile? selectedImage;
     bool isUploading = false;
     int? selectedCategoryId = _categories.isNotEmpty ? _categories.first.id : null;
-    List<MenuAddonModel> addons = [];
+    List<MenuAddonCategoryModel> addonCategories = [];
 
     showDialog(
       context: context,
@@ -534,86 +462,12 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                       decoration: _buildInputDecoration('Price', prefixIcon: Icons.attach_money),
                     ),
                     const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Customization Options', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                        TextButton.icon(
-                          onPressed: () {
-                            setDialogState(() {
-                              addons.add(MenuAddonModel(id: 0, name: '', price: 0));
-                            });
-                          },
-                          icon: const Icon(Icons.add, size: 16),
-                          label: const Text('Add'),
-                        ),
-                      ],
+                    AddonCategoryManager(
+                      initialCategories: addonCategories,
+                      onChanged: (categories) {
+                        addonCategories = categories;
+                      },
                     ),
-                    if (addons.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: addons.asMap().entries.map((entry) {
-                            int idx = entry.key;
-                            MenuAddonModel addon = entry.value;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextFormField(
-                                      initialValue: addon.name,
-                                      style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
-                                      decoration: const InputDecoration(
-                                        hintText: 'Name (e.g. Extra Spicy)',
-                                        isDense: true,
-                                      ),
-                                      onChanged: (val) {
-                                        addons[idx] = MenuAddonModel(id: addon.id, name: val, price: addon.price);
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    flex: 1,
-                                    child: TextFormField(
-                                      initialValue: addon.price > 0 ? addon.price.toString() : '',
-                                      style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      decoration: const InputDecoration(
-                                        hintText: '+\$0.00',
-                                        isDense: true,
-                                      ),
-                                      onChanged: (val) {
-                                        addons[idx] = MenuAddonModel(
-                                          id: addon.id, 
-                                          name: addon.name, 
-                                          price: double.tryParse(val) ?? 0.0,
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.close, color: Colors.red, size: 20),
-                                    onPressed: () {
-                                      setDialogState(() {
-                                        addons.removeAt(idx);
-                                      });
-                                    },
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
                     const SizedBox(height: 32),
                     Row(
                       children: [
@@ -660,7 +514,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                                       'price': double.parse(priceController.text),
                                       'image': imageUrl,
                                       'is_popular': 0,
-                                      'addons': addons.map((a) => {'name': a.name, 'price': a.price}).toList(),
+                                      'addon_categories': addonCategories.map((a) => a.toJson()).toList(),
                                     });
 
                                   if (success) {
@@ -945,6 +799,171 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAddonCategoriesUI(List<MenuAddonCategoryModel> addonCategories, StateSetter setDialogState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Customization Groups', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+            TextButton.icon(
+              onPressed: () {
+                setDialogState(() {
+                  addonCategories.add(MenuAddonCategoryModel(id: 0, name: '', options: []));
+                });
+              },
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text('Add Group'),
+            ),
+          ],
+        ),
+        if (addonCategories.isNotEmpty)
+          ...addonCategories.asMap().entries.map((catEntry) {
+            int catIdx = catEntry.key;
+            var cat = catEntry.value;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: cat.name,
+                          style: const TextStyle(color: AppColors.onSurface, fontWeight: FontWeight.bold),
+                          decoration: const InputDecoration(hintText: 'Group Name (e.g. Size)', isDense: true),
+                          onChanged: (val) {
+                            cat = MenuAddonCategoryModel(id: cat.id, name: val, isRequired: cat.isRequired, isMultiple: cat.isMultiple, options: cat.options);
+                            addonCategories[catIdx] = cat;
+                          },
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                        onPressed: () {
+                          setDialogState(() {
+                            addonCategories.removeAt(catIdx);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CheckboxListTile(
+                          title: const Text('Required', style: TextStyle(color: AppColors.onSurface, fontSize: 12)),
+                          value: cat.isRequired,
+                          onChanged: (val) {
+                            setDialogState(() {
+                              addonCategories[catIdx] = MenuAddonCategoryModel(id: cat.id, name: cat.name, isRequired: val ?? false, isMultiple: cat.isMultiple, options: cat.options);
+                            });
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
+                      ),
+                      Expanded(
+                        child: CheckboxListTile(
+                          title: const Text('Multiple', style: TextStyle(color: AppColors.onSurface, fontSize: 12)),
+                          value: cat.isMultiple,
+                          onChanged: (val) {
+                            setDialogState(() {
+                              addonCategories[catIdx] = MenuAddonCategoryModel(id: cat.id, name: cat.name, isRequired: cat.isRequired, isMultiple: val ?? false, options: cat.options);
+                            });
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(color: AppColors.outlineVariant),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Options', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.bold)),
+                      TextButton(
+                        onPressed: () {
+                          setDialogState(() {
+                            final opts = List<MenuAddonModel>.from(cat.options);
+                            opts.add(MenuAddonModel(id: 0, name: '', price: 0));
+                            addonCategories[catIdx] = MenuAddonCategoryModel(id: cat.id, name: cat.name, isRequired: cat.isRequired, isMultiple: cat.isMultiple, options: opts);
+                          });
+                        },
+                        child: const Text('Add Option', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                  ...cat.options.asMap().entries.map((optEntry) {
+                    int optIdx = optEntry.key;
+                    var opt = optEntry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              initialValue: opt.name,
+                              style: const TextStyle(color: AppColors.onSurface, fontSize: 12),
+                              decoration: const InputDecoration(hintText: 'Option Name', isDense: true),
+                              onChanged: (val) {
+                                final opts = List<MenuAddonModel>.from(addonCategories[catIdx].options);
+                                opts[optIdx] = MenuAddonModel(id: opt.id, name: val, price: opt.price);
+                                addonCategories[catIdx] = MenuAddonCategoryModel(id: cat.id, name: cat.name, isRequired: cat.isRequired, isMultiple: cat.isMultiple, options: opts);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 1,
+                            child: TextFormField(
+                              initialValue: opt.price > 0 ? opt.price.toString() : '',
+                              style: const TextStyle(color: AppColors.onSurface, fontSize: 12),
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: const InputDecoration(hintText: '+\$0.00', isDense: true),
+                              onChanged: (val) {
+                                final opts = List<MenuAddonModel>.from(addonCategories[catIdx].options);
+                                opts[optIdx] = MenuAddonModel(id: opt.id, name: opt.name, price: double.tryParse(val) ?? 0.0);
+                                addonCategories[catIdx] = MenuAddonCategoryModel(id: cat.id, name: cat.name, isRequired: cat.isRequired, isMultiple: cat.isMultiple, options: opts);
+                              },
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.red, size: 16),
+                            onPressed: () {
+                              setDialogState(() {
+                                final opts = List<MenuAddonModel>.from(addonCategories[catIdx].options);
+                                opts.removeAt(optIdx);
+                                addonCategories[catIdx] = MenuAddonCategoryModel(id: cat.id, name: cat.name, isRequired: cat.isRequired, isMultiple: cat.isMultiple, options: opts);
+                              });
+                            },
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
+            );
+          }).toList(),
+      ],
     );
   }
 }

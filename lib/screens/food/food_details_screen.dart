@@ -47,6 +47,32 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
     super.dispose();
   }
 
+  void _toggleAddon(MenuAddonCategoryModel category, MenuAddonModel addon) {
+    setState(() {
+      if (category.isMultiple) {
+        if (_selectedAddonIds.contains(addon.id)) {
+          _selectedAddonIds.remove(addon.id);
+        } else {
+          _selectedAddonIds.add(addon.id);
+        }
+      } else {
+        // Single selection
+        if (_selectedAddonIds.contains(addon.id)) {
+          // If they click the already selected radio, maybe we allow deselecting if it's not required?
+          // Actually, standard behavior for radio is once selected, can't deselect unless picking another.
+          if (!category.isRequired) {
+            _selectedAddonIds.remove(addon.id);
+          }
+        } else {
+          for (var opt in category.options) {
+            _selectedAddonIds.remove(opt.id);
+          }
+          _selectedAddonIds.add(addon.id);
+        }
+      }
+    });
+  }
+
   void _toggleFavorite(MenuItemModel item) async {
     final success = await ApiService.addFavorite(menuItemId: item.id, type: 'dish');
     if (success && mounted) {
@@ -57,6 +83,20 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   }
 
   void _addToCart(MenuItemModel item) async {
+    if (item.addonCategories != null) {
+      for (var category in item.addonCategories!) {
+        if (category.isRequired) {
+          bool hasSelection = category.options.any((opt) => _selectedAddonIds.contains(opt.id));
+          if (!hasSelection) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Please select an option for ${category.name}'), backgroundColor: AppColors.error),
+            );
+            return;
+          }
+        }
+      }
+    }
+
     final success = await ApiService.addToCart(
       item.id,
       quantity: _quantity,
@@ -105,10 +145,12 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
           
           // Calculate total price including addons
           double totalPrice = item.price;
-          if (item.addons != null) {
-            for (var addon in item.addons!) {
-              if (_selectedAddonIds.contains(addon.id)) {
-                totalPrice += addon.price;
+          if (item.addonCategories != null) {
+            for (var category in item.addonCategories!) {
+              for (var addon in category.options) {
+                if (_selectedAddonIds.contains(addon.id)) {
+                  totalPrice += addon.price;
+                }
               }
             }
           }
@@ -276,27 +318,62 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                             const SizedBox(height: 32),
 
                             // Add-ons
-                            if (item.addons != null && item.addons!.isNotEmpty) ...[
+                            if (item.addonCategories != null && item.addonCategories!.isNotEmpty) ...[
                               Text('Personalize Your Dish', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                              const SizedBox(height: 12),
-                              ...item.addons!.map((addon) {
-                                final isSelected = _selectedAddonIds.contains(addon.id);
-                                return _buildPersonalizeOption(
-                                  addon.name,
-                                  '+\$${addon.price.toStringAsFixed(2)}',
-                                  isSelected: isSelected,
-                                  onTap: () {
-                                    setState(() {
-                                      if (isSelected) {
-                                        _selectedAddonIds.remove(addon.id);
-                                      } else {
-                                        _selectedAddonIds.add(addon.id);
-                                      }
-                                    });
-                                  },
+                              const SizedBox(height: 16),
+                              ...item.addonCategories!.map((category) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          category.name,
+                                          style: AppTextStyles.bodyLg(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
+                                        ),
+                                        if (category.isRequired)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primary.withValues(alpha: 0.2),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: const Text('Required', style: TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold)),
+                                          )
+                                        else
+                                          const Text('Optional', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...category.options.map((addon) {
+                                      final isSelected = _selectedAddonIds.contains(addon.id);
+                                      return _buildPersonalizeOption(
+                                        addon.name,
+                                        '+\$${addon.price.toStringAsFixed(2)}',
+                                        isSelected: isSelected,
+                                        isMultiple: category.isMultiple,
+                                        onTap: () {
+                                          setState(() {
+                                            if (isSelected) {
+                                              _selectedAddonIds.remove(addon.id);
+                                            } else {
+                                              if (!category.isMultiple) {
+                                                // Remove other selections from this category
+                                                for (var opt in category.options) {
+                                                  _selectedAddonIds.remove(opt.id);
+                                                }
+                                              }
+                                              _selectedAddonIds.add(addon.id);
+                                            }
+                                          });
+                                        },
+                                      );
+                                    }),
+                                    const SizedBox(height: 24),
+                                  ],
                                 );
                               }),
-                              const SizedBox(height: 32),
                             ],
                             
                             // Notes
@@ -460,7 +537,27 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                           // Add to Cart Button
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => _addToCart(item),
+                              onTap: () {
+                                  bool canAddToCart = true;
+                                  if (item.addonCategories != null) {
+                                    for (var cat in item.addonCategories!) {
+                                      if (cat.isRequired) {
+                                        bool hasSelection = cat.options.any((opt) => _selectedAddonIds.contains(opt.id));
+                                        if (!hasSelection) {
+                                          canAddToCart = false;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Please select an option for ${cat.name}')),
+                                          );
+                                          break;
+                                        }
+                                      }
+                                    }
+                                  }
+
+                                  if (canAddToCart) {
+                                    _addToCart(item);
+                                  }
+                              },
                               child: Container(
                                 height: 56,
                                 decoration: BoxDecoration(
@@ -526,17 +623,18 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
     );
   }
 
-  Widget _buildPersonalizeOption(String title, String price, {bool isSelected = false, VoidCallback? onTap}) {
+  Widget _buildPersonalizeOption(String title, String price, {required bool isSelected, bool isMultiple = true, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryContainer.withValues(alpha: 0.2) : AppColors.surface.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.2),
+            color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.3),
+            width: isSelected ? 2 : 1,
           ),
         ),
         child: Row(
@@ -545,14 +643,16 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
             Row(
               children: [
                 Icon(
-                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                  isMultiple
+                      ? (isSelected ? Icons.check_box : Icons.check_box_outline_blank)
+                      : (isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked),
                   color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
                 ),
                 const SizedBox(width: 12),
                 Text(title, style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
               ],
             ),
-            Text(price, style: AppTextStyles.labelSm(color: AppColors.primary)),
+            Text(price, style: AppTextStyles.labelMono(color: AppColors.onSurfaceVariant)),
           ],
         ),
       ),

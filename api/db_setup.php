@@ -80,14 +80,35 @@ try {
     )");
 
     // =============================================
-    // MENU ADD-ONS
+    // MENU ADD-ON CATEGORIES (GROUPS)
     // =============================================
-    $pdo->exec("CREATE TABLE IF NOT EXISTS menu_addons (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS menu_addon_categories (
         id INT AUTO_INCREMENT PRIMARY KEY,
         menu_item_id INT NOT NULL,
         name VARCHAR(100) NOT NULL,
-        price DECIMAL(10,2) DEFAULT 0.00,
+        is_required TINYINT(1) DEFAULT 0,
+        is_multiple TINYINT(1) DEFAULT 0,
         FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE
+    )");
+
+    // =============================================
+    // MENU ADD-ONS
+    // =============================================
+    // Drop old table if it exists (only if column menu_item_id exists to distinguish)
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM menu_addons LIKE 'menu_item_id'");
+        if ($stmt->rowCount() > 0) {
+            $pdo->exec("DROP TABLE IF EXISTS cart_item_addons");
+            $pdo->exec("DROP TABLE IF EXISTS menu_addons");
+        }
+    } catch(Exception $e) {}
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS menu_addons (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        category_id INT NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        price DECIMAL(10,2) DEFAULT 0.00,
+        FOREIGN KEY (category_id) REFERENCES menu_addon_categories(id) ON DELETE CASCADE
     )");
 
     // =============================================

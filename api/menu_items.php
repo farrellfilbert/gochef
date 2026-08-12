@@ -48,11 +48,23 @@ try {
     $stmt->execute($params);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch addons for each item
+    // Fetch addon categories for each item
     foreach ($items as &$item) {
-        $addonStmt = $pdo->prepare("SELECT id, name, price FROM menu_addons WHERE menu_item_id = ?");
-        $addonStmt->execute([$item['id']]);
-        $item['addons'] = $addonStmt->fetchAll(PDO::FETCH_ASSOC);
+        $catStmt = $pdo->prepare("SELECT id, name, is_required, is_multiple FROM menu_addon_categories WHERE menu_item_id = ?");
+        $catStmt->execute([$item['id']]);
+        $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($categories as &$cat) {
+            // is_required/is_multiple come back as strings or ints from DB, cast them
+            $cat['is_required'] = (bool)$cat['is_required'];
+            $cat['is_multiple'] = (bool)$cat['is_multiple'];
+            
+            $addonStmt = $pdo->prepare("SELECT id, name, price FROM menu_addons WHERE category_id = ?");
+            $addonStmt->execute([$cat['id']]);
+            $cat['options'] = $addonStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        $item['addon_categories'] = $categories;
+        $item['addons'] = []; // Keep empty array for backward compatibility if needed, or remove.
     }
 
     echo json_encode(['success' => true, 'data' => $items]);

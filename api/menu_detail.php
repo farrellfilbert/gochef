@@ -21,10 +21,22 @@ if (!$item) {
     exit;
 }
 
-// Get add-ons
-$stmt = $pdo->prepare("SELECT * FROM menu_addons WHERE menu_item_id = ?");
+// Get add-on categories
+$stmt = $pdo->prepare("SELECT * FROM menu_addon_categories WHERE menu_item_id = ?");
 $stmt->execute([$id]);
-$item['addons'] = $stmt->fetchAll();
+$categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($categories as &$cat) {
+    $cat['is_required'] = (bool)$cat['is_required'];
+    $cat['is_multiple'] = (bool)$cat['is_multiple'];
+    
+    $addonStmt = $pdo->prepare("SELECT * FROM menu_addons WHERE category_id = ?");
+    $addonStmt->execute([$cat['id']]);
+    $cat['options'] = $addonStmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$item['addon_categories'] = $categories;
+$item['addons'] = []; // Keep empty array for backward compatibility if needed
 
 // Get reviews
 $stmt = $pdo->prepare("SELECT r.*, u.name as user_name, u.avatar as user_avatar FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.menu_item_id = ? ORDER BY r.created_at DESC LIMIT 10");
