@@ -23,6 +23,7 @@ class OrderItemModel {
 
 class OrderModel {
   final String id;
+  final String kitchenId;
   final String kitchenName;
   final String date;
   final String status;
@@ -34,6 +35,7 @@ class OrderModel {
 
   OrderModel({
     required this.id,
+    this.kitchenId = '',
     required this.kitchenName,
     required this.date,
     required this.status,
@@ -50,6 +52,7 @@ class OrderModel {
     
     return OrderModel(
       id: json['id']?.toString() ?? '',
+      kitchenId: json['kitchen_id']?.toString() ?? '',
       kitchenName: json['kitchen_name'] ?? json['kitchenName'] ?? '',
       date: json['date'] ?? '',
       status: json['status'] ?? 'Completed',

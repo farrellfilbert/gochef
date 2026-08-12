@@ -45,6 +45,7 @@ try {
         
         $response[] = [
             'id' => $order['id'],
+            'kitchen_id' => $order['kitchen_id'],
             'kitchen_name' => $order['kitchen_name'],
             'date' => $order['order_date'],
             'status' => $order['status'],

@@ -12,6 +12,7 @@ import 'screens/orders/order_history_screen.dart';
 import 'screens/favorites/favorites_screen.dart';
 import 'screens/profile/user_profile_screen.dart';
 import 'services/api_service.dart';
+import 'screens/chef_dashboard/chef_main_navigation.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +61,7 @@ class AuthCheckScreen extends StatefulWidget {
 class _AuthCheckScreenState extends State<AuthCheckScreen> {
   bool _isLoading = true;
   bool _isLoggedIn = false;
+  String _userRole = 'user';
 
   @override
   void initState() {
@@ -82,9 +84,15 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
         const Duration(seconds: 3),
         onTimeout: () => null,
       );
+      final role = await ApiService.getUserRole().timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => 'user',
+      );
+      
       if (!mounted) return;
       setState(() {
         _isLoggedIn = userId != null && userId.isNotEmpty;
+        _userRole = role ?? 'user';
         _isLoading = false;
       });
     } catch (e) {
@@ -107,6 +115,9 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
       );
     }
     if (_isLoggedIn) {
+      if (_userRole == 'chef') {
+        return const ChefMainNavigation();
+      }
       return const MainNavigation();
     }
     return const LoginScreen();

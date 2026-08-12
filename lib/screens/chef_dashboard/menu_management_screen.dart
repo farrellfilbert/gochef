@@ -5,6 +5,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../models/menu_item_model.dart';
+import '../../models/category_model.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart'; // for kIsWeb
 
@@ -19,6 +20,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
   List<MenuItemModel> _menuItems = [];
+  List<CategoryModel> _categories = [];
   int? _kitchenId;
 
   @override
@@ -30,10 +32,16 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
   Future<void> _loadMenu() async {
     setState(() => _isLoading = true);
     try {
+      final categories = await ApiService.getCategories();
+      
       final kitchenIdStr = await ApiService.getKitchenId();
       if (kitchenIdStr != null) {
         _kitchenId = int.tryParse(kitchenIdStr);
       }
+      
+      setState(() {
+        _categories = categories;
+      });
       
       if (_kitchenId != null) {
         final items = await ApiService.getMenuItems(kitchenId: _kitchenId!);
@@ -67,12 +75,220 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
     }
   }
 
+  void _showEditDishDialog(MenuItemModel item) {
+    final nameController = TextEditingController(text: item.name);
+    final descriptionController = TextEditingController(text: item.description);
+    final priceController = TextEditingController(text: item.price.toString());
+    XFile? selectedImage;
+    bool isUploading = false;
+    int? selectedCategoryId = item.categoryId;
+    if (_categories.isNotEmpty) {
+      bool categoryExists = _categories.any((c) => c.id == selectedCategoryId);
+      if (!categoryExists) {
+        selectedCategoryId = _categories.first.id;
+      }
+    } else {
+      selectedCategoryId = null;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surfaceContainerHigh,
+            title: Text('Edit Dish', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: () async {
+                      final ImagePicker picker = ImagePicker();
+                      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                      if (image != null) {
+                        if (kIsWeb) {
+                          setDialogState(() {
+                            selectedImage = image;
+                          });
+                          return;
+                        }
+                        final croppedFile = await ImageCropper().cropImage(
+                          sourcePath: image.path,
+                          uiSettings: [
+                            WebUiSettings(
+                              context: context,
+                              presentStyle: WebPresentStyle.dialog,
+                            ),
+                          ],
+                        );
+                        if (croppedFile != null) {
+                          setDialogState(() {
+                            selectedImage = XFile(croppedFile.path);
+                          });
+                        }
+                      }
+                    },
+                    child: Container(
+                      height: 120,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.outlineVariant),
+                      ),
+                      child: selectedImage == null
+                          ? (item.image.isNotEmpty 
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(item.image, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                                )
+                              : const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add_a_photo, color: AppColors.primary, size: 32),
+                                    SizedBox(height: 8),
+                                    Text('Tap to pick image', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                                  ],
+                                ))
+                          : ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: kIsWeb 
+                                  ? Image.network(selectedImage!.path, fit: BoxFit.cover)
+                                  : Image.file(File(selectedImage!.path), fit: BoxFit.cover),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (_categories.isNotEmpty) ...[
+                    DropdownButtonFormField<int>(
+                      value: selectedCategoryId,
+                      decoration: const InputDecoration(
+                        labelText: 'Category',
+                        labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                      ),
+                      dropdownColor: AppColors.surfaceContainerHigh,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      items: _categories.map((cat) {
+                        return DropdownMenuItem<int>(
+                          value: cat.id,
+                          child: Text(cat.name),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setDialogState(() {
+                          selectedCategoryId = val;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  TextField(
+                    controller: nameController,
+                    style: const TextStyle(color: AppColors.onSurface),
+                    decoration: const InputDecoration(
+                      labelText: 'Dish Name',
+                      labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: descriptionController,
+                    style: const TextStyle(color: AppColors.onSurface),
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: priceController,
+                    style: const TextStyle(color: AppColors.onSurface),
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Price',
+                      labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isUploading ? null : () => Navigator.pop(context),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant)),
+              ),
+              ElevatedButton(
+                onPressed: isUploading ? null : () async {
+                  if (nameController.text.isEmpty || priceController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Name and price are required!')),
+                    );
+                    return;
+                  }
+
+                  if (selectedCategoryId == null && _categories.isNotEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please select a category!')),
+                    );
+                    return;
+                  }
+
+                  setDialogState(() => isUploading = true);
+
+                  try {
+                    String? imageUrl;
+                    if (selectedImage != null) {
+                      imageUrl = await ApiService.uploadImage(selectedImage!);
+                      if (imageUrl == null) {
+                        throw Exception('Failed to upload image');
+                      }
+                    }
+
+                    bool success = await ApiService.updateMenuItem({
+                      'id': item.id,
+                      'kitchen_id': _kitchenId,
+                      'category_id': selectedCategoryId ?? 1,
+                      'name': nameController.text,
+                      'description': descriptionController.text,
+                      'price': double.parse(priceController.text),
+                      if (imageUrl != null) 'image': imageUrl,
+                    });
+
+                    if (success) {
+                      Navigator.pop(context);
+                      _loadMenu();
+                    } else {
+                      throw Exception('Failed to update menu item');
+                    }
+                  } catch (e) {
+                    setDialogState(() => isUploading = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                child: isUploading 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                  : const Text('Save', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
   void _showAddDishDialog() {
     final nameController = TextEditingController();
     final descriptionController = TextEditingController();
     final priceController = TextEditingController();
     XFile? selectedImage;
     bool isUploading = false;
+    int? selectedCategoryId = _categories.isNotEmpty ? _categories.first.id : null;
 
     showDialog(
       context: context,
@@ -139,6 +355,29 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  if (_categories.isNotEmpty) ...[
+                    DropdownButtonFormField<int>(
+                      value: selectedCategoryId,
+                      decoration: const InputDecoration(
+                        labelText: 'Category',
+                        labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                      ),
+                      dropdownColor: AppColors.surfaceContainerHigh,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      items: _categories.map((cat) {
+                        return DropdownMenuItem<int>(
+                          value: cat.id,
+                          child: Text(cat.name),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setDialogState(() {
+                          selectedCategoryId = val;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   TextField(
                     controller: nameController,
                     style: const TextStyle(color: AppColors.onSurface),
@@ -184,6 +423,13 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                     return;
                   }
 
+                  if (selectedCategoryId == null && _categories.isNotEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please select a category!')),
+                    );
+                    return;
+                  }
+
                   setDialogState(() => isUploading = true);
 
                   try {
@@ -193,7 +439,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                     if (imageUrl != null) {
                         bool success = await ApiService.createMenuItem({
                           'kitchen_id': _kitchenId,
-                          'category_id': 1, // Default category
+                          'category_id': selectedCategoryId ?? 1,
                           'name': nameController.text,
                           'description': descriptionController.text,
                           'price': double.parse(priceController.text),
@@ -332,6 +578,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: _buildDishCard(
+                    item: item,
                     id: item.id,
                     title: item.name,
                     description: item.description,
@@ -351,6 +598,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
   }
 
   Widget _buildDishCard({
+    required MenuItemModel item,
     required int id,
     required String title,
     required String description,
@@ -392,7 +640,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                         child: IconButton(
                           padding: EdgeInsets.zero,
                           icon: const Icon(Icons.edit, size: 16, color: Colors.white),
-                          onPressed: () {},
+                          onPressed: () => _showEditDishDialog(item),
                         ),
                       ),
                       const SizedBox(width: 8),

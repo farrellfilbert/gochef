@@ -84,9 +84,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           context,
           MaterialPageRoute(builder: (context) => OrderCompleteScreen(
             orderId: result['order_id'] ?? 'Unknown',
+            kitchenId: result['kitchen_id']?.toString() ?? '',
             kitchenName: result['kitchen_name'] ?? 'Unknown Kitchen',
             totalAmount: (result['total'] ?? 0).toDouble(),
-            itemsCount: result['items_count'] ?? 0,
+            itemsCount: result['items_count'] ?? 1,
             kitchenAvatar: result['kitchen_avatar'] ?? '',
           )),
         );

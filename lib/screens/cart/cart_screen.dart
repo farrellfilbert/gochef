@@ -6,6 +6,7 @@ import '../checkout/checkout_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/cart_item_model.dart';
 import '../../models/address_model.dart';
+import '../../models/menu_item_model.dart';
 import '../profile/address_selection_screen.dart';
 
 class CartScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   bool _isLoading = true;
   List<CartItemModel> _cartItems = [];
+  List<MenuItemModel> _recommendedItems = [];
   AddressModel? _primaryAddress;
   int? _selectedKitchenId;
 
@@ -47,6 +49,15 @@ class _CartScreenState extends State<CartScreen> {
           } catch (_) {}
         }
       });
+      
+      if (_cartItems.isEmpty) {
+        final popularItems = await ApiService.getMenuItems(popular: true);
+        if (mounted) {
+          setState(() {
+            _recommendedItems = popularItems.take(5).toList();
+          });
+        }
+      }
     } catch (e) {
       debugPrint('Error loading cart: $e');
     } finally {
@@ -233,11 +244,37 @@ class _CartScreenState extends State<CartScreen> {
                         const SizedBox(height: 12),
                         
                         if (_cartItems.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 40),
-                            child: Center(
-                              child: Text('Your cart is empty', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 40),
+                                child: Center(
+                                  child: Column(
+                                    children: [
+                                      const Icon(Icons.shopping_cart_outlined, size: 64, color: AppColors.onSurfaceVariant),
+                                      const SizedBox(height: 16),
+                                      Text('Your cart is empty', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              if (_recommendedItems.isNotEmpty) ...[
+                                Text('Recommended for You', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  height: 220,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: _recommendedItems.length,
+                                    itemBuilder: (context, index) {
+                                      final item = _recommendedItems[index];
+                                      return _buildRecommendedCard(item);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ],
                           )
                         else
                           ...groupedItems.entries.map((entry) {
@@ -655,6 +692,71 @@ class _CartScreenState extends State<CartScreen> {
                       constraints: const BoxConstraints(),
                     ),
                   ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecommendedCard(MenuItemModel item) {
+    return Container(
+      width: 160,
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        color: AppColors.glassBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.glassBorder),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.network(
+            item.image,
+            height: 100,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(height: 100, color: AppColors.surfaceContainer),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  style: AppTextStyles.labelMono(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '\$${item.price.toStringAsFixed(2)}',
+                  style: AppTextStyles.labelMono(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () async {
+                      await ApiService.addToCart(item.id, quantity: 1, addonIds: []);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('${item.name} added to cart'),
+                        backgroundColor: AppColors.primary,
+                      ));
+                      _loadCartData();
+                    },
+                    child: const Text('Add', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
                 ),
               ],
             ),

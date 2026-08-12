@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:math';
-import 'dart:html' as html;
+
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../services/api_service.dart';
@@ -35,21 +35,8 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _initLocationAndFetch() async {
-    // Try to get real-time location first
-    if (html.window.navigator.geolocation != null) {
-      try {
-        final position = await html.window.navigator.geolocation.getCurrentPosition();
-        final lat = position.coords?.latitude?.toDouble();
-        final lon = position.coords?.longitude?.toDouble();
-        if (lat != null && lon != null) {
-          _baseLocation = LatLng(lat, lon);
-          _hasRealLocation = true;
-        }
-      } catch (e) {
-        // Fallback to default
-      }
-    }
-    
+    // Geolocation disabled for web compatibility. 
+    // Just fetch kitchens using the default base location.
     await _fetchKitchens();
   }
 

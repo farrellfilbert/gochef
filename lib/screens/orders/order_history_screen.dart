@@ -6,6 +6,7 @@ import '../../services/api_service.dart';
 import '../../models/order_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
 import '../tracking/order_tracking_screen.dart';
+import '../cart/cart_screen.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -134,22 +135,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         : '${order.itemsCount} items';
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 24),
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => OrderTrackingScreen(
-                                orderId: order.id,
-                                kitchenName: order.kitchenName,
-                                totalAmount: order.totalAmount,
-                                itemsCount: order.itemsCount,
-                                kitchenAvatar: order.avatar.isNotEmpty ? order.avatar : 'https://via.placeholder.com/150',
-                              ),
-                            ),
-                          );
-                        },
-                        child: _buildOrderCard(
+                      child: _buildOrderCard(
                           chefName: order.kitchenName,
                           dateStr: order.date.split(' • ')[0],
                           orderId: order.id,
@@ -157,8 +143,48 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           avatar: order.avatar.isNotEmpty ? order.avatar : 'https://via.placeholder.com/150',
                           itemsStr: itemsStr,
                           price: '\$${order.totalAmount.toStringAsFixed(2)}',
+                          onDetails: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OrderTrackingScreen(
+                                  orderId: order.id,
+                                  kitchenId: order.kitchenId,
+                                  kitchenName: order.kitchenName,
+                                  totalAmount: order.totalAmount,
+                                  itemsCount: order.itemsCount,
+                                  kitchenAvatar: order.avatar.isNotEmpty ? order.avatar : 'https://via.placeholder.com/150',
+                                  initialStatus: order.status,
+                                ),
+                              ),
+                            );
+                          },
+                          onReorder: () async {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reordering...')));
+                            try {
+                              final menuItems = await ApiService.getMenuItems(kitchenId: int.tryParse(order.kitchenId));
+                              bool addedAny = false;
+                              for (final orderItem in order.items) {
+                                final match = menuItems.where((m) => m.name == orderItem.name).toList();
+                                if (match.isNotEmpty) {
+                                  await ApiService.addToCart(match.first.id, quantity: orderItem.quantity);
+                                  addedAny = true;
+                                }
+                              }
+                              if (mounted) {
+                                if (addedAny) {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menu items no longer available')));
+                                }
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                              }
+                            }
+                          },
                         ),
-                      ),
                     );
                   }).toList(),
                 );
@@ -178,6 +204,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     required String avatar,
     required String itemsStr,
     required String price,
+    required VoidCallback onDetails,
+    required VoidCallback onReorder,
   }) {
     bool isDelivered = status == 'Completed' || status == 'Delivered';
     
@@ -242,7 +270,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               Row(
                 children: [
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: onDetails,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       foregroundColor: AppColors.onSurfaceVariant,
@@ -253,7 +281,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: onReorder,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isDelivered ? AppColors.primaryContainer : AppColors.surfaceContainerHigh,
                       foregroundColor: isDelivered ? Colors.white : AppColors.onSurface,

@@ -1,4 +1,3 @@
-import 'dart:html' as html;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -90,31 +89,7 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
   }
 
   void _fetchDeviceLocation() {
-    if (html.window.navigator.geolocation != null) {
-      html.window.navigator.geolocation.getCurrentPosition().then((html.Geoposition position) async {
-        final lat = position.coords!.latitude;
-        final lon = position.coords!.longitude;
-        if (lat != null && lon != null) {
-          try {
-            final url = Uri.parse('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=$lat&longitude=$lon&localityLanguage=id');
-            final response = await http.get(url);
-            if (response.statusCode == 200) {
-              final data = json.decode(response.body);
-              if (mounted) {
-                final locality = data['locality'] ?? data['city'] ?? 'Lokasi tidak diketahui';
-                setState(() {
-                  _deviceLocation = locality;
-                });
-              }
-            }
-          } catch (e) {
-            // Error fetching geocoding, fallback to default address
-          }
-        }
-      }).catchError((e) {
-        // Permission denied or unavailable, fallback to default address
-      });
-    }
+    // Disabled geolocation for web compatibility
   }
 
   @override

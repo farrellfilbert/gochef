@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/user_model.dart';
 import '../models/order_model.dart';
 import '../models/kitchen_model.dart';
+import '../models/category_model.dart';
 import '../models/menu_item_model.dart';
 import '../models/cart_item_model.dart';
 import '../models/review_model.dart';
@@ -231,6 +232,25 @@ class ApiService {
       }
     }
     return null;
+  }
+
+  // =============================================
+  // CATEGORIES
+  // =============================================
+
+  static Future<List<CategoryModel>> getCategories() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/categories.php')).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return (data['data'] as List).map((e) => CategoryModel.fromJson(e)).toList();
+        }
+      }
+    } catch (e) {
+      print('Error getting categories: $e');
+    }
+    return [];
   }
 
   // =============================================
@@ -618,7 +638,13 @@ class ApiService {
   static Future<String?> uploadImage(XFile image) async {
     var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/upload.php'));
     final bytes = await image.readAsBytes();
-    request.files.add(http.MultipartFile.fromBytes('image', bytes, filename: image.name));
+    
+    String fileName = image.name;
+    if (fileName.isEmpty || fileName.contains('blob:')) {
+      fileName = 'image.jpg';
+    }
+    
+    request.files.add(http.MultipartFile.fromBytes('image', bytes, filename: fileName));
 
     try {
       final streamedResponse = await request.send();
@@ -652,6 +678,20 @@ class ApiService {
   static Future<bool> createMenuItem(Map<String, dynamic> data) async {
     final response = await http.post(
       Uri.parse('$baseUrl/menu_item_create.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(data),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      final resData = json.decode(response.body);
+      return resData['success'] == true;
+    }
+    return false;
+  }
+
+  static Future<bool> updateMenuItem(Map<String, dynamic> data) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/menu_item_update.php'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(data),
     ).timeout(const Duration(seconds: 10));
@@ -704,6 +744,40 @@ class ApiService {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       return data['success'] == true;
+    }
+    return false;
+  }
+
+  // =============================================
+  // REVIEWS
+  // =============================================
+  
+  static Future<bool> submitReview({
+    required String kitchenId,
+    required int rating,
+    required String comment,
+  }) async {
+    final userId = await getUserId();
+    if (userId == null) return false;
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/reviews.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'user_id': int.parse(userId),
+          'kitchen_id': int.parse(kitchenId),
+          'rating': rating,
+          'comment': comment,
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
+      }
+    } catch (e) {
+      print('Error submitting review: $e');
     }
     return false;
   }

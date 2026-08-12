@@ -3,21 +3,32 @@ import 'package:flutter/material.dart';
 import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
 import 'package:go_chef_app/services/api_service.dart';
+import 'package:go_chef_app/main.dart';
+import 'order_review_screen.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'dart:math';
 
 class OrderTrackingScreen extends StatefulWidget {
   final String orderId;
+  final String kitchenId;
   final String kitchenName;
   final double totalAmount;
   final int itemsCount;
   final String kitchenAvatar;
+  final bool fromCheckout;
+  final String initialStatus;
 
   const OrderTrackingScreen({
     super.key,
     required this.orderId,
+    required this.kitchenId,
     required this.kitchenName,
     required this.totalAmount,
     required this.itemsCount,
     required this.kitchenAvatar,
+    this.fromCheckout = false,
+    this.initialStatus = 'Active',
   });
 
   @override
@@ -26,13 +37,20 @@ class OrderTrackingScreen extends StatefulWidget {
 
 class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   bool isDetailsExpanded = false;
-  String _currentStatus = 'Active';
+  late String _currentStatus;
   Timer? _timer;
+  
+// Add these variables:
+  final MapController _mapController = MapController();
+  final LatLng _kitchenLocation = const LatLng(-6.3687, 106.8329); // Dummy kitchen loc
+  LatLng _driverLocation = const LatLng(-6.3687, 106.8329); // Starts at kitchen
 
   @override
   void initState() {
     super.initState();
+    _currentStatus = widget.initialStatus;
     _startPolling();
+    _startDriverSimulation();
   }
 
   @override
@@ -41,46 +59,102 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     super.dispose();
   }
 
+  bool _isAutoArriveTriggered = false;
+
   void _startPolling() {
-    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-      try {
-        final orders = await ApiService.getOrders();
-        final currentOrder = orders.firstWhere((o) => o.id == widget.orderId);
-        if (mounted && _currentStatus != currentOrder.status) {
-          setState(() {
-            _currentStatus = currentOrder.status;
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      _fetchCurrentStatus();
+    });
+  }
+
+  Future<void> _fetchCurrentStatus() async {
+    try {
+      final orders = await ApiService.getOrders();
+      final currentOrder = orders.firstWhere((o) => o.id == widget.orderId);
+      if (mounted && _currentStatus != currentOrder.status) {
+        setState(() {
+          _currentStatus = currentOrder.status;
+        });
+        
+        if (_currentStatus == 'Completed' && !_isAutoArriveTriggered) {
+          _isAutoArriveTriggered = true;
+          Future.delayed(const Duration(seconds: 15), () {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderReviewScreen(
+                    orderId: widget.orderId,
+                    kitchenId: widget.kitchenId,
+                    kitchenName: widget.kitchenName,
+                  ),
+                ),
+              );
+            }
           });
         }
-      } catch (e) {
-        // ignore errors
+      }
+    } catch (e) {
+      // ignore errors
+    }
+  }
+
+  void _startDriverSimulation() {
+    // Dummy simulation: driver moves slightly every second if status is Completed
+    Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_currentStatus == 'Completed') {
+        setState(() {
+          _driverLocation = LatLng(
+            _driverLocation.latitude + (Random().nextDouble() - 0.5) * 0.0005,
+            _driverLocation.longitude + (Random().nextDouble() - 0.5) * 0.0005,
+          );
+        });
       }
     });
   }
 
-  @override
+// ... 
+
   Widget build(BuildContext context) {
+    bool isOutForDelivery = _currentStatus == 'Completed';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface.withValues(alpha: 0.8),
+        backgroundColor: AppColors.surface,
         elevation: 0,
-        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            if (widget.fromCheckout) {
+              // Return to the main navigation (Foodie Home)
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const MainNavigation()),
+                (Route<dynamic> route) => false,
+              );
+            } else {
+              // Return to previous screen (Order History)
+              Navigator.pop(context);
+            }
+          },
         ),
-        title: Text('Order Tracking',
-            style: AppTextStyles.headlineMd(color: AppColors.primary)),
+        title: const Text('Track Order', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.share, color: AppColors.primary),
-            onPressed: () {},
-          )
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: () {
+              _fetchCurrentStatus();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Refreshing status...'), duration: Duration(seconds: 1)),
+              );
+            },
+          ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(bottom: 120),
@@ -93,52 +167,95 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: Image.network(
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuDcGzOXniPvnMMK3nTjw-VwZ7ZMa2U9sGJf7rg_EwCR8a0PCdpeS1sGnJxv5VIlAsZ-Urbap902jWOcN68Oq9arhZ0zk5o31DzTCQXBurzUsUNPAQcukoSZZEJQiambIjZloiLz_eFz_IPTHkBOZUdqtfeVF3kGxoWrWLoDk6iQGV0rtSNU8kSXK4fGPRrWwsklkbEXekFa9Q3_ZmNm9Lh8INxcvAaDx9rQ1AbSYolBBRY81FF1Ievlmw',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 24,
-                    left: 20,
-                    right: 20,
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0D111A).withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE42278).withValues(alpha: 0.1)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFE42278).withValues(alpha: 0.2),
-                            blurRadius: 20,
-                            spreadRadius: 2,
-                          )
-                        ],
+                    child: FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: _kitchenLocation,
+                        initialZoom: 15.0,
+                        interactionOptions: const InteractionOptions(
+                          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                        ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('ESTIMATED ARRIVAL', style: AppTextStyles.labelMono(color: const Color(0xFFE42278))),
-                              Text('12 mins', style: AppTextStyles.displayLgMobile(color: Colors.white).copyWith(fontSize: 32)),
-                            ],
-                          ),
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFE42278),
-                              shape: BoxShape.circle,
+                      children: [
+                        TileLayer(
+                          urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                          subdomains: const ['a', 'b', 'c', 'd'],
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: _kitchenLocation,
+                              width: 40,
+                              height: 40,
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.restaurant, color: Colors.white, size: 20),
+                              ),
                             ),
-                            child: const Icon(Icons.delivery_dining, color: Colors.white),
-                          )
-                        ],
-                      ),
+                            if (isOutForDelivery)
+                              Marker(
+                                point: _driverLocation,
+                                width: 40,
+                                height: 40,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.green,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                  ),
+                                  child: const Icon(Icons.electric_moped, color: Colors.white, size: 20),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
+                  if (isOutForDelivery)
+                    Positioned(
+                      bottom: 24,
+                      left: 20,
+                      right: 20,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0D111A).withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFE42278).withValues(alpha: 0.3)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFE42278).withValues(alpha: 0.2),
+                              blurRadius: 20,
+                              spreadRadius: 2,
+                            )
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('ESTIMATED ARRIVAL', style: AppTextStyles.labelMono(color: const Color(0xFFE42278))),
+                                Text('12 mins', style: AppTextStyles.displayLgMobile(color: Colors.white).copyWith(fontSize: 32)),
+                              ],
+                            ),
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFE42278),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.delivery_dining, color: Colors.white),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -151,93 +268,119 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 child: Column(
                   children: [
                     // Driver Card
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0D111A).withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE42278).withValues(alpha: 0.1)),
-                      ),
-                      child: Row(
-                        children: [
-                          Stack(
-                            children: [
-                              Container(
-                                width: 64,
-                                height: 64,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFFE42278), width: 2),
-                                  image: const DecorationImage(
-                                    image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuCciYPVFg6JXnUz02s4EcoZC2o288Wkc53SNNuymiIvdEDYU-vgdA0rU45g2DYKJqsbjlMygGJU6vJ_AfIcGsir1Vt_SVRXP5xUfaltPuv1m_jXA4Tp3CegVw2h0aRRNIJVh8psx7RkP-VRUCSRxLI7xSZnAM7tZomobJ9dJ7p8dVwZ7LdxFF8WLMFI6JqA_TMY2KsjF1Z0gSxmA2Ej2y2uNoHFB6sXVFVQipoeSqCRoe9b-5x0PpCoFg'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: Container(
-                                  width: 16,
-                                  height: 16,
-                                  decoration: BoxDecoration(
-                                    color: Colors.green,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: AppColors.background, width: 2),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                    if (isOutForDelivery) ...[
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0D111A).withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFE42278).withValues(alpha: 0.1)),
+                        ),
+                        child: Row(
+                          children: [
+                            Stack(
                               children: [
-                                Text('Marcus', style: AppTextStyles.headlineMd(color: Colors.white)),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.electric_moped, color: AppColors.onSurfaceVariant, size: 16),
-                                    const SizedBox(width: 4),
-                                    Text('E-Bike • 4.9 ★', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                                  ],
+                                Container(
+                                  width: 64,
+                                  height: 64,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFFE42278), width: 2),
+                                    image: const DecorationImage(
+                                      image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuCciYPVFg6JXnUz02s4EcoZC2o288Wkc53SNNuymiIvdEDYU-vgdA0rU45g2DYKJqsbjlMygGJU6vJ_AfIcGsir1Vt_SVRXP5xUfaltPuv1m_jXA4Tp3CegVw2h0aRRNIJVh8psx7RkP-VRUCSRxLI7xSZnAM7tZomobJ9dJ7p8dVwZ7LdxFF8WLMFI6JqA_TMY2KsjF1Z0gSxmA2Ej2y2uNoHFB6sXVFVQipoeSqCRoe9b-5x0PpCoFg'),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    width: 16,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: AppColors.background, width: 2),
+                                    ),
+                                  ),
                                 )
                               ],
                             ),
-                          ),
-                          Row(
-                            children: [
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.surfaceContainerHigh,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.message, color: AppColors.primary),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Marcus', style: AppTextStyles.headlineMd(color: Colors.white)),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.electric_moped, color: AppColors.onSurfaceVariant, size: 16),
+                                      const SizedBox(width: 4),
+                                      Text('E-Bike • 4.9 ★', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                    ],
+                                  )
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.primary.withValues(alpha: 0.2),
-                                      blurRadius: 10,
-                                    )
-                                  ],
+                            ),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.surfaceContainerHigh,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.message, color: AppColors.primary),
                                 ),
-                                child: const Icon(Icons.call, color: AppColors.onPrimary),
-                              ),
-                            ],
-                          )
-                        ],
+                                const SizedBox(width: 8),
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.primary.withValues(alpha: 0.2),
+                                        blurRadius: 10,
+                                      )
+                                    ],
+                                  ),
+                                  child: const Icon(Icons.call, color: AppColors.onPrimary),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OrderReviewScreen(
+                                  orderId: widget.orderId,
+                                  kitchenId: widget.kitchenId,
+                                  kitchenName: widget.kitchenName,
+                                ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          child: Text('MARK AS ARRIVED', style: AppTextStyles.labelMono(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
                     
                     // Status Timeline
                     Container(
@@ -286,16 +429,16 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             _buildTimelineLine(dim: !['Ready', 'Completed'].contains(_currentStatus)),
                             _buildTimelineStep(
                               time: '',
-                              title: 'Order is Ready',
-                              desc: 'Your order is ready to be picked up or delivered.',
+                              title: 'Waiting for Driver',
+                              desc: 'Order is ready and waiting to be picked up.',
                               status: _currentStatus == 'Completed' ? 'done' : (_currentStatus == 'Ready' ? 'active' : 'upcoming'),
                             ),
                             _buildTimelineLine(dim: _currentStatus != 'Completed'),
                             _buildTimelineStep(
                               time: '',
-                              title: 'Completed',
-                              desc: 'Bon appétit!',
-                              status: _currentStatus == 'Completed' ? 'done' : 'upcoming',
+                              title: 'Out for Delivery',
+                              desc: 'Your food is on the way!',
+                              status: _currentStatus == 'Completed' ? 'active' : 'upcoming',
                             ),
                           ],
                         ],

@@ -6,6 +6,7 @@ import '../tracking/order_tracking_screen.dart';
 
 class OrderCompleteScreen extends StatelessWidget {
   final String orderId;
+  final String kitchenId;
   final String kitchenName;
   final double totalAmount;
   final int itemsCount;
@@ -14,6 +15,7 @@ class OrderCompleteScreen extends StatelessWidget {
   const OrderCompleteScreen({
     super.key,
     required this.orderId,
+    required this.kitchenId,
     required this.kitchenName,
     required this.totalAmount,
     required this.itemsCount,
@@ -215,10 +217,12 @@ class OrderCompleteScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(builder: (context) => OrderTrackingScreen(
                         orderId: orderId,
+                        kitchenId: kitchenId,
                         kitchenName: kitchenName,
                         totalAmount: totalAmount,
                         itemsCount: itemsCount,
                         kitchenAvatar: kitchenAvatar,
+                        fromCheckout: true,
                       )),
                     );
                   },
