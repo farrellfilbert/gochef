@@ -1,16 +1,6 @@
-<?php
+﻿<?php
 require_once 'db_connect.php';
-try {
-    $pdo->exec("ALTER TABLE orders ADD COLUMN delivery_address VARCHAR(300) DEFAULT ''");
-    echo "Added delivery_address\n";
-} catch(PDOException $e) { echo $e->getMessage() . "\n"; }
-try {
-    $pdo->exec("ALTER TABLE orders ADD COLUMN notes TEXT");
-    echo "Added notes\n";
-} catch(PDOException $e) { echo $e->getMessage() . "\n"; }
-try {
-    $pdo->exec("ALTER TABLE orders ADD COLUMN kitchen_id INT NULL");
-    echo "Added kitchen_id\n";
-} catch(PDOException $e) { echo $e->getMessage() . "\n"; }
-echo "Done";
+$stmt = $pdo->prepare("SELECT * FROM orders");
+$stmt->execute();
+echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
 ?>
