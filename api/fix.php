@@ -1,6 +1,4 @@
 ﻿<?php
-require_once 'db_connect.php';
-$stmt = $pdo->prepare("SELECT * FROM orders");
-$stmt->execute();
-echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+var_dump(strtotime('Aug 11, 2026'));
+var_dump(strtotime('Aug 12, 2026 - 09:08'));
 ?>
