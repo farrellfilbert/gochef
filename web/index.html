@@ -75,26 +75,6 @@
     <div class="spinner"></div>
     <div class="loading-text">Preparing GoChef...</div>
   </div>
-  <script>
-    // Unregister ALL old service workers to prevent stale cache
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for (var registration of registrations) {
-          registration.unregister();
-          console.log('Unregistered old service worker');
-        }
-      });
-      // Also clear all caches
-      if ('caches' in window) {
-        caches.keys().then(function(names) {
-          for (var name of names) {
-            caches.delete(name);
-            console.log('Deleted cache:', name);
-          }
-        });
-      }
-    }
-  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
   <script src="flutter_bootstrap.js?v=2" async></script>
