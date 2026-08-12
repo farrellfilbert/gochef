@@ -10,6 +10,7 @@ import '../../services/api_service.dart';
 import 'login_phone_otp_screen.dart';
 import 'sign_up_screen.dart';
 import 'chef_login_screen.dart';
+import '../chef_dashboard/chef_main_navigation.dart';
 
 /// Login Main Screen — replicates Login Main.html exactly
 class LoginScreen extends StatefulWidget {
@@ -82,15 +83,26 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['success']) {
-          await ApiService.saveUserId(data['user']['id'].toString());
-          if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MainNavigation(),
-            ),
-          );
+          if (data['success']) {
+            final isChef = data['user']['role'] == 'chef';
+            final role = isChef ? 'chef' : 'user';
+            await ApiService.saveUserId(
+              data['user']['id'].toString(), 
+              role: role, 
+              kitchenId: data['user']['kitchen_id']?.toString()
+            );
+            if (!mounted) return;
+            if (isChef) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const MainNavigation()),
+              );
+            }
         } else {
           _showError(data['error'] ?? 'Login failed');
         }
@@ -136,13 +148,26 @@ class _LoginScreenState extends State<LoginScreen>
         
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          if (data['success']) {
-            await ApiService.saveUserId(data['user']['id'].toString());
-            if (!mounted) return;
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const MainNavigation()),
-            );
+            if (data['success']) {
+              final isChef = data['user']['role'] == 'chef';
+              final role = isChef ? 'chef' : 'user';
+              await ApiService.saveUserId(
+                data['user']['id'].toString(), 
+                role: role, 
+                kitchenId: data['user']['kitchen_id']?.toString()
+              );
+              if (!mounted) return;
+              if (isChef) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
+                );
+              } else {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MainNavigation()),
+                );
+              }
           } else {
             _showError(data['error'] ?? 'Login failed');
           }

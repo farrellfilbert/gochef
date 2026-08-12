@@ -67,8 +67,8 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
   void initState() {
     super.initState();
     _checkAuth();
-    // Absolute fallback: if still loading after 2 seconds, force to login
-    Future.delayed(const Duration(seconds: 2), () {
+    // Absolute fallback: if still loading after 5 seconds, force to login
+    Future.delayed(const Duration(seconds: 5), () {
       if (mounted && _isLoading) {
         setState(() {
           _isLoading = false;
@@ -84,15 +84,23 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
         const Duration(seconds: 3),
         onTimeout: () => null,
       );
-      final role = await ApiService.getUserRole().timeout(
-        const Duration(seconds: 3),
-        onTimeout: () => 'user',
-      );
+      
+      String role = 'user';
+      if (userId != null && userId.isNotEmpty) {
+        try {
+          final profile = await ApiService.getProfile().timeout(const Duration(seconds: 3));
+          role = (profile.role == 'chef') ? 'chef' : 'user';
+          await ApiService.saveUserId(profile.id, role: role, kitchenId: profile.kitchenId);
+        } catch (_) {
+          final localRole = await ApiService.getUserRole();
+          role = localRole ?? 'user';
+        }
+      }
       
       if (!mounted) return;
       setState(() {
         _isLoggedIn = userId != null && userId.isNotEmpty;
-        _userRole = role ?? 'user';
+        _userRole = role;
         _isLoading = false;
       });
     } catch (e) {
