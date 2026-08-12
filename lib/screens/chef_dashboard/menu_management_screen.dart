@@ -241,7 +241,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Customization Options', style: AppTextStyles.titleMd(color: AppColors.onSurface)),
+                        Text('Customization Options', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                         TextButton.icon(
                           onPressed: () {
                             setDialogState(() {
@@ -533,6 +533,87 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       decoration: _buildInputDecoration('Price', prefixIcon: Icons.attach_money),
                     ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Customization Options', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                        TextButton.icon(
+                          onPressed: () {
+                            setDialogState(() {
+                              addons.add(MenuAddonModel(id: 0, name: '', price: 0));
+                            });
+                          },
+                          icon: const Icon(Icons.add, size: 16),
+                          label: const Text('Add'),
+                        ),
+                      ],
+                    ),
+                    if (addons.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: addons.asMap().entries.map((entry) {
+                            int idx = entry.key;
+                            MenuAddonModel addon = entry.value;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: TextFormField(
+                                      initialValue: addon.name,
+                                      style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
+                                      decoration: const InputDecoration(
+                                        hintText: 'Name (e.g. Extra Spicy)',
+                                        isDense: true,
+                                      ),
+                                      onChanged: (val) {
+                                        addons[idx] = MenuAddonModel(id: addon.id, name: val, price: addon.price);
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    flex: 1,
+                                    child: TextFormField(
+                                      initialValue: addon.price > 0 ? addon.price.toString() : '',
+                                      style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
+                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      decoration: const InputDecoration(
+                                        hintText: '+\$0.00',
+                                        isDense: true,
+                                      ),
+                                      onChanged: (val) {
+                                        addons[idx] = MenuAddonModel(
+                                          id: addon.id, 
+                                          name: addon.name, 
+                                          price: double.tryParse(val) ?? 0.0,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                                    onPressed: () {
+                                      setDialogState(() {
+                                        addons.removeAt(idx);
+                                      });
+                                    },
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     const SizedBox(height: 32),
                     Row(
                       children: [
