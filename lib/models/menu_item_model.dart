@@ -1,18 +1,5 @@
-class AddonModel {
-  final int id;
-  final String name;
-  final double price;
-
-  AddonModel({required this.id, required this.name, this.price = 0.0});
-
-  factory AddonModel.fromJson(Map<String, dynamic> json) {
-    return AddonModel(
-      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
-      name: json['name'] ?? '',
-      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-    );
-  }
-}
+import 'review_model.dart';
+import 'menu_addon_model.dart';
 
 class MenuItemModel {
   final int id;
@@ -29,8 +16,10 @@ class MenuItemModel {
   final String kitchenName;
   final String kitchenAvatar;
   final int categoryId;
+  final String createdAt;
   final String categoryName;
-  final List<AddonModel>? addons;
+  final List<ReviewModel>? reviews;
+  final List<MenuAddonModel>? addons;
 
   MenuItemModel({
     required this.id,
@@ -47,7 +36,9 @@ class MenuItemModel {
     this.kitchenName = '',
     this.kitchenAvatar = '',
     this.categoryId = 0,
+    this.createdAt = '',
     this.categoryName = '',
+    this.reviews,
     this.addons,
   });
 
@@ -67,9 +58,13 @@ class MenuItemModel {
       kitchenName: json['kitchen_name'] ?? '',
       kitchenAvatar: json['kitchen_avatar'] ?? '',
       categoryId: int.tryParse(json['category_id']?.toString() ?? '0') ?? 0,
+      createdAt: json['created_at'] ?? '',
       categoryName: json['category_name'] ?? '',
+      reviews: json['reviews'] != null
+          ? (json['reviews'] as List).map((i) => ReviewModel.fromJson(i)).toList()
+          : null,
       addons: json['addons'] != null
-          ? (json['addons'] as List).map((e) => AddonModel.fromJson(e)).toList()
+          ? (json['addons'] as List).map((i) => MenuAddonModel.fromJson(i)).toList()
           : null,
     );
   }

@@ -48,6 +48,13 @@ try {
     $stmt->execute($params);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Fetch addons for each item
+    foreach ($items as &$item) {
+        $addonStmt = $pdo->prepare("SELECT id, name, price FROM menu_addons WHERE menu_item_id = ?");
+        $addonStmt->execute([$item['id']]);
+        $item['addons'] = $addonStmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     echo json_encode(['success' => true, 'data' => $items]);
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage(), 'data' => []]);

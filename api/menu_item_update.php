@@ -42,6 +42,24 @@ if ($image !== '') {
 }
 
 if ($result) {
+    // Process addons if provided
+    if (isset($data->addons) && is_array($data->addons)) {
+        // Delete old addons
+        $deleteQuery = "DELETE FROM menu_addons WHERE menu_item_id = ?";
+        $deleteStmt = $pdo->prepare($deleteQuery);
+        $deleteStmt->execute([$id]);
+
+        // Insert new addons
+        $addonQuery = "INSERT INTO menu_addons (menu_item_id, name, price) VALUES (?, ?, ?)";
+        $addonStmt = $pdo->prepare($addonQuery);
+        foreach ($data->addons as $addon) {
+            if (isset($addon->name)) {
+                $addonPrice = isset($addon->price) ? floatval($addon->price) : 0.00;
+                $addonStmt->execute([$id, $addon->name, $addonPrice]);
+            }
+        }
+    }
+
     echo json_encode(["message" => "Menu item updated successfully.", "success" => true]);
 } else {
     http_response_code(500);

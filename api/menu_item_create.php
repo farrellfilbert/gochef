@@ -35,7 +35,21 @@ $query = "INSERT INTO menu_items (kitchen_id, category_id, name, description, pr
 $stmt = $pdo->prepare($query);
 
 if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular])) {
-    echo json_encode(["message" => "Menu item created successfully.", "id" => $pdo->lastInsertId(), "success" => true]);
+    $menu_item_id = $pdo->lastInsertId();
+    
+    // Process addons if provided
+    if (isset($data->addons) && is_array($data->addons)) {
+        $addonQuery = "INSERT INTO menu_addons (menu_item_id, name, price) VALUES (?, ?, ?)";
+        $addonStmt = $pdo->prepare($addonQuery);
+        foreach ($data->addons as $addon) {
+            if (isset($addon->name)) {
+                $addonPrice = isset($addon->price) ? floatval($addon->price) : 0.00;
+                $addonStmt->execute([$menu_item_id, $addon->name, $addonPrice]);
+            }
+        }
+    }
+    
+    echo json_encode(["message" => "Menu item created successfully.", "id" => $menu_item_id, "success" => true]);
 } else {
     http_response_code(500);
     $err = $stmt->errorInfo();

@@ -25,6 +25,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   
   // Track selected addons
   final Set<int> _selectedAddonIds = {};
+  final TextEditingController _notesController = TextEditingController();
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -59,6 +61,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
       item.id,
       quantity: _quantity,
       addonIds: _selectedAddonIds.toList(),
+      notes: _notesController.text.trim(),
     );
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -295,6 +298,31 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                               }),
                               const SizedBox(height: 32),
                             ],
+                            
+                            // Notes
+                            Text('Special Instructions', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: _notesController,
+                              style: const TextStyle(color: AppColors.onSurface),
+                              maxLines: 3,
+                              decoration: InputDecoration(
+                                hintText: 'e.g. no onions, extra spicy, etc.',
+                                hintStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+                                filled: true,
+                                fillColor: AppColors.surfaceContainerLow,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide.none,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              ),
+                            ),
+                            const SizedBox(height: 32),
                           ],
                         ),
                       ),
