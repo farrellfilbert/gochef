@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('Asia/Jakarta');
+
 // Shared database connection
 $db_host = 'localhost';
 $db_user = 'astroboomin_id_rsa';
