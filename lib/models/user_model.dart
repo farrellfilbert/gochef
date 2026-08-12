@@ -6,6 +6,7 @@ class UserModel {
   final String avatar;
   final String? role;
   final String? kitchenId;
+  final String? kitchenName;
 
   UserModel({
     required this.id,
@@ -15,6 +16,7 @@ class UserModel {
     required this.avatar,
     this.role,
     this.kitchenId,
+    this.kitchenName,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class UserModel {
       avatar: json['avatar'] ?? '',
       role: json['role']?.toString(),
       kitchenId: json['kitchen_id']?.toString(),
+      kitchenName: json['kitchen_name']?.toString(),
     );
   }
 }

@@ -13,6 +13,7 @@ class ChefAnalyticsScreen extends StatefulWidget {
 
 class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
   late Future<Map<String, dynamic>?> _analyticsFuture;
+  String _kitchenName = 'your kitchen';
 
   @override
   void initState() {
@@ -22,8 +23,15 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
 
   Future<Map<String, dynamic>?> _loadData() async {
     final user = await ApiService.getProfile();
-    if (user != null && user.kitchenId != null) {
-      return await ApiService.getKitchenAnalytics(int.parse(user.kitchenId!));
+    if (user != null) {
+      if (mounted) {
+        setState(() {
+          _kitchenName = user.kitchenName ?? 'your kitchen';
+        });
+      }
+      if (user.kitchenId != null) {
+        return await ApiService.getKitchenAnalytics(int.parse(user.kitchenId!));
+      }
     }
     return null;
   }
@@ -54,7 +62,7 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Here\'s how Urban Gourmet Kitchen is performing today.',
+              'Here\'s how $_kitchenName is performing today.',
               style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
             ),
             const SizedBox(height: 24),
