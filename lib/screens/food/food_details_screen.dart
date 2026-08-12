@@ -4,6 +4,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../models/menu_item_model.dart';
+import '../../models/menu_addon_model.dart';
 import '../../models/review_model.dart';
 import '../cart/cart_screen.dart';
 import '../kitchen/kitchen_profile_screen.dart';
