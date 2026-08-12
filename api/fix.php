@@ -1,4 +1,4 @@
 ﻿<?php
-var_dump(strtotime('Aug 11, 2026'));
-var_dump(strtotime('Aug 12, 2026 - 09:08'));
+var_dump(strtotime("Aug 11 2026 04:28"));
+var_dump(strtotime(str_replace([',', '-'], '', "Aug 11, 2026 - 04:28")));
 ?>
