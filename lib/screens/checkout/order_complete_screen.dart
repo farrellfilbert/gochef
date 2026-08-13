@@ -3,6 +3,8 @@ import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
 import '../home/home_screen.dart';
 import '../tracking/order_tracking_screen.dart';
+import '../../services/api_service.dart';
+import '../../models/user_model.dart';
 
 class OrderCompleteScreen extends StatelessWidget {
   final String orderId;
@@ -37,18 +39,26 @@ class OrderCompleteScreen extends StatelessWidget {
               'GoChef',
               style: AppTextStyles.headlineLgMobile(color: AppColors.primary).copyWith(fontSize: 20),
             ),
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.outline.withValues(alpha: 0.2)),
-                image: const DecorationImage(
-                  image: NetworkImage(
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuC4Qw18XxKU0uFFKj5sSYIBv-F96KGx7m4rdcu5yYtqbtVBX5UZrALRBRD2N8tuUc2WugWUH194qn3siP0vygHXmbBzzmn7MbttTH7tmAZZXVA8XZahE7HD_0yYDjns05_tc80RgHwNPW79tdIMtRERy-hQIEG4y4BuYj4Is5fSU659MTS3I5gYkWWHYvKVyDDPqf990YnbGuaX6UKOEmlnKKdY56jFRb-WYI5DTTbZceq9djgxdv6dPQ'),
-                  fit: BoxFit.cover,
-                ),
-              ),
+            FutureBuilder<UserModel>(
+              future: ApiService.getProfile(),
+              builder: (context, snapshot) {
+                String avatarUrl = 'https://gochef.my.id/assets/default_avatar.png';
+                if (snapshot.hasData && snapshot.data!.avatar.isNotEmpty) {
+                  avatarUrl = snapshot.data!.avatar;
+                }
+                return Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.outline.withValues(alpha: 0.2)),
+                    image: DecorationImage(
+                      image: NetworkImage(avatarUrl),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              }
             )
           ],
         ),
@@ -164,7 +174,15 @@ class OrderCompleteScreen extends StatelessWidget {
                             children: [
                               const Icon(Icons.schedule, color: AppColors.primary, size: 20),
                               const SizedBox(width: 8),
-                              Text('Estimated Arrival: 8:45 PM', style: AppTextStyles.labelSm(color: AppColors.onSurface)),
+                              Builder(
+                                builder: (context) {
+                                  final time = DateTime.now().add(const Duration(minutes: 40));
+                                  final ampm = time.hour >= 12 ? 'PM' : 'AM';
+                                  final hr = time.hour > 12 ? time.hour - 12 : (time.hour == 0 ? 12 : time.hour);
+                                  final mn = time.minute.toString().padLeft(2, '0');
+                                  return Text('Estimated Arrival: $hr:$mn $ampm', style: AppTextStyles.labelSm(color: AppColors.onSurface));
+                                }
+                              ),
                             ],
                           ),
                           Text('\$${totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: AppColors.primary)),
@@ -199,7 +217,7 @@ class OrderCompleteScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Earned 120 Loyalty Points', style: AppTextStyles.labelSm(color: AppColors.tertiary).copyWith(fontWeight: FontWeight.bold)),
+                            Text('Earned ${(totalAmount * 10).toInt()} Loyalty Points', style: AppTextStyles.labelSm(color: AppColors.tertiary).copyWith(fontWeight: FontWeight.bold)),
                             Text('Redeemable for your next feast', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
                           ],
                         ),
@@ -272,56 +290,7 @@ class OrderCompleteScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
-                
-                // Suggestion
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('While you wait...', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.05)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuATeQGnzuIpiDuNJvNPdmYEEKY_w62gAfTko7DuKOKS9kWLTiqwslb_6_KJxppQ80IF_X32xAgaHSC3uw4TlRz2YDf2u-zMDUL_EVcCkFZmaZPXxKM_GnnjNiVGBuhSJ2GkT7IBitAfXtm34ep-b-U8QcE5xCcHfygffrUQH1ypmiwCneSDNNsiwxK5dfeURRC-a_vkO3Vq3OCceieHvEojMoC5x0SN1vosRbxSRZ2Is0-12simphPqsg'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Rate Chef Marco', style: AppTextStyles.labelSm(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
-                            Text('Last order from 3 days ago', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                          ],
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Icon(Icons.star, color: AppColors.primary, size: 16),
-                          Icon(Icons.star, color: AppColors.primary, size: 16),
-                          Icon(Icons.star, color: AppColors.primary, size: 16),
-                          Icon(Icons.star, color: AppColors.primary, size: 16),
-                          Icon(Icons.star_border, color: AppColors.outline, size: 16),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
+                const SizedBox(height: 24),
               ],
             ),
           )
