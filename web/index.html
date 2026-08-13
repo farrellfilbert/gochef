@@ -9,11 +9,6 @@
   <meta name="google-signin-client_id" content="1055253793767-as9i19kkmka2ootv8rublt7qvo31ovrb.apps.googleusercontent.com">
   <meta name="description" content="GoChef - Urban Gourmet Marketplace">
 
-  <!-- Prevent caching -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -25,8 +20,11 @@
 
   <title>GoChef Premium</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.css" />
+
+  <!-- Cropper CSS deferred so it doesn't block Flutter init -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.css" media="print" onload="this.media='all'">
+
   <style>
     body {
       background-color: #0F172A;
@@ -45,39 +43,50 @@
       align-items: center;
       justify-content: center;
     }
+    .loading-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      animation: fadeIn 0.5s ease-in;
+    }
     .spinner {
-      width: 50px;
-      height: 50px;
+      width: 40px;
+      height: 40px;
       border: 3px solid rgba(255, 64, 129, 0.2);
       border-radius: 50%;
       border-top-color: #FF4081;
-      animation: spin 1s ease-in-out infinite;
-      margin-bottom: 20px;
+      animation: spin 0.8s ease-in-out infinite;
+      margin-bottom: 16px;
     }
     .loading-text {
       color: #FFFFFF;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 500;
       letter-spacing: 1px;
-      animation: pulse 1.5s infinite;
+      opacity: 0.7;
     }
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
     }
   </style>
+
+  <!-- Flutter bootstrap loaded ASAP -->
+  <script src="flutter_bootstrap.js" async></script>
 </head>
 <body>
   <div class="loading-container" id="app-loader">
+    <img class="loading-logo" src="assets/assets/images/GoCheflogo.png" onerror="this.style.display='none'">
     <div class="spinner"></div>
-    <div class="loading-text">Preparing GoChef...</div>
+    <div class="loading-text">GoChef</div>
   </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
-  <script src="flutter_bootstrap.js?v=2" async></script>
+
+  <!-- Cropper scripts deferred — won't block app startup -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js" defer></script>
 </body>
 </html>
-
