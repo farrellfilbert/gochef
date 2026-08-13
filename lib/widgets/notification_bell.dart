@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../screens/notifications/notifications_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
 class NotificationBell extends StatefulWidget {
@@ -35,7 +36,10 @@ class _NotificationBellState extends State<NotificationBell> {
   Future<void> _fetchUnreadCount() async {
     if (!mounted) return;
     try {
-      final counts = await ApiService.getUnreadCounts();
+      final prefs = await SharedPreferences.getInstance();
+      final lastOpenTime = prefs.getString('last_notification_open_time');
+      
+      final counts = await ApiService.getUnreadCounts(lastOpenTime: lastOpenTime);
       if (mounted) {
         setState(() {
           _unreadCount = (counts['total_unread'] as int?) ?? 0;
@@ -52,18 +56,24 @@ class _NotificationBellState extends State<NotificationBell> {
       children: [
         IconButton(
           icon: Icon(Icons.notifications_none, color: widget.iconColor),
-          onPressed: () {
+          onPressed: () async {
+            // Save current time as last opened
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('last_notification_open_time', DateTime.now().toIso8601String());
+
             // When opened, clear the dot locally, then navigate
-            setState(() {
-              _unreadCount = 0;
-            });
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-            ).then((_) {
-              // Re-fetch after returning
-              _fetchUnreadCount();
-            });
+            if (mounted) {
+              setState(() {
+                _unreadCount = 0;
+              });
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+              ).then((_) {
+                // Re-fetch after returning
+                _fetchUnreadCount();
+              });
+            }
           },
         ),
         if (_unreadCount > 0)

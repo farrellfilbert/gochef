@@ -827,12 +827,16 @@ class ApiService {
     return false;
   }
   // =============================================
-  static Future<Map<String, dynamic>> getUnreadCounts() async {
+  static Future<Map<String, dynamic>> getUnreadCounts({String? lastOpenTime}) async {
     final userId = await getUserId();
     if (userId == null) return {'unread_notifications': 0, 'unread_chats': 0, 'total_unread': 0};
 
     try {
-      final url = Uri.parse('$baseUrl/unread_counts.php?user_id=$userId');
+      String urlStr = '$baseUrl/unread_counts.php?user_id=$userId';
+      if (lastOpenTime != null) {
+        urlStr += '&last_open_time=${Uri.encodeComponent(lastOpenTime)}';
+      }
+      final url = Uri.parse(urlStr);
       final response = await http.get(url);
       
       if (response.statusCode == 200) {
