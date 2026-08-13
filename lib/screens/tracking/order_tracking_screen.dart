@@ -382,23 +382,32 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => OrderReviewScreen(
-                                  orderId: widget.orderId,
-                                  kitchenId: widget.kitchenId,
-                                  kitchenName: widget.kitchenName,
+                          onPressed: _currentStatus == 'Completed' ? null : () async {
+                            // Mark as completed in backend
+                            await ApiService.updateOrderStatus(widget.orderId, 'Completed');
+                            if (mounted) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OrderReviewScreen(
+                                    orderId: widget.orderId,
+                                    kitchenId: widget.kitchenId,
+                                    kitchenName: widget.kitchenName,
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: _currentStatus == 'Completed' ? AppColors.surfaceContainerHigh : Colors.green,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           ),
-                          child: Text('MARK AS ARRIVED', style: AppTextStyles.labelMono(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
+                          child: Text(
+                            _currentStatus == 'Completed' ? 'ORDER COMPLETED - THANKS!' : 'MARK AS ARRIVED', 
+                            style: AppTextStyles.labelMono(
+                              color: _currentStatus == 'Completed' ? AppColors.onSurfaceVariant : Colors.white
+                            ).copyWith(fontSize: 16, fontWeight: FontWeight.bold)
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
