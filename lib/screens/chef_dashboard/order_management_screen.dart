@@ -275,7 +275,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   item.options,
-                                  style: AppTextStyles.bodySm(color: AppColors.onSurfaceVariant).copyWith(
+                                  style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(
                                     height: 1.3,
                                     fontStyle: FontStyle.italic,
                                   ),
