@@ -53,8 +53,10 @@ try {
     
     $response = [];
     foreach ($orders as $order) {
-        $itemStmt = $pdo->prepare("SELECT name, options, quantity, price FROM order_items WHERE order_id = ?");
-        $itemStmt->execute([$order['id']]);
+        $itemStmt = $pdo->prepare("SELECT oi.name, oi.options, oi.quantity, oi.price, 
+            (SELECT image FROM menu_items mi WHERE mi.name = oi.name AND mi.kitchen_id = ? LIMIT 1) as image
+            FROM order_items oi WHERE oi.order_id = ?");
+        $itemStmt->execute([$order['kitchen_id'], $order['id']]);
         $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
         
         $response[] = [

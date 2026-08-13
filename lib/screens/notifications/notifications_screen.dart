@@ -243,7 +243,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
           
           DateTime time;
           try {
-            time = DateTime.parse(chat['created_at']);
+            time = DateTime.parse(chat['created_at'].toString().replaceAll(' ', 'T') + 'Z').toLocal();
           } catch (_) {
             time = DateTime.now();
           }

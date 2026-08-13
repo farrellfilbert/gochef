@@ -40,7 +40,7 @@ class _InboxScreenState extends State<InboxScreen> {
             otherParticipantName: name,
             otherParticipantAvatar: c['avatar'] ?? '',
             lastMessage: c['last_message'] ?? '',
-            lastMessageTime: DateTime.parse(c['created_at']),
+            lastMessageTime: DateTime.parse(c['created_at'].toString().replaceAll(' ', 'T') + 'Z').toLocal(),
             unreadCount: int.tryParse(c['unread_count']?.toString() ?? '0') ?? 0,
             orderId: c['order_id']?.toString(),
             isOnline: true, // we don't have online status in backend yet

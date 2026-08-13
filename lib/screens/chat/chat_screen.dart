@@ -70,7 +70,7 @@ class _ChatScreenState extends State<ChatScreen> {
             id: m['id'].toString(),
             text: m['message'],
             isMe: m['sender_id'].toString() == _myUserId,
-            timestamp: DateTime.parse(m['created_at']),
+            timestamp: DateTime.parse(m['created_at'].toString().replaceAll(' ', 'T') + 'Z').toLocal(),
           );
         }).toList();
         _isLoading = false;
