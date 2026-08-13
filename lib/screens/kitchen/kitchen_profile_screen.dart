@@ -312,6 +312,26 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
+                    
+                    // Kitchen Photos Gallery
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text('Atmosphere', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 140,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        children: [
+                          _buildPhotoItem('https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=300&auto=format&fit=crop'),
+                          _buildPhotoItem('https://images.unsplash.com/photo-1577140917170-285929fb55b7?q=80&w=300&auto=format&fit=crop'),
+                          _buildPhotoItem('https://images.unsplash.com/photo-1505826759037-406b40feb4cd?q=80&w=300&auto=format&fit=crop'),
+                          _buildPhotoItem('https://images.unsplash.com/photo-1512152272829-4fa2c65a7822?q=80&w=300&auto=format&fit=crop'),
+                        ],
+                      ),
+                    ),
 
                     // Menu Section
                     Padding(
@@ -394,6 +414,20 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildPhotoItem(String imageUrl) {
+    return Container(
+      width: 200,
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        image: DecorationImage(
+          image: NetworkImage(imageUrl),
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
