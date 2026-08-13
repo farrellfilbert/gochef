@@ -225,14 +225,14 @@ try {
         avatar VARCHAR(500) DEFAULT '',
         delivery_address VARCHAR(300) DEFAULT '',
         notes TEXT,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE SET NULL
     )");
     $pdo->exec("ALTER TABLE orders ADD COLUMN IF NOT EXISTS kitchen_id INT NULL");
-    
-    // Safely add missing columns if they don't exist (MySQL < 8.0 compat)
     try { $pdo->exec("ALTER TABLE orders ADD COLUMN delivery_address VARCHAR(300) DEFAULT ''"); } catch(PDOException $e) {}
     try { $pdo->exec("ALTER TABLE orders ADD COLUMN notes TEXT"); } catch(PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE orders ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"); } catch(PDOException $e) {}
     
     // Only try to add foreign key if we know how, simpler to just add column on existing data.
     // If we want to strictly add foreign key to existing table in mysql: 
@@ -261,13 +261,17 @@ try {
         sender_id INT NOT NULL,
         receiver_id INT NOT NULL,
         kitchen_id INT NULL,
+        order_id VARCHAR(50) NULL,
         message TEXT NOT NULL,
         is_read TINYINT(1) DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE CASCADE
+        FOREIGN KEY (kitchen_id) REFERENCES kitchens(id) ON DELETE CASCADE,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
     )");
+    try { $pdo->exec("ALTER TABLE chat_messages ADD COLUMN order_id VARCHAR(50) NULL"); } catch(PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE chat_messages ADD CONSTRAINT fk_chat_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE"); } catch(PDOException $e) {}
 
     echo json_encode(['success' => true, 'message' => 'All tables created/updated successfully!']);
 

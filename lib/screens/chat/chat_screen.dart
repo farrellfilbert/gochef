@@ -11,6 +11,7 @@ class ChatScreen extends StatefulWidget {
   final String otherParticipantName;
   final String otherParticipantAvatar;
   final String? kitchenId;
+  final String? orderId;
   final bool isOnline;
 
   const ChatScreen({
@@ -19,6 +20,7 @@ class ChatScreen extends StatefulWidget {
     required this.otherParticipantName,
     required this.otherParticipantAvatar,
     this.kitchenId,
+    this.orderId,
     this.isOnline = false,
   });
 
@@ -117,6 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
       widget.otherParticipantId, 
       text,
       kitchenId: widget.kitchenId,
+      orderId: widget.orderId,
     );
     
     if (!success) {

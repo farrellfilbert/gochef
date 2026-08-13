@@ -191,6 +191,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                                       otherParticipantId: order.userId,
                                       otherParticipantName: order.customerName.isNotEmpty ? order.customerName : 'Customer',
                                       otherParticipantAvatar: order.customerAvatar,
+                                      orderId: order.id,
                                     ),
                                   ),
                                 );

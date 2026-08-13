@@ -13,6 +13,14 @@ if (!$user1_id || !$user2_id) {
 }
 
 try {
+    // Auto-cleanup expired order chats
+    $pdo->exec("
+        DELETE m FROM chat_messages m 
+        JOIN orders o ON m.order_id = o.id 
+        WHERE o.status IN ('Completed', 'Delivered') 
+          AND o.updated_at < (NOW() - INTERVAL 10 MINUTE)
+    ");
+
     // Fetch messages between user1 and user2
     $stmt = $pdo->prepare("
         SELECT id, sender_id, receiver_id, message, is_read, created_at

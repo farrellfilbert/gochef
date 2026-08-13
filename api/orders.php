@@ -28,25 +28,27 @@ try {
     }
     
     // Fetch orders for this user or kitchen
-    if ($kitchen_id) {
-        $stmt = $pdo->prepare("
-            SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar 
-            FROM orders o 
-            LEFT JOIN users u ON o.user_id = u.id 
-            WHERE o.kitchen_id = ? 
-            ORDER BY o.id DESC
-        ");
-        $stmt->execute([$kitchen_id]);
-    } else {
-        $stmt = $pdo->prepare("
-            SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar 
-            FROM orders o 
-            LEFT JOIN users u ON o.user_id = u.id 
-            WHERE o.user_id = ? 
-            ORDER BY o.id DESC
-        ");
-        $stmt->execute([$user_id]);
-    }
+        if ($kitchen_id) {
+            $stmt = $pdo->prepare("
+                SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar, k.user_id as kitchen_user_id
+                FROM orders o 
+                LEFT JOIN users u ON o.user_id = u.id 
+                LEFT JOIN kitchens k ON o.kitchen_id = k.id
+                WHERE o.kitchen_id = ? 
+                ORDER BY o.id DESC
+            ");
+            $stmt->execute([$kitchen_id]);
+        } else {
+            $stmt = $pdo->prepare("
+                SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar, k.user_id as kitchen_user_id
+                FROM orders o 
+                LEFT JOIN users u ON o.user_id = u.id 
+                LEFT JOIN kitchens k ON o.kitchen_id = k.id
+                WHERE o.user_id = ? 
+                ORDER BY o.id DESC
+            ");
+            $stmt->execute([$user_id]);
+        }
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     $response = [];

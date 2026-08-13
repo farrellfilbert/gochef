@@ -855,25 +855,24 @@ class ApiService {
   // CHAT
   // =============================================
   
-  static Future<bool> sendChatMessage(String receiverId, String message, {String? kitchenId}) async {
+  static Future<bool> sendChatMessage(String receiverId, String message, {String? kitchenId, String? orderId}) async {
+    final senderId = await getUserId();
+    if (senderId == null) return false;
+
     try {
-      final senderId = await getUserId();
-      if (senderId == null) return false;
-      
       final url = Uri.parse('$baseUrl/chat_send.php');
       final body = {
         'sender_id': senderId,
         'receiver_id': receiverId,
         'message': message,
       };
-      if (kitchenId != null) {
-        body['kitchen_id'] = kitchenId;
-      }
-      
+      if (kitchenId != null) body['kitchen_id'] = kitchenId;
+      if (orderId != null) body['order_id'] = orderId;
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
+        body: json.encode(body),
       );
       
       if (response.statusCode == 200) {

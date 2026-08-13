@@ -5,6 +5,9 @@ import '../notifications/notifications_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/order_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../chat/chat_screen.dart';
 import '../tracking/order_tracking_screen.dart';
 import '../cart/cart_screen.dart';
 
@@ -154,6 +157,20 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           avatar: order.avatar.isNotEmpty ? order.avatar : 'https://via.placeholder.com/150',
                           itemsStr: itemsStr,
                           price: '\$${order.totalAmount.toStringAsFixed(2)}',
+                          onChat: order.kitchenUserId.isNotEmpty ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ChatScreen(
+                                  otherParticipantId: order.kitchenUserId,
+                                  otherParticipantName: order.kitchenName,
+                                  otherParticipantAvatar: order.avatar.isNotEmpty ? order.avatar : 'https://via.placeholder.com/150',
+                                  orderId: order.id,
+                                  kitchenId: order.kitchenId,
+                                ),
+                              ),
+                            );
+                          } : null,
                           onDetails: () {
                             Navigator.push(
                               context,
@@ -218,6 +235,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     required String price,
     required VoidCallback onDetails,
     required VoidCallback onReorder,
+    VoidCallback? onChat,
   }) {
     bool isDelivered = status == 'Completed' || status == 'Delivered';
     
@@ -296,6 +314,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               Text(price, style: AppTextStyles.headlineMd(color: AppColors.primary)),
               Row(
                 children: [
+                  if (onChat != null)
+                    IconButton(
+                      icon: const Icon(Icons.chat_bubble_outline),
+                      color: AppColors.primary,
+                      onPressed: onChat,
+                    ),
                   ElevatedButton(
                     onPressed: onDetails,
                     style: ElevatedButton.styleFrom(

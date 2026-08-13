@@ -13,6 +13,14 @@ if (!$user_id) {
 }
 
 try {
+    // Auto-cleanup expired order chats
+    $pdo->exec("
+        DELETE m FROM chat_messages m 
+        JOIN orders o ON m.order_id = o.id 
+        WHERE o.status IN ('Completed', 'Delivered') 
+          AND o.updated_at < (NOW() - INTERVAL 10 MINUTE)
+    ");
+
     // We want the latest message for each conversation
     // A conversation is uniquely identified by the pair (LEAST(sender_id, receiver_id), GREATEST(sender_id, receiver_id))
     

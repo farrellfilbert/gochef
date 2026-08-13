@@ -28,6 +28,7 @@ class OrderModel {
   final String customerPhone;
   final String customerAvatar;
   final String kitchenId;
+  final String kitchenUserId;
   final String kitchenName;
   final String date;
   final String status;
@@ -44,6 +45,7 @@ class OrderModel {
     this.customerPhone = '',
     this.customerAvatar = '',
     this.kitchenId = '',
+    this.kitchenUserId = '',
     required this.kitchenName,
     required this.date,
     required this.status,
@@ -80,6 +82,7 @@ class OrderModel {
       customerPhone: json['customer_phone'] ?? '',
       customerAvatar: json['customer_avatar'] ?? '',
       kitchenId: json['kitchen_id']?.toString() ?? '',
+      kitchenUserId: json['kitchen_user_id']?.toString() ?? '',
       kitchenName: json['kitchen_name'] ?? '',
       date: dateStr,
       status: json['status'] ?? 'Completed',

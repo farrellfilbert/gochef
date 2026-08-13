@@ -22,10 +22,11 @@ if (
 }
 
 $kitchen_id = isset($data->kitchen_id) ? $data->kitchen_id : null;
+$order_id = isset($data->order_id) ? $data->order_id : null;
 
 try {
-    $stmt = $pdo->prepare("INSERT INTO chat_messages (sender_id, receiver_id, kitchen_id, message) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$data->sender_id, $data->receiver_id, $kitchen_id, $data->message]);
+    $stmt = $pdo->prepare("INSERT INTO chat_messages (sender_id, receiver_id, kitchen_id, order_id, message) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$data->sender_id, $data->receiver_id, $kitchen_id, $order_id, $data->message]);
     
     echo json_encode([
         'success' => true,
