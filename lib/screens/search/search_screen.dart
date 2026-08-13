@@ -150,7 +150,7 @@ class SearchScreen extends StatelessWidget {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('A gift for you!', style: AppTextStyles.headlineSm(color: Colors.white).copyWith(fontSize: 16)),
+                                    Text('A gift for you!', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
                                     Text('Claim your daily coins.', style: AppTextStyles.labelSm(color: Colors.white.withValues(alpha: 0.9))),
                                   ],
                                 ),
