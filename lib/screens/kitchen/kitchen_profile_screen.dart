@@ -22,6 +22,7 @@ class KitchenProfileScreen extends StatefulWidget {
 class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
+  bool _isFollowing = false;
   late Future<KitchenModel?> _kitchenFuture;
 
   @override
@@ -44,11 +45,14 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
   }
 
   void _toggleFavorite(KitchenModel kitchen) async {
+    setState(() => _isFollowing = !_isFollowing);
     final success = await ApiService.addFavorite(kitchenId: kitchen.id, type: 'kitchen');
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Added to favorites'), backgroundColor: AppColors.primary),
+        SnackBar(content: Text(_isFollowing ? 'Added to favorites' : 'Removed from favorites'), backgroundColor: AppColors.primary),
       );
+    } else if (!success && mounted) {
+      setState(() => _isFollowing = !_isFollowing);
     }
   }
 
@@ -224,14 +228,14 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                           ElevatedButton(
                                             onPressed: () => _toggleFavorite(kitchen),
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: AppColors.primaryContainer,
-                                              foregroundColor: AppColors.onPrimaryContainer,
+                                              backgroundColor: _isFollowing ? AppColors.surfaceContainerHigh : AppColors.primaryContainer,
+                                              foregroundColor: _isFollowing ? AppColors.onSurface : AppColors.onPrimaryContainer,
                                               shape: RoundedRectangleBorder(
                                                 borderRadius: BorderRadius.circular(20),
                                               ),
                                               padding: const EdgeInsets.symmetric(horizontal: 24),
                                             ),
-                                            child: const Text('Follow', style: TextStyle(fontWeight: FontWeight.bold)),
+                                            child: Text(_isFollowing ? 'Following' : 'Follow', style: const TextStyle(fontWeight: FontWeight.bold)),
                                           ),
                                           const SizedBox(width: 8),
                                           Container(

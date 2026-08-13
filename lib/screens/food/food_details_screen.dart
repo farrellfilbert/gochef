@@ -22,6 +22,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   int _quantity = 1;
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
+  bool _isFavorite = false;
   late Future<MenuItemModel?> _menuItemFuture;
   
   // Track selected addons
@@ -75,11 +76,14 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   }
 
   void _toggleFavorite(MenuItemModel item) async {
+    setState(() => _isFavorite = !_isFavorite);
     final success = await ApiService.addFavorite(menuItemId: item.id, type: 'dish');
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Added to favorites'), backgroundColor: AppColors.primary),
+        SnackBar(content: Text(_isFavorite ? 'Added to favorites' : 'Removed from favorites'), backgroundColor: AppColors.primary),
       );
+    } else if (!success && mounted) {
+      setState(() => _isFavorite = !_isFavorite);
     }
   }
 
@@ -454,9 +458,12 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                     color: AppColors.surface.withValues(alpha: 0.5),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.favorite_border, color: AppColors.onSurface),
+                                    child: Icon(
+                                      _isFavorite ? Icons.favorite : Icons.favorite_border,
+                                      color: _isFavorite ? AppColors.primary : AppColors.onSurface,
+                                    ),
+                                  ),
                                 ),
-                              ),
                               const SizedBox(width: 12),
                               GestureDetector(
                                 onTap: () {
