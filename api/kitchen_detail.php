@@ -30,6 +30,11 @@ $reviews = $stmt->fetchAll();
 
 $kitchen['menu_items'] = $menuItems;
 $kitchen['reviews'] = $reviews;
+if (isset($kitchen['atmosphere_images']) && !empty($kitchen['atmosphere_images'])) {
+    $kitchen['atmosphere_images'] = json_decode($kitchen['atmosphere_images'], true) ?: [];
+} else {
+    $kitchen['atmosphere_images'] = [];
+}
 
 echo json_encode(['success' => true, 'data' => $kitchen]);
 ?>

@@ -314,24 +314,22 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                     const SizedBox(height: 32),
                     
                     // Kitchen Photos Gallery
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text('Atmosphere', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 140,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
+                    if (kitchen.atmosphereImages.isNotEmpty) ...[
+                      Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        children: [
-                          _buildPhotoItem('https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=300&auto=format&fit=crop'),
-                          _buildPhotoItem('https://images.unsplash.com/photo-1577140917170-285929fb55b7?q=80&w=300&auto=format&fit=crop'),
-                          _buildPhotoItem('https://images.unsplash.com/photo-1505826759037-406b40feb4cd?q=80&w=300&auto=format&fit=crop'),
-                          _buildPhotoItem('https://images.unsplash.com/photo-1512152272829-4fa2c65a7822?q=80&w=300&auto=format&fit=crop'),
-                        ],
+                        child: Text('Atmosphere', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 140,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          children: kitchen.atmosphereImages.map((img) => _buildPhotoItem(img)).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
 
                     // Menu Section
                     Padding(

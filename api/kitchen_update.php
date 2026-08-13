@@ -53,6 +53,11 @@ if (isset($data->cover_image)) {
     $params[] = $data->cover_image;
     $types .= "s";
 }
+if (isset($data->atmosphere_images)) {
+    $updateFields[] = "atmosphere_images = ?";
+    $params[] = $data->atmosphere_images;
+    $types .= "s";
+}
 if (isset($data->about)) {
     $updateFields[] = "about = ?";
     $params[] = $data->about;

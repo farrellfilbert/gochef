@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart'; // for kIsWeb
+import 'dart:convert';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'earnings_screen.dart';
@@ -141,6 +142,69 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
           );
         }
       }
+      }
+    }
+  }
+
+  Future<void> _uploadAtmosphereImage(int index) async {
+    final picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (picked != null && mounted) {
+      XFile imageToUpload = picked;
+
+      if (!kIsWeb) {
+        final croppedFile = await ImageCropper().cropImage(
+          sourcePath: picked.path,
+          uiSettings: [
+            WebUiSettings(
+              context: context,
+              presentStyle: WebPresentStyle.dialog,
+            ),
+          ],
+        );
+        if (croppedFile != null) {
+          imageToUpload = XFile(croppedFile.path);
+        } else {
+          return;
+        }
+      }
+
+      setState(() => _isLoading = true);
+      try {
+        String? imageUrl = await ApiService.uploadImage(imageToUpload);
+        if (imageUrl != null) {
+          List<String> currentImages = List<String>.from(_kitchen!.atmosphereImages);
+          if (index < currentImages.length) {
+            currentImages[index] = imageUrl;
+          } else {
+            currentImages.add(imageUrl);
+          }
+          
+          Map<String, dynamic> updateData = {
+            'kitchen_id': _kitchenId,
+            'atmosphere_images': jsonEncode(currentImages),
+          };
+          
+          bool success = await ApiService.updateKitchen(updateData);
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Atmosphere photo updated')),
+            );
+            _loadProfile();
+          } else {
+            throw Exception('Failed to update kitchen');
+          }
+        } else {
+          throw Exception('Failed to upload image');
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e')),
+          );
+        }
       }
     }
   }
@@ -424,6 +488,47 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                         ],
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Atmosphere Photos Section
+                Row(
+                  children: [
+                    const Icon(Icons.photo_library, color: AppColors.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Text('Atmosphere Photos', style: AppTextStyles.headlineMd(color: Colors.white)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text('Upload up to 4 photos to show off your kitchen vibe.', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 100,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 4,
+                    itemBuilder: (context, index) {
+                      bool hasImage = index < _kitchen!.atmosphereImages.length;
+                      String imageUrl = hasImage ? _kitchen!.atmosphereImages[index] : '';
+
+                      return GestureDetector(
+                        onTap: () => _uploadAtmosphereImage(index),
+                        child: Container(
+                          width: 100,
+                          margin: const EdgeInsets.only(right: 12),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                            image: hasImage ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover) : null,
+                          ),
+                          child: hasImage 
+                            ? null 
+                            : const Center(child: Icon(Icons.add_a_photo, color: AppColors.onSurfaceVariant)),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 24),
