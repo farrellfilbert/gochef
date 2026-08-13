@@ -4,6 +4,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../models/order_model.dart';
+import '../chat/chat_screen.dart';
 
 class ChefOrdersScreen extends StatefulWidget {
   const ChefOrdersScreen({super.key});
@@ -182,6 +183,18 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                               secondaryActionText: order.status == 'Active' ? 'Cancel' : null,
                               onPrimaryAction: nextStatus.isNotEmpty ? () => _updateOrderStatus(order.id, nextStatus) : null,
                               onSecondaryAction: order.status == 'Active' ? () => _updateOrderStatus(order.id, 'Cancelled') : null,
+                              onContactCustomer: order.userId.isNotEmpty ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ChatScreen(
+                                      otherParticipantId: order.userId,
+                                      otherParticipantName: order.customerName.isNotEmpty ? order.customerName : 'Customer',
+                                      otherParticipantAvatar: order.customerAvatar,
+                                    ),
+                                  ),
+                                );
+                              } : null,
                             ),
                           );
                         },
@@ -204,6 +217,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
     String? secondaryActionText,
     VoidCallback? onPrimaryAction,
     VoidCallback? onSecondaryAction,
+    VoidCallback? onContactCustomer,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -236,7 +250,19 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                   ),
                 ],
               ),
-              Text(totalAmount, style: AppTextStyles.headlineMd(color: AppColors.primary)),
+              Row(
+                children: [
+                  if (onContactCustomer != null)
+                    IconButton(
+                      icon: const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
+                      onPressed: onContactCustomer,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  if (onContactCustomer != null) const SizedBox(width: 8),
+                  Text(totalAmount, style: AppTextStyles.headlineMd(color: AppColors.primary)),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 16),

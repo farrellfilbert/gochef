@@ -29,10 +29,22 @@ try {
     
     // Fetch orders for this user or kitchen
     if ($kitchen_id) {
-        $stmt = $pdo->prepare("SELECT * FROM orders WHERE kitchen_id = ? ORDER BY id DESC");
+        $stmt = $pdo->prepare("
+            SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar 
+            FROM orders o 
+            LEFT JOIN users u ON o.user_id = u.id 
+            WHERE o.kitchen_id = ? 
+            ORDER BY o.id DESC
+        ");
         $stmt->execute([$kitchen_id]);
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC");
+        $stmt = $pdo->prepare("
+            SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar 
+            FROM orders o 
+            LEFT JOIN users u ON o.user_id = u.id 
+            WHERE o.user_id = ? 
+            ORDER BY o.id DESC
+        ");
         $stmt->execute([$user_id]);
     }
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -45,6 +57,10 @@ try {
         
         $response[] = [
             'id' => $order['id'],
+            'user_id' => $order['user_id'],
+            'customer_name' => $order['customer_name'] ?? 'Guest',
+            'customer_phone' => $order['customer_phone'] ?? '',
+            'customer_avatar' => $order['customer_avatar'] ?? '',
             'kitchen_id' => $order['kitchen_id'],
             'kitchen_name' => $order['kitchen_name'],
             'date' => $order['order_date'],

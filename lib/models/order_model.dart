@@ -23,6 +23,10 @@ class OrderItemModel {
 
 class OrderModel {
   final String id;
+  final String userId;
+  final String customerName;
+  final String customerPhone;
+  final String customerAvatar;
   final String kitchenId;
   final String kitchenName;
   final String date;
@@ -35,6 +39,10 @@ class OrderModel {
 
   OrderModel({
     required this.id,
+    this.userId = '',
+    this.customerName = '',
+    this.customerPhone = '',
+    this.customerAvatar = '',
     this.kitchenId = '',
     required this.kitchenName,
     required this.date,
@@ -66,9 +74,13 @@ class OrderModel {
     } catch (e) {}
 
     return OrderModel(
-      id: json['id']?.toString() ?? '',
+      id: json['id'].toString(),
+      userId: json['user_id']?.toString() ?? '',
+      customerName: json['customer_name'] ?? '',
+      customerPhone: json['customer_phone'] ?? '',
+      customerAvatar: json['customer_avatar'] ?? '',
       kitchenId: json['kitchen_id']?.toString() ?? '',
-      kitchenName: json['kitchen_name'] ?? json['kitchenName'] ?? '',
+      kitchenName: json['kitchen_name'] ?? '',
       date: dateStr,
       status: json['status'] ?? 'Completed',
       totalAmount: json['total_amount'] != null 
