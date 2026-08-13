@@ -12,6 +12,7 @@ import '../../services/api_service.dart';
 import '../auth/login_screen.dart';
 import '../orders/order_history_screen.dart';
 import '../chat/inbox_screen.dart';
+import '../../models/order_model.dart';
 import 'address_selection_screen.dart';
 import 'payment_methods_screen.dart';
 import 'security_password_screen.dart';
@@ -28,8 +29,14 @@ class UserProfileScreen extends StatefulWidget {
   State<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
+class ProfileData {
+  final UserModel user;
+  final List<OrderModel> orders;
+  ProfileData(this.user, this.orders);
+}
+
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  late Future<UserModel> _profileFuture;
+  late Future<ProfileData> _profileFuture;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -40,8 +47,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   void _refreshProfile() {
     setState(() {
-      _profileFuture = ApiService.getProfile();
+      _profileFuture = _loadData();
     });
+  }
+
+  Future<ProfileData> _loadData() async {
+    final user = await ApiService.getProfile();
+    final orders = await ApiService.getOrders();
+    return ProfileData(user, orders);
   }
 
   Future<void> _showEditProfileDialog(UserModel user) async {
@@ -189,15 +202,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('GoChef', style: AppTextStyles.headlineLgMobile(color: AppColors.primary).copyWith(fontSize: 20)),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 14, color: AppColors.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Text(
-                      'University District',
-                      style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
-                    ),
-                  ],
+                Text(
+                  'Your Profile',
+                  style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
                 ),
               ],
             ),
@@ -216,7 +223,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           child: Container(color: AppColors.outlineVariant.withValues(alpha: 0.2), height: 1),
         ),
       ),
-      body: FutureBuilder<UserModel>(
+      body: FutureBuilder<ProfileData>(
         future: _profileFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -253,7 +260,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           if (!snapshot.hasData) {
             return const Center(child: Text('Failed to load profile: No data', style: TextStyle(color: Colors.white)));
           }
-          final user = snapshot.data!;
+          final user = snapshot.data!.user;
+          final orders = snapshot.data!.orders;
+          
+          double totalSpent = 0;
+          for (var o in orders) {
+             totalSpent += o.totalAmount;
+          }
+          int loyaltyPoints = (totalSpent * 10).toInt();
+          
+          OrderModel? lastOrder;
+          if (orders.isNotEmpty) {
+             lastOrder = orders.first;
+          }
           return SingleChildScrollView(
             padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 120),
             child: Column(
@@ -336,7 +355,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('1,250', style: AppTextStyles.displayLgMobile(color: AppColors.primary).copyWith(height: 1)),
+                              Text('$loyaltyPoints', style: AppTextStyles.displayLgMobile(color: AppColors.primary).copyWith(height: 1)),
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 4, left: 4),
                                 child: Text('pts', style: AppTextStyles.bodyMd(color: AppColors.primary.withValues(alpha: 0.7))),
@@ -398,7 +417,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           children: [
                             Text('Recent Activity', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
                             const SizedBox(height: 4),
-                            Text('+150 pts from "Spicy Thai Kitchen"', style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
+                            if (lastOrder != null) 
+                              Text('+${(lastOrder.totalAmount * 10).toInt()} pts from "${lastOrder.kitchenName}"', style: AppTextStyles.bodyMd(color: AppColors.onSurface))
+                            else
+                              Text('No recent activity', style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
                           ],
                         ),
                         const Icon(Icons.arrow_forward_ios, color: AppColors.primary, size: 16),
