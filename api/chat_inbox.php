@@ -22,7 +22,7 @@ try {
     ");
 
     // We want the latest message for each conversation
-    // A conversation is uniquely identified by the pair (LEAST(sender_id, receiver_id), GREATEST(sender_id, receiver_id))
+    // A conversation is uniquely identified by the pair (LEAST(sender_id, receiver_id), GREATEST(sender_id, receiver_id)) and order_id
     
     $stmt = $pdo->prepare("
         SELECT 
@@ -31,19 +31,21 @@ try {
             u.avatar as other_user_avatar,
             k.name as kitchen_name,
             k.avatar as kitchen_avatar,
-            (SELECT COUNT(*) FROM chat_messages WHERE sender_id = u.id AND receiver_id = ? AND is_read = 0) as unread_count
+            (SELECT COUNT(*) FROM chat_messages WHERE sender_id = u.id AND receiver_id = ? AND IFNULL(order_id, '') = IFNULL(m1.order_id, '') AND is_read = 0) as unread_count
         FROM chat_messages m1
         INNER JOIN (
             SELECT 
                 LEAST(sender_id, receiver_id) as p1, 
                 GREATEST(sender_id, receiver_id) as p2, 
+                IFNULL(order_id, '') as p3,
                 MAX(created_at) as max_created_at
             FROM chat_messages
             WHERE sender_id = ? OR receiver_id = ?
-            GROUP BY p1, p2
+            GROUP BY p1, p2, p3
         ) m2 
         ON LEAST(m1.sender_id, m1.receiver_id) = m2.p1 
            AND GREATEST(m1.sender_id, m1.receiver_id) = m2.p2 
+           AND IFNULL(m1.order_id, '') = m2.p3
            AND m1.created_at = m2.max_created_at
         JOIN users u ON u.id = IF(m1.sender_id = ?, m1.receiver_id, m1.sender_id)
         LEFT JOIN kitchens k ON (k.user_id = u.id OR k.id = m1.kitchen_id)
@@ -74,7 +76,8 @@ try {
             'avatar' => $avatar,
             'last_message' => $row['message'],
             'created_at' => $row['created_at'],
-            'unread_count' => $row['unread_count']
+            'unread_count' => $row['unread_count'],
+            'order_id' => $row['order_id']
         ];
     }
 

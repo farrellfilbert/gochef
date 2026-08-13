@@ -31,13 +31,18 @@ class _InboxScreenState extends State<InboxScreen> {
     if (mounted) {
       setState(() {
         _chats = inboxRaw.map((c) {
+          String name = c['name'] ?? 'Unknown';
+          if (c['order_id'] != null && c['order_id'].toString().isNotEmpty) {
+            name = '$name (Order #${c['order_id']})';
+          }
           return ChatModel(
             id: c['other_user_id'].toString(),
-            otherParticipantName: c['name'] ?? 'Unknown',
+            otherParticipantName: name,
             otherParticipantAvatar: c['avatar'] ?? '',
             lastMessage: c['last_message'] ?? '',
             lastMessageTime: DateTime.parse(c['created_at']),
             unreadCount: int.tryParse(c['unread_count']?.toString() ?? '0') ?? 0,
+            orderId: c['order_id']?.toString(),
             isOnline: true, // we don't have online status in backend yet
           );
         }).toList();
@@ -88,6 +93,7 @@ class _InboxScreenState extends State<InboxScreen> {
               otherParticipantId: chat.id,
               otherParticipantName: chat.otherParticipantName,
               otherParticipantAvatar: chat.otherParticipantAvatar,
+              orderId: chat.orderId,
               isOnline: chat.isOnline,
             ),
           ),

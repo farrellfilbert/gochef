@@ -58,7 +58,10 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() => _isLoading = true);
     }
     
-    final messagesRaw = await ApiService.getChatMessages(widget.otherParticipantId);
+    final messagesRaw = await ApiService.getChatMessages(
+      widget.otherParticipantId, 
+      orderId: widget.orderId
+    );
     
     if (mounted) {
       setState(() {

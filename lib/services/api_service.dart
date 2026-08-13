@@ -886,12 +886,16 @@ class ApiService {
     }
   }
   
-  static Future<List<Map<String, dynamic>>> getChatMessages(String otherUserId) async {
+  static Future<List<Map<String, dynamic>>> getChatMessages(String otherUserId, {String? orderId}) async {
     try {
       final userId = await getUserId();
       if (userId == null) return [];
       
-      final url = Uri.parse('$baseUrl/chat_messages.php?user1_id=$userId&user2_id=$otherUserId');
+      String urlStr = '$baseUrl/chat_messages.php?user1_id=$userId&user2_id=$otherUserId';
+      if (orderId != null) {
+        urlStr += '&order_id=$orderId';
+      }
+      final url = Uri.parse(urlStr);
       final response = await http.get(url);
       
       if (response.statusCode == 200) {

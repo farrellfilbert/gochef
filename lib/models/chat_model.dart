@@ -19,6 +19,7 @@ class ChatModel {
   final String lastMessage;
   final DateTime lastMessageTime;
   final int unreadCount;
+  final String? orderId;
   final bool isOnline;
 
   ChatModel({
@@ -28,6 +29,7 @@ class ChatModel {
     required this.lastMessage,
     required this.lastMessageTime,
     required this.unreadCount,
+    this.orderId,
     this.isOnline = false,
   });
 }
