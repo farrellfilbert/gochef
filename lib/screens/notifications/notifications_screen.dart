@@ -232,10 +232,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
         itemCount: _chats.length,
         itemBuilder: (context, index) {
           final chat = _chats[index];
-          final unreadCount = int.tryParse(chat['unread_count'].toString()) ?? 0;
+          final unreadCount = int.tryParse(chat['unread_count']?.toString() ?? '0') ?? 0;
           final isUnread = unreadCount > 0;
-          final otherName = chat['kitchen_name'] ?? chat['other_user_name'] ?? 'Unknown';
-          final otherAvatar = chat['kitchen_avatar'] ?? chat['other_user_avatar'] ?? '';
+          
+          String otherName = chat['name'] ?? 'Unknown';
+          if (chat['order_id'] != null && chat['order_id'].toString().isNotEmpty) {
+            otherName = '$otherName (Order #${chat['order_id']})';
+          }
+          final otherAvatar = chat['avatar'] ?? '';
           
           DateTime time;
           try {
@@ -276,7 +280,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
               )
             ),
             subtitle: Text(
-              chat['message'] ?? '', 
+              chat['last_message'] ?? '', 
               maxLines: 1, 
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.bodyMd(color: isUnread ? Colors.white : AppColors.onSurfaceVariant),
@@ -286,9 +290,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
               style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
             ),
             onTap: () {
-              final otherId = (chat['sender_id'].toString() == _currentUserId) 
-                  ? chat['receiver_id'].toString() 
-                  : chat['sender_id'].toString();
+              final otherId = chat['other_user_id']?.toString() ?? '';
+              final orderId = chat['order_id']?.toString();
                   
               Navigator.push(
                 context,
@@ -297,6 +300,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
                     otherParticipantId: otherId,
                     otherParticipantName: otherName,
                     otherParticipantAvatar: otherAvatar,
+                    orderId: orderId,
                   ),
                 ),
               ).then((_) => _loadAllData()); // Refresh when back
