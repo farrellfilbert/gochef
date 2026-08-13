@@ -1,0 +1,1 @@
+<?php require_once "db_connect.php"; echo "CHATS: "; print_r($pdo->query("SELECT * FROM chat_messages")->fetchAll(PDO::FETCH_ASSOC)); echo "USERS: "; print_r($pdo->query("SELECT id, name FROM users")->fetchAll(PDO::FETCH_ASSOC)); echo "KITCHENS: "; print_r($pdo->query("SELECT id, user_id, name FROM kitchens")->fetchAll(PDO::FETCH_ASSOC)); ?>
