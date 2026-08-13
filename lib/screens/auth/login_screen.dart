@@ -84,26 +84,18 @@ class _LoginScreenState extends State<LoginScreen>
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
           if (data['success']) {
-            final isChef = data['user']['role'] == 'chef';
-            final role = isChef ? 'chef' : 'user';
+            // Always set role to 'user' for this session since we are logging in through the Foodie portal
             await ApiService.saveUserId(
               data['user']['id'].toString(), 
-              role: role, 
+              role: 'user', 
               kitchenId: data['user']['kitchen_id']?.toString()
             );
             if (!mounted) return;
-            if (isChef) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
-              );
-            } else {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const MainNavigation()),
-              );
-            }
-        } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MainNavigation()),
+            );
+          } else {
           _showError(data['error'] ?? 'Login failed');
         }
       } else {
@@ -149,26 +141,18 @@ class _LoginScreenState extends State<LoginScreen>
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
             if (data['success']) {
-              final isChef = data['user']['role'] == 'chef';
-              final role = isChef ? 'chef' : 'user';
+              // Always set role to 'user' for this session since we are logging in through the Foodie portal
               await ApiService.saveUserId(
                 data['user']['id'].toString(), 
-                role: role, 
+                role: 'user', 
                 kitchenId: data['user']['kitchen_id']?.toString()
               );
               if (!mounted) return;
-              if (isChef) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
-                );
-              } else {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MainNavigation()),
-                );
-              }
-          } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const MainNavigation()),
+              );
+            } else {
             _showError(data['error'] ?? 'Login failed');
           }
         } else {
