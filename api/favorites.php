@@ -57,15 +57,18 @@ if ($method === 'GET') {
         $stmt->execute([$user_id, $menu_item_id]);
     }
 
-    if ($stmt->fetch()) {
-        echo json_encode(['success' => false, 'error' => 'Already favorited']);
+    if ($existing = $stmt->fetch()) {
+        // Toggle off (unfavorite/unfollow)
+        $delStmt = $pdo->prepare("DELETE FROM favorites WHERE id = ?");
+        $delStmt->execute([$existing['id']]);
+        echo json_encode(['success' => true, 'action' => 'removed']);
         exit;
     }
 
     $stmt = $pdo->prepare("INSERT INTO favorites (user_id, menu_item_id, kitchen_id, type) VALUES (?, ?, ?, ?)");
     $stmt->execute([$user_id, $menu_item_id, $kitchen_id, $type]);
 
-    echo json_encode(['success' => true, 'id' => $pdo->lastInsertId()]);
+    echo json_encode(['success' => true, 'action' => 'added', 'id' => $pdo->lastInsertId()]);
 
 } elseif ($method === 'DELETE') {
     $input = json_decode(file_get_contents('php://input'), true);

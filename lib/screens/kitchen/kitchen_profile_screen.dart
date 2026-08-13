@@ -29,6 +29,13 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
   void initState() {
     super.initState();
     _kitchenFuture = ApiService.getKitchenDetail(widget.kitchenId);
+    ApiService.getFavorites(type: 'kitchen').then((favs) {
+      if (mounted) {
+        setState(() {
+          _isFollowing = favs.any((f) => f['id'] == widget.kitchenId);
+        });
+      }
+    });
     _scrollController.addListener(() {
       if (_scrollController.offset > 50 && !_isScrolled) {
         setState(() => _isScrolled = true);

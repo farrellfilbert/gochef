@@ -33,6 +33,13 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   void initState() {
     super.initState();
     _menuItemFuture = ApiService.getMenuDetail(widget.menuItemId);
+    ApiService.getFavorites(type: 'dish').then((favs) {
+      if (mounted) {
+        setState(() {
+          _isFavorite = favs.any((f) => f['id'] == widget.menuItemId);
+        });
+      }
+    });
     _scrollController.addListener(() {
       if (_scrollController.offset > 50 && !_isScrolled) {
         setState(() => _isScrolled = true);
