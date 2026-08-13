@@ -18,6 +18,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
   late TabController _tabController;
   
   bool _isLoading = true;
+  String _currentUserId = '';
   List<NotificationModel> _promos = [];
   List<Map<String, dynamic>> _chats = [];
   List<OrderModel> _activeOrders = [];
@@ -38,6 +39,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
   Future<void> _loadAllData() async {
     setState(() => _isLoading = true);
     try {
+      final userId = await ApiService.getUserId() ?? '';
       final results = await Future.wait([
         ApiService.getOrders(),
         ApiService.getChatInbox(),
@@ -50,6 +52,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
 
       if (mounted) {
         setState(() {
+          _currentUserId = userId;
           // Filter active orders for tracking
           _activeOrders = allOrders.where((o) => o.status != 'Completed' && o.status != 'Cancelled').toList();
           _chats = allChats;
@@ -283,7 +286,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
               style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
             ),
             onTap: () {
-              final otherId = (chat['sender_id'].toString() == ApiService.userId) 
+              final otherId = (chat['sender_id'].toString() == _currentUserId) 
                   ? chat['receiver_id'].toString() 
                   : chat['sender_id'].toString();
                   
