@@ -14,6 +14,7 @@ import '../../models/category_model.dart';
 import '../../models/promotion_model.dart';
 import '../../models/user_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
+import '../../widgets/notification_bell.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -240,10 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                                 },
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.notifications_none, color: AppColors.onSurfaceVariant),
-                                onPressed: () {},
-                              ),
+                              const NotificationBell(iconColor: AppColors.onSurfaceVariant),
                             ],
                           )
                         ],

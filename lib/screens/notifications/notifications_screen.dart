@@ -3,7 +3,9 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../models/notification_model.dart';
-import '../../widgets/custom_app_bar_title.dart';
+import '../../models/order_model.dart';
+import '../chat/chat_screen.dart';
+import 'package:intl/intl.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -12,29 +14,51 @@ class NotificationsScreen extends StatefulWidget {
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  int _selectedFilter = 0;
-  final List<String> _filters = ['All', 'Orders', 'Promotions'];
+class _NotificationsScreenState extends State<NotificationsScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   
   bool _isLoading = true;
-  List<NotificationModel> _notifications = [];
+  List<NotificationModel> _promos = [];
+  List<Map<String, dynamic>> _chats = [];
+  List<OrderModel> _activeOrders = [];
 
   @override
   void initState() {
     super.initState();
-    _loadNotifications();
+    _tabController = TabController(length: 3, vsync: this);
+    _loadAllData();
   }
 
-  Future<void> _loadNotifications() async {
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadAllData() async {
     setState(() => _isLoading = true);
     try {
-      final notifs = await ApiService.getNotifications();
-      setState(() {
-        _notifications = (notifs['notifications'] as List).cast<NotificationModel>();
-      });
+      final results = await Future.wait([
+        ApiService.getOrders(),
+        ApiService.getChatInbox(),
+        ApiService.getNotifications(),
+      ]);
+
+      final allOrders = results[0] as List<OrderModel>;
+      final allChats = results[1] as List<Map<String, dynamic>>;
+      final allNotifs = results[2] as Map<String, dynamic>;
+
+      if (mounted) {
+        setState(() {
+          // Filter active orders for tracking
+          _activeOrders = allOrders.where((o) => o.status != 'Completed' && o.status != 'Cancelled').toList();
+          _chats = allChats;
+          _promos = (allNotifs['data'] as List? ?? []).map((n) => NotificationModel.fromJson(n)).toList();
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading notifications: $e');
-    } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -43,226 +67,323 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final success = await ApiService.markNotificationRead(notificationId);
     if (success) {
       setState(() {
-        final index = _notifications.indexWhere((n) => n.id == notificationId);
+        final index = _promos.indexWhere((n) => n.id == notificationId);
         if (index != -1) {
-          _notifications[index] = NotificationModel(
-            id: _notifications[index].id,
-            title: _notifications[index].title,
-            message: _notifications[index].message,
-            type: _notifications[index].type,
+          _promos[index] = NotificationModel(
+            id: _promos[index].id,
+            title: _promos[index].title,
+            message: _promos[index].message,
+            createdAt: _promos[index].createdAt,
             isRead: true,
-            createdAt: _notifications[index].createdAt,
           );
         }
       });
     }
   }
 
-  Future<void> _markAllAsRead() async {
-    for (var notif in _notifications) {
-      if (!notif.isRead) {
-        await _markAsRead(notif.id);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    List<NotificationModel> filteredNotifs = _notifications;
-    if (_selectedFilter == 1) { // Orders
-      filteredNotifs = _notifications.where((n) => n.type == 'order').toList();
-    } else if (_selectedFilter == 2) { // Promotions
-      filteredNotifs = _notifications.where((n) => n.type == 'promotion').toList();
-    }
-
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.midnight,
       appBar: AppBar(
-        toolbarHeight: 80,
-        backgroundColor: AppColors.surface.withValues(alpha: 0.8),
+        backgroundColor: AppColors.midnight,
         elevation: 0,
-        title: const CustomAppBarTitle(subtitle: 'Notifications'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, color: AppColors.primary),
-            onPressed: () {},
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+        centerTitle: true,
+        title: Text('Notifications', style: AppTextStyles.headlineMd(color: Colors.white)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
         ),
-      ),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-        : SingleChildScrollView(
-        padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text('Notifications', style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface)),
-                GestureDetector(
-                  onTap: _markAllAsRead,
-                  child: Text('Mark all as read', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(decoration: TextDecoration.underline)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Category Tabs
-            SizedBox(
-              height: 40,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _filters.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  bool isSelected = _selectedFilter == index;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedFilter = index),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primaryContainer : AppColors.surfaceContainer,
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(color: isSelected ? Colors.transparent : AppColors.outlineVariant.withValues(alpha: 0.2)),
-                        boxShadow: isSelected
-                            ? [BoxShadow(color: AppColors.primaryContainer.withValues(alpha: 0.3), blurRadius: 15)]
-                            : null,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        _filters[index],
-                        style: AppTextStyles.labelMono(color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Notifications List
-            if (filteredNotifs.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40),
-                  child: Text('No notifications found', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
-                ),
-              )
-            else
-              ...filteredNotifs.map((n) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildNotificationCard(
-                    notification: n,
-                  ),
-                );
-              }),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.primary,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.onSurfaceVariant,
+          tabs: const [
+            Tab(text: 'System'),
+            Tab(text: 'Chats'),
+            Tab(text: 'Promos'),
           ],
         ),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildSystemTab(),
+                _buildChatsTab(),
+                _buildPromosTab(),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildSystemTab() {
+    if (_activeOrders.isEmpty) {
+      return Center(
+        child: Text('No active orders to track', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _loadAllData,
+      color: AppColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _activeOrders.length,
+        itemBuilder: (context, index) {
+          final order = _activeOrders[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(order.kitchenName, style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
+                    Text('Order #${order.id}', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildOrderTracker(order.status),
+                const SizedBox(height: 16),
+                Center(
+                  child: Text('Expected arrival: in 30 mins', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                )
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildNotificationCard({
-    required NotificationModel notification,
-  }) {
-    IconData icon = Icons.notifications;
-    Color iconColor = AppColors.primary;
+  Widget _buildOrderTracker(String status) {
+    const statuses = ['Active', 'Preparing', 'Ready', 'Completed'];
+    int currentIndex = statuses.indexOf(status);
+    if (currentIndex == -1) currentIndex = 0;
 
-    if (notification.type == 'order') {
-      icon = Icons.restaurant;
-      iconColor = AppColors.primaryContainer;
-    } else if (notification.type == 'promotion') {
-      icon = Icons.sell;
-      iconColor = AppColors.tertiary;
-    }
-
-    return GestureDetector(
-      onTap: () {
-        if (!notification.isRead) _markAsRead(notification.id);
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1C2029).withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFA98890).withValues(alpha: 0.1)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: iconColor.withValues(alpha: 0.2)),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: List.generate(4, (index) {
+        bool isCompleted = index <= currentIndex;
+        bool isCurrent = index == currentIndex;
+        return Expanded(
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 4,
+                      color: index == 0 ? Colors.transparent : (isCompleted ? AppColors.primary : AppColors.surfaceContainerHighest),
+                    ),
                   ),
-                  child: Icon(icon, color: iconColor),
+                  Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isCompleted ? AppColors.primary : AppColors.surfaceContainerHighest,
+                      border: isCurrent ? Border.all(color: Colors.white, width: 2) : null,
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      height: 4,
+                      color: index == 3 ? Colors.transparent : (isCompleted && !isCurrent ? AppColors.primary : AppColors.surfaceContainerHighest),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                statuses[index],
+                style: AppTextStyles.labelSm(color: isCurrent ? AppColors.primary : AppColors.onSurfaceVariant).copyWith(fontSize: 10),
+              )
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildChatsTab() {
+    if (_chats.isEmpty) {
+      return Center(
+        child: Text('No messages yet', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _loadAllData,
+      color: AppColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _chats.length,
+        itemBuilder: (context, index) {
+          final chat = _chats[index];
+          final unreadCount = int.tryParse(chat['unread_count'].toString()) ?? 0;
+          final isUnread = unreadCount > 0;
+          final otherName = chat['kitchen_name'] ?? chat['other_user_name'] ?? 'Unknown';
+          final otherAvatar = chat['kitchen_avatar'] ?? chat['other_user_avatar'] ?? '';
+          
+          DateTime time;
+          try {
+            time = DateTime.parse(chat['created_at']);
+          } catch (_) {
+            time = DateTime.now();
+          }
+
+          return ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: AppColors.surfaceContainerLow,
+                  backgroundImage: otherAvatar.isNotEmpty ? NetworkImage(otherAvatar) : null,
+                  child: otherAvatar.isEmpty ? const Icon(Icons.store, color: AppColors.onSurfaceVariant) : null,
                 ),
-                if (!notification.isRead)
+                if (isUnread)
                   Positioned(
-                    top: -4,
-                    right: -4,
+                    right: 0,
+                    top: 0,
                     child: Container(
                       width: 12,
                       height: 12,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.background, width: 2),
-                        boxShadow: [BoxShadow(color: AppColors.primaryContainer.withValues(alpha: 0.3), blurRadius: 10)],
                       ),
                     ),
                   )
               ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(notification.title, style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _formatTime(DateTime.tryParse(notification.createdAt) ?? DateTime.now()), 
-                        style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6))
-                      ),
-                    ],
+            title: Text(
+              otherName, 
+              style: AppTextStyles.bodyLg(color: Colors.white).copyWith(
+                fontWeight: isUnread ? FontWeight.bold : FontWeight.normal
+              )
+            ),
+            subtitle: Text(
+              chat['message'] ?? '', 
+              maxLines: 1, 
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyMd(color: isUnread ? Colors.white : AppColors.onSurfaceVariant),
+            ),
+            trailing: Text(
+              DateFormat('HH:mm').format(time),
+              style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+            ),
+            onTap: () {
+              final otherId = (chat['sender_id'].toString() == ApiService.userId) 
+                  ? chat['receiver_id'].toString() 
+                  : chat['sender_id'].toString();
+                  
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(
+                    otherParticipantId: otherId,
+                    otherParticipantName: otherName,
+                    otherParticipantAvatar: otherAvatar,
                   ),
-                  const SizedBox(height: 4),
-                  Text(notification.message, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(height: 1.2)),
-                ],
-              ),
-            )
-          ],
-        ),
+                ),
+              ).then((_) => _loadAllData()); // Refresh when back
+            },
+          );
+        },
       ),
     );
   }
 
-  String _formatTime(DateTime time) {
-    final diff = DateTime.now().difference(time);
-    if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m ago';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours}h ago';
-    } else {
-      return '${diff.inDays}d ago';
+  Widget _buildPromosTab() {
+    if (_promos.isEmpty) {
+      return Center(
+        child: Text('No promotions available', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
+      );
     }
+    return RefreshIndicator(
+      onRefresh: _loadAllData,
+      color: AppColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _promos.length,
+        itemBuilder: (context, index) {
+          final promo = _promos[index];
+          return GestureDetector(
+            onTap: () {
+              if (!promo.isRead) {
+                _markAsRead(promo.id);
+              }
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: promo.isRead ? AppColors.surface : AppColors.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: promo.isRead ? Colors.transparent : AppColors.primary.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.local_offer, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                promo.title,
+                                style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16),
+                              ),
+                            ),
+                            if (!promo.isRead)
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          promo.message,
+                          style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

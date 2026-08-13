@@ -827,6 +827,27 @@ class ApiService {
     return false;
   }
   // =============================================
+  static Future<Map<String, dynamic>> getUnreadCounts() async {
+    final userId = await getUserId();
+    if (userId == null) return {'unread_notifications': 0, 'unread_chats': 0, 'total_unread': 0};
+
+    try {
+      final url = Uri.parse('$baseUrl/unread_counts.php?user_id=$userId');
+      final response = await http.get(url);
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return data['data'];
+        }
+      }
+      return {'unread_notifications': 0, 'unread_chats': 0, 'total_unread': 0};
+    } catch (e) {
+      debugPrint('Error getting unread counts: $e');
+      return {'unread_notifications': 0, 'unread_chats': 0, 'total_unread': 0};
+    }
+  }
+
   // CHAT
   // =============================================
   

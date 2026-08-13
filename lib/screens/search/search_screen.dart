@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/notification_bell.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -24,10 +25,7 @@ class SearchScreen extends StatelessWidget {
                       style: AppTextStyles.headlineLgMobile(color: AppColors.primary)
                           .copyWith(fontSize: 24),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none, color: AppColors.primary),
-                      onPressed: () {},
-                    )
+                    const NotificationBell(iconColor: AppColors.primary),
                   ],
                 ),
               ),
