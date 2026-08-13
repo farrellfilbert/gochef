@@ -148,48 +148,48 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
 
   Future<void> _uploadAtmosphereImage(int index) async {
     final picker = ImagePicker();
-    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
-    
+    final XFile? picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+
     if (picked != null && mounted) {
       XFile imageToUpload = picked;
 
+      // Only crop on non-web platforms (web uses blob paths which are incompatible with ImageCropper)
       if (!kIsWeb) {
         final croppedFile = await ImageCropper().cropImage(
           sourcePath: picked.path,
           uiSettings: [
-            WebUiSettings(
-              context: context,
-              presentStyle: WebPresentStyle.dialog,
-            ),
+            AndroidUiSettings(toolbarTitle: 'Crop Photo'),
+            IOSUiSettings(title: 'Crop Photo'),
           ],
         );
         if (croppedFile != null) {
           imageToUpload = XFile(croppedFile.path);
         } else {
-          return;
+          return; // User cancelled crop
         }
       }
 
       setState(() => _isLoading = true);
       try {
         String? imageUrl = await ApiService.uploadImage(imageToUpload);
-        if (imageUrl != null) {
+        if (imageUrl != null && mounted) {
           List<String> currentImages = List<String>.from(_kitchen!.atmosphereImages);
           if (index < currentImages.length) {
             currentImages[index] = imageUrl;
           } else {
             currentImages.add(imageUrl);
           }
-          
+
           Map<String, dynamic> updateData = {
             'kitchen_id': _kitchenId,
             'atmosphere_images': jsonEncode(currentImages),
           };
-          
+
           bool success = await ApiService.updateKitchen(updateData);
-          if (success) {
+          if (success && mounted) {
+            setState(() => _isLoading = false);
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Atmosphere photo updated')),
+              const SnackBar(content: Text('Atmosphere photo updated'), backgroundColor: Colors.green),
             );
             _loadProfile();
           } else {

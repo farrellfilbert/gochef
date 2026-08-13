@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/user_model.dart';
@@ -683,13 +684,28 @@ class ApiService {
   static Future<String?> uploadImage(XFile image) async {
     var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/upload.php'));
     final bytes = await image.readAsBytes();
-    
+
     String fileName = image.name;
-    if (fileName.isEmpty || fileName.contains('blob:')) {
+    if (fileName.isEmpty || fileName.contains('blob:') || !fileName.contains('.')) {
       fileName = 'image.jpg';
     }
-    
-    request.files.add(http.MultipartFile.fromBytes('image', bytes, filename: fileName));
+
+    // Detect MIME type from extension; default to image/jpeg for web compatibility
+    String ext = fileName.split('.').last.toLowerCase();
+    String mimeType;
+    switch (ext) {
+      case 'png': mimeType = 'image/png'; break;
+      case 'webp': mimeType = 'image/webp'; break;
+      case 'gif': mimeType = 'image/gif'; break;
+      default: mimeType = 'image/jpeg'; break;
+    }
+
+    request.files.add(http.MultipartFile.fromBytes(
+      'image',
+      bytes,
+      filename: fileName,
+      contentType: MediaType.parse(mimeType),
+    ));
 
     try {
       final streamedResponse = await request.send();
