@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import 'search_results_screen.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -13,30 +12,17 @@ class SearchScreen extends StatelessWidget {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // ─── App Bar ───
+            // AppBar
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          onPressed: () {
-                            Navigator.maybePop(context);
-                          },
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Search',
-                          style: AppTextStyles.headlineLgMobile(color: AppColors.primary)
-                              .copyWith(fontSize: 20),
-                        ),
-                      ],
+                    Text(
+                      'Promo & Rewards',
+                      style: AppTextStyles.headlineLgMobile(color: AppColors.primary)
+                          .copyWith(fontSize: 24),
                     ),
                     IconButton(
                       icon: const Icon(Icons.notifications_none, color: AppColors.primary),
@@ -47,256 +33,332 @@ class SearchScreen extends StatelessWidget {
               ),
             ),
 
-            // ─── Search Bar ───
+            // Top Card: Vouchers & Subscription
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 56,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.confirmation_number, color: Colors.orange, size: 20),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('25 Vouchers', style: AppTextStyles.bodyLg(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                                    Text('Use now!', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(width: 1, height: 40, color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 16.0),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withValues(alpha: 0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.star, color: Colors.green, size: 20),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('GoChef PLUS', style: AppTextStyles.bodyLg(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                                      Text('Subscribed', style: AppTextStyles.labelSm(color: Colors.green)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                          borderRadius: BorderRadius.circular(24),
                         ),
                         child: Row(
                           children: [
-                            const SizedBox(width: 16),
-                            Icon(Icons.search, color: AppColors.onSurfaceVariant.withValues(alpha: 0.6)),
-                            const SizedBox(width: 12),
+                            const Icon(Icons.percent, color: AppColors.onSurfaceVariant, size: 16),
+                            const SizedBox(width: 8),
                             Expanded(
-                              child: TextField(
-                                style: AppTextStyles.bodyMd(color: AppColors.onSurface),
-                                onSubmitted: (value) {
-                                  if (value.isNotEmpty) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => const SearchResultsScreen()),
-                                    );
-                                  }
-                                },
-                                decoration: InputDecoration(
-                                  hintText: 'Search for chefs, meals, or cuisines',
-                                  hintStyle: AppTextStyles.bodyMd(
-                                      color: AppColors.onSurfaceVariant.withValues(alpha: 0.4)),
-                                  border: InputBorder.none,
-                                ),
-                              ),
+                              child: Text('Enter promo code', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
                             ),
+                            const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant, size: 20),
                           ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerHigh,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
-                      ),
-                      child: const Icon(Icons.tune, color: AppColors.primary),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // ─── Filter Chips ───
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 24.0, bottom: 24.0),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Row(
-                    children: [
-                      _buildFilterChip(context, 'Nearby', isSelected: true),
-                      const SizedBox(width: 12),
-                      _buildFilterChip(context, 'Top Rated'),
-                      const SizedBox(width: 12),
-                      _buildFilterChip(context, 'Under \$15'),
-                      const SizedBox(width: 12),
-                      _buildFilterChip(context, 'Vegan'),
-                      const SizedBox(width: 12),
-                      _buildFilterChip(context, 'Gluten-Free'),
+                      )
                     ],
                   ),
                 ),
               ),
             ),
 
-            // ─── Recent Searches ───
+            // Daily Check-in Banner
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                padding: const EdgeInsets.only(top: 24, left: 20, right: 20),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppColors.primary, AppColors.tertiary],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.card_giftcard, color: Colors.white, size: 28),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('A gift for you!', style: AppTextStyles.headlineSm(color: Colors.white).copyWith(fontSize: 16)),
+                                    Text('Claim your daily coins.', style: AppTextStyles.labelSm(color: Colors.white.withValues(alpha: 0.9))),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            ElevatedButton(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.onPrimary,
+                                foregroundColor: AppColors.primary,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              ),
+                              child: const Text('Claim', style: TextStyle(fontWeight: FontWeight.bold)),
+                            )
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+                        decoration: const BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: List.generate(7, (index) {
+                                final isToday = index == 3;
+                                final isPast = index < 3;
+                                final coins = [2000, 30, 50, 1000, 100, 3000, 150][index];
+                                return Column(
+                                  children: [
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        color: isPast ? AppColors.surfaceContainerHigh : (isToday ? AppColors.primary : AppColors.surfaceContainerLow),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: isToday ? AppColors.primary : Colors.transparent),
+                                      ),
+                                      child: Icon(Icons.monetization_on, size: 20, color: isPast ? AppColors.onSurfaceVariant : (isToday ? Colors.white : AppColors.primary.withValues(alpha: 0.5))),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(coins.toString(), style: AppTextStyles.labelSm(color: isToday ? AppColors.onSurface : AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.bold, fontSize: 10)),
+                                    Text('Day ${index + 1}', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 9)),
+                                  ],
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Expires in 7 Days', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                Text('T&C Apply', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                              ],
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Food Shortcuts
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 32.0, bottom: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Recent Searches',
-                            style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                        Text('Clear All', style: AppTextStyles.labelSm(color: AppColors.primary)),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text('Explore Categories', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                     ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _buildRecentSearch(context, 'Authentic Ramen'),
-                        _buildRecentSearch(context, 'Vegan Sushi'),
-                        _buildRecentSearch(context, 'Chef Marco'),
-                      ],
+                    const SizedBox(height: 16),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Row(
+                        children: [
+                          _buildShortcutIcon(Icons.local_fire_department, 'Trending', Colors.orange),
+                          const SizedBox(width: 16),
+                          _buildShortcutIcon(Icons.ramen_dining, 'Asian', Colors.redAccent),
+                          const SizedBox(width: 16),
+                          _buildShortcutIcon(Icons.local_pizza, 'Western', Colors.amber),
+                          const SizedBox(width: 16),
+                          _buildShortcutIcon(Icons.fastfood, 'Fast Food', Colors.purpleAccent),
+                          const SizedBox(width: 16),
+                          _buildShortcutIcon(Icons.eco, 'Healthy', Colors.green),
+                          const SizedBox(width: 16),
+                          _buildShortcutIcon(Icons.cake, 'Dessert', Colors.pinkAccent),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
 
-            // ─── Trending Near You ───
+            // Top Promos
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Trending Near You', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                    Text('Top Promos Today ~', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                     const SizedBox(height: 16),
-                    _buildTrendingCard(context),
+                    SizedBox(
+                      height: 220,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        clipBehavior: Clip.none,
+                        children: [
+                          _buildPromoCard('40% OFF', 'Spicy Thai Kitchen', 'Authentic Thai Cuisine', 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=500&auto=format&fit=crop'),
+                          const SizedBox(width: 16),
+                          _buildPromoCard('21% OFF', 'Fresh Poke', 'Hawaiian Bowls', 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop'),
+                          const SizedBox(width: 16),
+                          _buildPromoCard('BUY 1 GET 1', 'Burger Master', 'American Fast Food', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop'),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFilterChip(BuildContext context, String label, {bool isSelected = false}) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SearchResultsScreen()),
-        );
-      },
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.primary : AppColors.surface.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isSelected ? Colors.transparent : AppColors.outlineVariant.withValues(alpha: 0.1),
+  Widget _buildShortcutIcon(IconData icon, String label, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Icon(icon, color: color, size: 32),
         ),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.labelMono(
-            color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceVariant),
-      ),
-      ),
+        const SizedBox(height: 8),
+        Text(label, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+      ],
     );
   }
 
-  Widget _buildRecentSearch(BuildContext context, String label) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SearchResultsScreen()),
-        );
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+  Widget _buildPromoCard(String discount, String title, String subtitle, String imageUrl) {
+    return Container(
+      width: 280,
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainer,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.history, size: 14, color: AppColors.onSurfaceVariant),
-          const SizedBox(width: 8),
-          Text(label, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-        ],
-      ),
-      ),
-    );
-  }
-
-  Widget _buildTrendingCard(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SearchResultsScreen()),
-        );
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-      height: 256,
-      decoration: BoxDecoration(
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-        image: const DecorationImage(
-          image: NetworkImage(
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuCzP1Heyd8Kl8rTcn43JqYJ4kEuySscn7kPLPO7q2-qmeDw3ha0BR2eXOY4tY1o3RUIj4SDUUSyTWrTAitGmQXIQBym6w1h0ciWwVsCBafKQWXC7IlyaXfzZquNbhc9jxiiqJ_AGshdhlvai2lIhIzQm7bEZsOPh9Yj9avrJRfg95xmYiJ_nwHzHQ2wLTzpl0AwYzNm2kkfZ987jVzoDXM_qTsr-mocRS-OLx6QShXFp7u4WXYaZ7Lftw'),
-          fit: BoxFit.cover,
-        ),
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  AppColors.midnight.withValues(alpha: 0.9),
-                  Colors.transparent,
-                ],
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: Image.network(
+                  imageUrl,
+                  height: 140,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
+              Positioned(
+                top: 12,
+                left: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: const BoxDecoration(
+                    color: Colors.redAccent,
+                    borderRadius: BorderRadius.horizontal(right: Radius.circular(8)),
+                  ),
+                  child: Text(
+                    discount,
+                    style: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
           ),
-          Positioned(
-            bottom: 16,
-            left: 16,
-            right: 16,
+          Padding(
+            padding: const EdgeInsets.all(12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text('BESTSELLER',
-                      style: AppTextStyles.labelSm(color: AppColors.primary)
-                          .copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 8),
-                Text('Rainbow Poke Symphony',
-                    style: AppTextStyles.headlineMd(color: Colors.white)),
+                Text(title, style: AppTextStyles.bodyLg(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                Text('\$18.50 • Fresh Kitchen',
-                    style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                Text(subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis),
               ],
             ),
           )
         ],
-      ),
       ),
     );
   }

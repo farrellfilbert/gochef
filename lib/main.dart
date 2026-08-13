@@ -197,9 +197,9 @@ class _MainNavigationState extends State<MainNavigation> {
                 label: 'Home',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.search_outlined),
-                activeIcon: Icon(Icons.search),
-                label: 'Search',
+                icon: Icon(Icons.local_offer_outlined),
+                activeIcon: Icon(Icons.local_offer),
+                label: 'Promo',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.receipt_long_outlined),
