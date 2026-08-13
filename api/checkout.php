@@ -22,7 +22,7 @@ if ($method === 'POST') {
     }
 
     try {
-        // Get cart items for specific kitchen
+        // Get cart items for specific kitchen (with notes)
         $stmt = $pdo->prepare("
             SELECT ci.*, mi.name, mi.price, mi.image, 
                    k.name as kitchen_name, k.avatar as kitchen_avatar, k.id as kitchen_id
@@ -79,7 +79,31 @@ if ($method === 'POST') {
         // Insert order items
         $itemStmt = $pdo->prepare("INSERT INTO order_items (order_id, name, options, quantity, price) VALUES (?, ?, ?, ?, ?)");
         foreach ($cartItems as $item) {
-            $itemStmt->execute([$orderId, $item['name'], '', $item['quantity'], $item['price']]);
+            // Get addons for this cart item
+            $addonStmt = $pdo->prepare("SELECT ma.name, ma.price FROM cart_item_addons cia JOIN menu_addons ma ON cia.addon_id = ma.id WHERE cia.cart_item_id = ?");
+            $addonStmt->execute([$item['id']]);
+            $addons = $addonStmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $optionsParts = [];
+            if (!empty($addons)) {
+                $addonNames = array_map(function($a) { return $a['name']; }, $addons);
+                $optionsParts[] = "Addons: " . implode(", ", $addonNames);
+            }
+            
+            if (!empty($item['notes'])) {
+                $optionsParts[] = "Notes: " . $item['notes'];
+            }
+            
+            $optionsString = implode(" | ", $optionsParts);
+
+            // Calculate final price per item (base + addons)
+            $addonTotal = 0;
+            foreach ($addons as $a) {
+                $addonTotal += $a['price'];
+            }
+            $finalPrice = $item['price'] + $addonTotal;
+            
+            $itemStmt->execute([$orderId, $item['name'], $optionsString, $item['quantity'], $finalPrice]);
         }
 
         // Clear cart items for this kitchen only

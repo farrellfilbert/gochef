@@ -246,11 +246,12 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         order_id VARCHAR(50) NOT NULL,
         name VARCHAR(100) NOT NULL,
-        options VARCHAR(100) DEFAULT '',
+        options TEXT,
         quantity INT DEFAULT 1,
         price DECIMAL(10,2) NOT NULL,
         FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
     )");
+    try { $pdo->exec("ALTER TABLE order_items MODIFY COLUMN options TEXT"); } catch(PDOException $e) {}
 
     // =============================================
     // CHAT MESSAGES

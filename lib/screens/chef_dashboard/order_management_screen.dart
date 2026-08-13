@@ -245,26 +245,49 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
              final name = item.name;
              final price = item.price;
              return Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
+              padding: const EdgeInsets.only(bottom: 12.0),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(4),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          margin: const EdgeInsets.only(top: 2),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text('$qty', style: AppTextStyles.labelMono(color: AppColors.primary)),
                         ),
-                        child: Text('$qty', style: AppTextStyles.labelMono(color: AppColors.primary)),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(name, style: AppTextStyles.bodyMd(color: Colors.white)),
-                    ],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(name, style: AppTextStyles.bodyMd(color: Colors.white)),
+                              if (item.options.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  item.options,
+                                  style: AppTextStyles.bodySm(color: AppColors.onSurfaceVariant).copyWith(
+                                    height: 1.3,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 12),
                   Text('\$${(double.parse(price.toString()) * qty).toStringAsFixed(2)}', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
                 ],
               ),
