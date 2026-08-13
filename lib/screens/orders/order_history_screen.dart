@@ -5,8 +5,6 @@ import '../notifications/notifications_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/order_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
-import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
 import '../chat/chat_screen.dart';
 import '../tracking/order_tracking_screen.dart';
 import '../cart/cart_screen.dart';
