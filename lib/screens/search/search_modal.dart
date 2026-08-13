@@ -6,6 +6,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'search_results_screen.dart';
 import '../map_screen.dart';
+import '../../services/api_service.dart';
+import '../../models/menu_item_model.dart';
 
 class SearchModal extends StatefulWidget {
   const SearchModal({super.key});
@@ -29,21 +31,9 @@ class _SearchModalState extends State<SearchModal> {
     'Spicy Chicken',
   ];
 
-  // Mock recommended foods
-  final List<Map<String, String>> _recommendedFoods = [
-    {
-      'name': 'Grilled Salmon Bowl',
-      'image': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=300&auto=format&fit=crop'
-    },
-    {
-      'name': 'Spicy Chicken Burger',
-      'image': 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?q=80&w=300&auto=format&fit=crop'
-    },
-    {
-      'name': 'Beef Steak',
-      'image': 'https://images.unsplash.com/photo-1544025162-8111142c4baf?q=80&w=300&auto=format&fit=crop'
-    },
-  ];
+  // Real recommended foods fetched from API
+  List<MenuItemModel> _recommendedFoods = [];
+  bool _isLoadingRecommendations = true;
 
   @override
   void initState() {
@@ -52,6 +42,22 @@ class _SearchModalState extends State<SearchModal> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_focusNode);
     });
+    _fetchRecommendations();
+  }
+
+  Future<void> _fetchRecommendations() async {
+    try {
+      final homeData = await ApiService.getHomeData();
+      final List<MenuItemModel> popularMeals = homeData['popular_meals'] ?? [];
+      setState(() {
+        _recommendedFoods = popularMeals.take(5).toList();
+        _isLoadingRecommendations = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingRecommendations = false;
+      });
+    }
   }
 
   @override
@@ -225,7 +231,7 @@ class _SearchModalState extends State<SearchModal> {
                                       child: Container(
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: AppColors.primary.withValues(alpha: 0.2),
+                                          color: Colors.blue.withValues(alpha: 0.2),
                                         ),
                                         child: Center(
                                           child: Container(
@@ -233,7 +239,7 @@ class _SearchModalState extends State<SearchModal> {
                                             height: 12,
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: AppColors.primary,
+                                              color: Colors.blue,
                                               border: Border.all(color: Colors.white, width: 2),
                                             ),
                                           ),
@@ -283,51 +289,55 @@ class _SearchModalState extends State<SearchModal> {
                     child: Text('Recommended For You', style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontSize: 16)),
                   ),
                   const SizedBox(height: 12),
-                  SizedBox(
-                    height: 140,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: _recommendedFoods.length,
-                      itemBuilder: (context, index) {
-                        final food = _recommendedFoods[index];
-                        return GestureDetector(
-                          onTap: () => _submitSearch(food['name']!),
-                          child: Container(
-                            width: 120,
-                            margin: const EdgeInsets.only(right: 12),
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceContainerHigh,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                                  child: Image.network(
-                                    food['image']!,
-                                    height: 80,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
+                  _isLoadingRecommendations 
+                    ? const Center(child: CircularProgressIndicator())
+                    : _recommendedFoods.isEmpty 
+                        ? const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text('No recommendations available.'))
+                        : SizedBox(
+                            height: 140,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              itemCount: _recommendedFoods.length,
+                              itemBuilder: (context, index) {
+                                final food = _recommendedFoods[index];
+                                return GestureDetector(
+                                  onTap: () => _submitSearch(food.name),
+                                  child: Container(
+                                    width: 120,
+                                    margin: const EdgeInsets.only(right: 12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfaceContainerHigh,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                          child: Image.network(
+                                            food.image,
+                                            height: 80,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            food.name,
+                                            style: AppTextStyles.labelSm(color: AppColors.onSurface),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    food['name']!,
-                                    style: AppTextStyles.labelSm(color: AppColors.onSurface),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
+                                );
+                              },
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
                   const SizedBox(height: 40), // Bottom padding
                 ],
               ),

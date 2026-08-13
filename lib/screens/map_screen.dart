@@ -162,6 +162,12 @@ class _MapScreenState extends State<MapScreen> {
               options: MapOptions(
                 initialCenter: _baseLocation,
                 initialZoom: 13.0,
+                onTap: (tapPosition, point) {
+                  setState(() {
+                    _baseLocation = point;
+                    _hasRealLocation = true;
+                  });
+                },
               ),
               children: [
                 TileLayer(
@@ -171,7 +177,7 @@ class _MapScreenState extends State<MapScreen> {
                 MarkerLayer(
                   markers: [
                     // User's own location marker
-                    if (_hasRealLocation)
+                    
                       Marker(
                         point: _baseLocation,
                         width: 40,
@@ -264,3 +270,4 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 }
+
