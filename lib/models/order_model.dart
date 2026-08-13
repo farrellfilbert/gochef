@@ -3,20 +3,23 @@ class OrderItemModel {
   final String options;
   final int quantity;
   final double price;
+  final String image;
 
   OrderItemModel({
     required this.name,
     required this.options,
     required this.quantity,
     required this.price,
+    this.image = '',
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     return OrderItemModel(
       name: json['name'] ?? '',
       options: json['options'] ?? '',
-      quantity: json['quantity'] != null ? int.tryParse(json['quantity'].toString()) ?? 1 : 1,
-      price: json['price'] != null ? double.tryParse(json['price'].toString()) ?? 0.0 : 0.0,
+      quantity: int.tryParse(json['quantity']?.toString() ?? '1') ?? 1,
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      image: json['image'] ?? '',
     );
   }
 }

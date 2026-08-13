@@ -39,6 +39,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   bool isDetailsExpanded = false;
   late String _currentStatus;
   Timer? _timer;
+  List<OrderItemModel>? _orderItems;
+  bool _isLoadingItems = true;
   
 // Add these variables:
   final MapController _mapController = MapController();
@@ -51,6 +53,26 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     _currentStatus = widget.initialStatus;
     _startPolling();
     _startDriverSimulation();
+    _fetchOrderDetails();
+  }
+
+  Future<void> _fetchOrderDetails() async {
+    try {
+      final orders = await ApiService.getOrders();
+      final order = orders.firstWhere((o) => o.id == widget.orderId);
+      if (mounted) {
+        setState(() {
+          _orderItems = order.items;
+          _isLoadingItems = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingItems = false;
+        });
+      }
+    }
   }
 
   @override
@@ -117,8 +139,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     });
   }
 
-// ... 
-
+  @override
   Widget build(BuildContext context) {
     bool isOutForDelivery = _currentStatus == 'Completed';
 
@@ -482,13 +503,51 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                               ),
                               child: Column(
                                 children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text('${widget.itemsCount}x Items', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 12)),
-                                      Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontSize: 12)),
-                                    ],
-                                  ),
+                                  if (_isLoadingItems)
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 16),
+                                      child: CircularProgressIndicator(color: AppColors.primary),
+                                    ),
+                                  if (!_isLoadingItems && _orderItems != null)
+                                    ..._orderItems!.map((item) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 16),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: item.image.isNotEmpty 
+                                              ? Image.network(item.image, width: 48, height: 48, fit: BoxFit.cover,
+                                                  errorBuilder: (_, __, ___) => _buildFallbackImage())
+                                              : _buildFallbackImage(),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text('${item.quantity}x ${item.name}', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                                                if (item.options.isNotEmpty)
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(top: 4),
+                                                    child: Text(item.options, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text('\$${item.price.toStringAsFixed(2)}', style: AppTextStyles.bodyMd(color: Colors.white)),
+                                        ],
+                                      ),
+                                    )),
+                                  if (!_isLoadingItems && _orderItems == null)
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('${widget.itemsCount}x Items', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 12)),
+                                        Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontSize: 12)),
+                                      ],
+                                    ),
                                   const SizedBox(height: 12),
                                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
                                   const SizedBox(height: 12),
@@ -513,6 +572,15 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFallbackImage() {
+    return Container(
+      width: 48, 
+      height: 48, 
+      color: AppColors.surfaceContainerHighest, 
+      child: const Icon(Icons.fastfood, size: 24, color: AppColors.onSurfaceVariant),
     );
   }
 
