@@ -27,55 +27,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.initialQuery);
-    
-    // Add dummy data for visual feedback
-    _kitchens = [
-      KitchenModel(
-        id: 1,
-        name: "Chef's Kitchen",
-        coverImage: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop',
-        avatar: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop',
-        rating: 4.8,
-        deliveryTime: '15-25 min',
-        description: 'Premium quality meals cooked with passion.',
-      ),
-      KitchenModel(
-        id: 2,
-        name: 'Spice Symphony',
-        coverImage: 'https://images.unsplash.com/photo-1549488344-c5d0137a28eb?q=80&w=600&auto=format&fit=crop',
-        avatar: 'https://images.unsplash.com/photo-1549488344-c5d0137a28eb?q=80&w=600&auto=format&fit=crop',
-        rating: 4.6,
-        deliveryTime: '25-40 min',
-        description: 'Experience the magic of authentic spices.',
-      ),
-    ];
-    
-    _dishes = [
-      MenuItemModel(
-        id: 1,
-        kitchenId: 1,
-        name: 'Grilled Salmon Bowl',
-        description: 'Fresh grilled salmon with quinoa and roasted vegetables.',
-        price: 45000,
-        image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop',
-        isPopular: true,
-        categoryName: 'Healthy',
-      ),
-      MenuItemModel(
-        id: 2,
-        kitchenId: 2,
-        name: 'Spicy Chicken Burger',
-        description: 'Crispy chicken patty with spicy mayo and fresh lettuce.',
-        price: 35000,
-        image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?q=80&w=600&auto=format&fit=crop',
-        isPopular: true,
-        categoryName: 'Fast Food',
-      ),
-    ];
-
-    if (widget.initialQuery.isNotEmpty) {
-      _performSearch(widget.initialQuery);
-    }
+    _performSearch(widget.initialQuery);
   }
 
   @override
@@ -85,8 +37,6 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   }
 
   Future<void> _performSearch(String query) async {
-    if (query.isEmpty) return;
-    
     setState(() => _isLoading = true);
     try {
       final results = await ApiService.search(query);

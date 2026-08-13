@@ -3,10 +3,10 @@ require_once 'db_connect.php';
 
 $q = isset($_GET['q']) ? trim($_GET['q']) : '';
 
-if (empty($q)) {
-    echo json_encode(['success' => true, 'kitchens' => [], 'menu_items' => []]);
-    exit;
-}
+// if (empty($q)) {
+//     echo json_encode(['success' => true, 'kitchens' => [], 'menu_items' => []]);
+//     exit;
+// }
 
 // Search kitchens
 $stmt = $pdo->prepare("SELECT * FROM kitchens WHERE name LIKE ? OR cuisine_type LIKE ? OR description LIKE ? ORDER BY rating DESC LIMIT 10");

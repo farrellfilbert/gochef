@@ -364,7 +364,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text('Featured Kitchens', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                                Text('View All', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const SearchResultsScreen(initialQuery: ''),
+                                      ),
+                                    );
+                                  },
+                                  child: Text('View All', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 16),
