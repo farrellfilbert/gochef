@@ -42,36 +42,38 @@
       justify-content: center;
     }
     .logo-bounce {
-      width: 120px;
-      height: 120px;
-      margin-bottom: 24px;
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+      margin-bottom: 20px;
       animation: bounce 2s infinite ease-in-out;
-      border-radius: 20px;
+      filter: drop-shadow(0 10px 25px rgba(235, 30, 140, 0.35));
     }
     .loading-text {
       color: #FFFFFF;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
       animation: pulse 1.5s infinite;
     }
     @keyframes bounce {
       0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-15px) scale(1.05); }
+      50% { transform: translateY(-12px) scale(1.04); }
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+      50% { opacity: 0.55; }
     }
   </style>
 </head>
 <body>
   <div class="loading-container" id="app-loader">
-    <img src="favicon.png" alt="GoChef Logo" class="logo-bounce" />
+    <img src="logo.png" alt="GoChef Logo" class="logo-bounce" />
     <div class="loading-text">Preparing GoChef...</div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
-  <script src="flutter_bootstrap.js?v=2" async></script>
+  <script src="flutter_bootstrap.js?v=3" async></script>
 </body>
 </html>
