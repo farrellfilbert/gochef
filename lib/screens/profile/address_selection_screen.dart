@@ -69,37 +69,62 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     }
   }
 
-  void _addNewAddress() {
-    final labelController = TextEditingController();
-    final addressController = TextEditingController();
+  void _addNewAddress({LatLng? latLng}) {
+    final labelController = TextEditingController(text: latLng != null ? 'Pinpoint Location' : '');
+    final addressController = TextEditingController(
+      text: latLng != null ? 'Location (${latLng.latitude.toStringAsFixed(5)}, ${latLng.longitude.toStringAsFixed(5)})' : '',
+    );
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surface,
-          title: Text('Add New Address', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text('Add New Address', style: AppTextStyles.headlineMd(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: labelController,
-                decoration: const InputDecoration(labelText: 'Label (e.g., Home, Office)'),
-                style: const TextStyle(color: AppColors.onSurface),
+                decoration: InputDecoration(
+                  labelText: 'Label (e.g., Home, Office)',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.white),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: addressController,
-                decoration: const InputDecoration(labelText: 'Full Address'),
+                decoration: InputDecoration(
+                  labelText: 'Full Address',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                ),
                 maxLines: 3,
-                style: const TextStyle(color: AppColors.onSurface),
+                style: const TextStyle(color: Colors.white),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant)),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -113,13 +138,22 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                   );
                   if (success) {
                     await _loadAddresses();
+                    if (widget.isSelectionMode && _addresses.isNotEmpty) {
+                      final added = _addresses.firstWhere((a) => a.address == addressController.text, orElse: () => _addresses.first);
+                      if (mounted) Navigator.pop(context, added);
+                    }
                   } else {
                     setState(() => _isLoading = false);
                   }
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              child: const Text('Save'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: const Text('Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -134,7 +168,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.onSurface),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
           height: 40,
           decoration: BoxDecoration(
@@ -149,13 +183,13 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 10),
             ),
-            style: const TextStyle(color: AppColors.onSurface),
+            style: const TextStyle(color: Colors.white),
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.map, color: AppColors.primary),
-            onPressed: () {},
+            icon: const Icon(Icons.add_location_alt, color: Colors.white),
+            onPressed: () => _addNewAddress(),
           ),
         ],
       ),
@@ -173,7 +207,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Please verify your pin location. We will deliver your order to the pinned location.',
+                          'Tap anywhere on the map or select from your saved addresses below to set your delivery location.',
                           style: AppTextStyles.labelSm(color: const Color(0xFFFFD54F)),
                         ),
                       ),
@@ -181,33 +215,55 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                   ),
                 ),
                 
-                // Map Container
+                // Map Container (Tap to choose location)
                 SizedBox(
-                  height: 180,
-                  child: FlutterMap(
-                    mapController: _mapController,
-                    options: MapOptions(
-                      initialCenter: _baseLocation,
-                      initialZoom: 15.0,
-                    ),
+                  height: 200,
+                  child: Stack(
                     children: [
-                      TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.astroboomin.gochef',
-                      ),
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: _baseLocation,
-                            width: 40,
-                            height: 40,
-                            child: const Icon(
-                              Icons.location_on,
-                              color: AppColors.primary,
-                              size: 40,
-                            ),
+                      FlutterMap(
+                        mapController: _mapController,
+                        options: MapOptions(
+                          initialCenter: _baseLocation,
+                          initialZoom: 15.0,
+                          onTap: (tapPosition, point) {
+                            setState(() {
+                              _baseLocation = point;
+                            });
+                            _addNewAddress(latLng: point);
+                          },
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.astroboomin.gochef',
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: _baseLocation,
+                                width: 40,
+                                height: 40,
+                                child: const Icon(
+                                  Icons.location_on,
+                                  color: AppColors.primary,
+                                  size: 40,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
+                      ),
+                      Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text('Tap map to pinpoint', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                        ),
                       ),
                     ],
                   ),
@@ -230,11 +286,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                           children: [
                             Row(
                               children: [
-                                Text('Deliver To: ', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                                Text('Deliver To: ', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                                 Expanded(
                                   child: Text(
                                     _selectedAddress?.label ?? 'Select Location',
-                                    style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
+                                    style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -244,7 +300,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                             const SizedBox(height: 4),
                             Text(
                               _selectedAddress?.address ?? 'Set your delivery location',
-                              style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                              style: AppTextStyles.labelSm(color: Colors.white70),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -252,9 +308,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                         ),
                       ),
                       TextButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.my_location, size: 16, color: AppColors.primary),
-                        label: Text('Current Location', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                        onPressed: () {
+                          _addNewAddress();
+                        },
+                        icon: const Icon(Icons.my_location, size: 16, color: Colors.white),
+                        label: Text('Use Pin', style: AppTextStyles.labelSm(color: Colors.white)),
                       )
                     ],
                   ),

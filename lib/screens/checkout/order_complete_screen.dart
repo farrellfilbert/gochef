@@ -95,6 +95,15 @@ class OrderCompleteScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // GoChef Logo
+                Image.asset(
+                  'assets/images/GoCheflogo.png',
+                  height: 48,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+                const SizedBox(height: 24),
+
                 // Success Icon
                 Container(
                   width: 96,

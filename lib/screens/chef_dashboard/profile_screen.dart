@@ -614,7 +614,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                       _buildSettingsTile(context, Icons.shield, 'Kitchen Inspection', 'Renew your safety certifications'),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       ListTile(
-                        leading: const Icon(Icons.person, color: AppColors.primary),
+                        leading: const Icon(Icons.person, color: Colors.white),
                         title: Text('Switch to Foodie App', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                         subtitle: Text('Order food as a user', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
                         trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
@@ -677,7 +677,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
 
   Widget _buildSettingsTile(BuildContext context, IconData icon, String title, String subtitle, {Widget? destination, VoidCallback? onTap}) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
+      leading: Icon(icon, color: Colors.white),
       title: Text(title, style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
       subtitle: Text(subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
       trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),

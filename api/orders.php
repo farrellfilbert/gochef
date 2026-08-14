@@ -10,7 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 try {
-    
     $user_id = $_GET['user_id'] ?? null;
     $kitchen_id = $_GET['kitchen_id'] ?? null;
     
@@ -19,17 +18,36 @@ try {
         exit();
     }
     
-    // Fetch orders for this user or kitchen
-        if ($kitchen_id) {
+    $orders = [];
+    
+    if ($kitchen_id) {
+        $stmt = $pdo->prepare("
+            SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar, k.user_id as kitchen_user_id
+            FROM orders o 
+            LEFT JOIN users u ON o.user_id = u.id 
+            LEFT JOIN kitchens k ON o.kitchen_id = k.id
+            WHERE o.kitchen_id = ? 
+            ORDER BY o.id DESC
+        ");
+        $stmt->execute([$kitchen_id]);
+        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        // Check if user owns a kitchen
+        $kStmt = $pdo->prepare("SELECT id FROM kitchens WHERE user_id = ? LIMIT 1");
+        $kStmt->execute([$user_id]);
+        $kitchen = $kStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($kitchen) {
+            $chefKitchenId = $kitchen['id'];
             $stmt = $pdo->prepare("
                 SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar, k.user_id as kitchen_user_id
                 FROM orders o 
                 LEFT JOIN users u ON o.user_id = u.id 
                 LEFT JOIN kitchens k ON o.kitchen_id = k.id
-                WHERE o.kitchen_id = ? 
+                WHERE o.kitchen_id = ? OR o.user_id = ?
                 ORDER BY o.id DESC
             ");
-            $stmt->execute([$kitchen_id]);
+            $stmt->execute([$chefKitchenId, $user_id]);
         } else {
             $stmt = $pdo->prepare("
                 SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar, k.user_id as kitchen_user_id
@@ -41,7 +59,8 @@ try {
             ");
             $stmt->execute([$user_id]);
         }
-    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     
     $response = [];
     foreach ($orders as $order) {
@@ -54,7 +73,7 @@ try {
         $response[] = [
             'id' => $order['id'],
             'user_id' => $order['user_id'],
-            'customer_name' => $order['customer_name'] ?? 'Guest',
+            'customer_name' => $order['customer_name'] ?? 'Guest Customer',
             'customer_phone' => $order['customer_phone'] ?? '',
             'customer_avatar' => $order['customer_avatar'] ?? '',
             'kitchen_id' => $order['kitchen_id'],
@@ -64,6 +83,8 @@ try {
             'total_amount' => (float)$order['total_amount'],
             'items_count' => (int)$order['items_count'],
             'avatar' => $order['avatar'],
+            'delivery_address' => $order['delivery_address'] ?? '',
+            'notes' => $order['notes'] ?? '',
             'items' => $items
         ];
     }
@@ -74,6 +95,6 @@ try {
     ]);
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Database error', 'data' => []]);
+    echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage(), 'data' => []]);
 }
 ?>

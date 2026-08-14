@@ -58,9 +58,14 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          setState(() {
+            _currentIndex = 1; // Switch to Menu screen
+          });
+        },
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: AppColors.onPrimaryContainer),
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

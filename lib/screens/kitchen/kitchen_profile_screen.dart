@@ -9,6 +9,7 @@ import '../../services/api_service.dart';
 import '../../models/kitchen_model.dart';
 import '../../models/menu_item_model.dart';
 import '../chat/chat_screen.dart';
+import '../cart/cart_screen.dart';
 
 class KitchenProfileScreen extends StatefulWidget {
   final int kitchenId;
@@ -281,8 +282,18 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                   padding: const EdgeInsets.only(top: 70, left: 20, right: 20),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('Our Story', style: AppTextStyles.headlineMd(color: Colors.white)),
-                    const SizedBox(height: 8),
-                    Text(kitchen.description, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(height: 1.5)),
+                    if (kitchen.cuisineType.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        kitchen.cuisineType,
+                        style: AppTextStyles.bodyMd(color: Colors.white70).copyWith(fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    Text(
+                      kitchen.description,
+                      style: AppTextStyles.bodyMd(color: Colors.white).copyWith(height: 1.6, fontSize: 15),
+                    ),
                   ]),
                 ),
                 const SizedBox(height: 32),
@@ -326,13 +337,71 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(color: AppColors.surface.withValues(alpha: 0.5), shape: BoxShape.circle),
-                        child: const Icon(Icons.arrow_back, color: AppColors.onSurface),
+                        child: const Icon(Icons.arrow_back, color: Colors.white),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: AppColors.surface.withValues(alpha: 0.5), shape: BoxShape.circle),
-                      child: const Icon(Icons.more_vert, color: AppColors.onSurface),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FutureBuilder<List<dynamic>>(
+                          future: ApiService.getCart(),
+                          builder: (context, cartSnapshot) {
+                            int cartCount = 0;
+                            if (cartSnapshot.hasData && cartSnapshot.data != null) {
+                              cartCount = cartSnapshot.data!.length;
+                            }
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const CartScreen()),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface.withValues(alpha: 0.5),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 20),
+                                    if (cartCount > 0)
+                                      Positioned(
+                                        right: -4,
+                                        top: -4,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(3),
+                                          decoration: const BoxDecoration(
+                                            color: AppColors.primary,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                                          child: Text(
+                                            '$cartCount',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: AppColors.surface.withValues(alpha: 0.5), shape: BoxShape.circle),
+                          child: const Icon(Icons.more_vert, color: Colors.white, size: 20),
+                        ),
+                      ],
                     ),
                   ]),
                 ),
