@@ -4,6 +4,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart'; // for kIsWeb
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'earnings_screen.dart';
@@ -36,17 +37,42 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
   Future<void> _loadProfile() async {
     setState(() => _isLoading = true);
     try {
-      final kitchenIdStr = await ApiService.getKitchenId();
-      if (kitchenIdStr != null) {
+      String? kitchenIdStr = await ApiService.getKitchenId();
+      KitchenModel? kitchenData;
+
+      if (kitchenIdStr != null && kitchenIdStr.isNotEmpty) {
         _kitchenId = int.tryParse(kitchenIdStr);
         if (_kitchenId != null) {
-          final kitchenData = await ApiService.getKitchenDetail(_kitchenId!);
-          final analyticsData = await ApiService.getKitchenAnalytics(_kitchenId!);
-          setState(() {
-            _kitchen = kitchenData;
-            _analytics = analyticsData;
-          });
+          kitchenData = await ApiService.getKitchenDetail(_kitchenId!);
         }
+      }
+
+      // If kitchenData is still null, try finding kitchen by user id
+      if (kitchenData == null) {
+        final userIdStr = await ApiService.getUserId();
+        if (userIdStr != null && userIdStr.isNotEmpty) {
+          final uid = int.tryParse(userIdStr);
+          if (uid != null) {
+            kitchenData = await ApiService.getKitchenDetailByUserId(uid);
+            if (kitchenData != null) {
+              _kitchenId = kitchenData.id;
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('kitchen_id', kitchenData.id.toString());
+            }
+          }
+        }
+      }
+
+      Map<String, dynamic>? analyticsData;
+      if (_kitchenId != null) {
+        analyticsData = await ApiService.getKitchenAnalytics(_kitchenId!);
+      }
+
+      if (mounted) {
+        setState(() {
+          _kitchen = kitchenData;
+          _analytics = analyticsData;
+        });
       }
     } catch (e) {
       debugPrint('Error loading chef profile: $e');
@@ -322,7 +348,34 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
         : _kitchen == null 
-        ? const Center(child: Text('Failed to load profile', style: TextStyle(color: Colors.white)))
+        ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.storefront_outlined, size: 64, color: AppColors.primary),
+                  const SizedBox(height: 16),
+                  const Text('Chef Kitchen Profile Not Found',
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  const Text('Could not load your kitchen profile. Please check your connection or tap retry.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14)),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _loadProfile,
+                    icon: const Icon(Icons.refresh, color: Colors.black),
+                    label: const Text('Retry', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
         : CustomScrollView(
         slivers: [
           SliverAppBar(

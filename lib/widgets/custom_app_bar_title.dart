@@ -52,11 +52,13 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
               if (kitchen.name.isNotEmpty) _name = kitchen.name;
               if (kitchen.avatar.isNotEmpty) _avatarUrl = kitchen.avatar;
             });
+            return;
           }
         }
       }
+      _fetchProfile();
     } catch (e) {
-      // Fallback to default
+      _fetchProfile();
     }
   }
 

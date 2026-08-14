@@ -42,10 +42,24 @@ class ApiService {
   }
   
   static Future<String?> getKitchenId() async {
-    if (_cachedKitchenId != null) return _cachedKitchenId;
+    if (_cachedKitchenId != null && _cachedKitchenId!.isNotEmpty) return _cachedKitchenId;
     final prefs = await SharedPreferences.getInstance();
     _cachedKitchenId = prefs.getString('kitchen_id');
-    return _cachedKitchenId;
+    if (_cachedKitchenId != null && _cachedKitchenId!.isNotEmpty) return _cachedKitchenId;
+
+    // Auto-resolve from getProfile() if user is logged in
+    try {
+      final userId = await getUserId();
+      if (userId != null && userId.isNotEmpty) {
+        final profile = await getProfile();
+        if (profile.kitchenId != null && profile.kitchenId!.isNotEmpty) {
+          _cachedKitchenId = profile.kitchenId;
+          await prefs.setString('kitchen_id', profile.kitchenId!);
+          return _cachedKitchenId;
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 
   static Future<void> saveUserId(String userId, {String role = 'user', String? kitchenId}) async {
@@ -267,12 +281,31 @@ class ApiService {
   }
 
   static Future<KitchenModel?> getKitchenDetail(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/kitchen_detail.php?id=$id')).timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true && data['data'] != null) {
-        return KitchenModel.fromJson(data['data']);
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/kitchen_detail.php?id=$id')).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return KitchenModel.fromJson(data['data']);
+        }
       }
+    } catch (e) {
+      debugPrint('Error getting kitchen detail: $e');
+    }
+    return null;
+  }
+
+  static Future<KitchenModel?> getKitchenDetailByUserId(int userId) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/kitchen_detail.php?user_id=$userId')).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return KitchenModel.fromJson(data['data']);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting kitchen detail by user id: $e');
     }
     return null;
   }
