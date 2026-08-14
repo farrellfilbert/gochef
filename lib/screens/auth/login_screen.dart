@@ -239,51 +239,31 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildLogoArea() {
     return Column(
       children: [
-        // Logo icon with gradient
+        // Logo icon with subtle bounce/float (same as loading screen)
         AnimatedBuilder(
           animation: _floatAnimation,
           builder: (context, child) => Transform.translate(
             offset: Offset(0, _floatAnimation.value * 0.3),
             child: child,
           ),
-          child: Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: AppColors.magentaGloss,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                'assets/images/GoCheflogo.png',
-                width: 64,
-                height: 64,
-                fit: BoxFit.cover,
-              ),
-            ),
+          child: Image.asset(
+            'assets/images/logo.png',
+            width: 128,
+            height: 128,
+            fit: BoxFit.contain,
           ),
         ),
-        const SizedBox(height: 12),
-        // Title
-        Text(
-          'GoChef',
-          style: AppTextStyles.displayLgMobile(color: AppColors.primary),
-        ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         // Subtitle
         Opacity(
-          opacity: 0.8,
+          opacity: 0.85,
           child: Text(
-            'Urban Gourmet Marketplace',
-            style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+            'The Grub Next Door',
+            style: AppTextStyles.bodyMd(color: Colors.white).copyWith(
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
           ),
         ),
       ],
