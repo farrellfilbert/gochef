@@ -45,7 +45,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         title: const CustomAppBarTitle(),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications, color: AppColors.primary),
+            icon: const Icon(Icons.notifications, color: Colors.white),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsScreen()));
             },
@@ -309,7 +309,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(price, style: AppTextStyles.headlineMd(color: AppColors.primary)),
+              Text(price, style: AppTextStyles.headlineMd(color: Colors.white)),
               Row(
                 children: [
                   if (onChat != null)
