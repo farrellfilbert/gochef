@@ -135,39 +135,39 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _loadAllData() async {
     setState(() => _isLoading = true);
     try {
-      final userId = await ApiService.getUserId();
-      if (userId != null && userId.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = await ApiService.getUserId() ?? prefs.getString('user_id') ?? 'local_user';
+      
+      try {
+        _user = await ApiService.getProfile();
+      } catch (_) {}
+
+      final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+      final lastClaimDate = prefs.getString('daily_claim_date_$userId') ?? prefs.getString('daily_claim_date');
+      
+      _isTodayClaimed = (lastClaimDate == todayStr);
+      _userCoins = prefs.getInt('user_coins_$userId') ?? prefs.getInt('user_coins') ?? 1250;
+      _voucherCount = prefs.getInt('user_vouchers_$userId') ?? prefs.getInt('user_vouchers') ?? 25;
+      _currentDayIndex = prefs.getInt('user_streak_day_$userId') ?? prefs.getInt('user_streak_day') ?? 3;
+      _isChefPlus = prefs.getBool('user_chef_plus_$userId') ?? prefs.getBool('user_chef_plus') ?? true;
+
+      // Load claimed offers (combining user-scoped and global keys)
+      final claimedListUser = prefs.getStringList('claimed_offers_$userId') ?? [];
+      final claimedListGlobal = prefs.getStringList('claimed_offers_global') ?? [];
+      _claimedOfferIds = {...claimedListUser, ...claimedListGlobal};
+
+      // Load saved vouchers if any
+      final savedVouchersJson = prefs.getString('user_claimed_vouchers_$userId') ?? prefs.getString('user_claimed_vouchers_global');
+      if (savedVouchersJson != null) {
         try {
-          _user = await ApiService.getProfile();
-        } catch (_) {}
-
-        final prefs = await SharedPreferences.getInstance();
-        final todayStr = DateTime.now().toIso8601String().substring(0, 10);
-        final lastClaimDate = prefs.getString('daily_claim_date_$userId');
-        
-        _isTodayClaimed = (lastClaimDate == todayStr);
-        _userCoins = prefs.getInt('user_coins_$userId') ?? 1250;
-        _voucherCount = prefs.getInt('user_vouchers_$userId') ?? 25;
-        _currentDayIndex = prefs.getInt('user_streak_day_$userId') ?? 3;
-        _isChefPlus = prefs.getBool('user_chef_plus_$userId') ?? true;
-
-        // Load claimed offers
-        final claimedList = prefs.getStringList('claimed_offers_$userId') ?? [];
-        _claimedOfferIds = claimedList.toSet();
-
-        // Load saved vouchers if any
-        final savedVouchersJson = prefs.getString('user_claimed_vouchers_$userId');
-        if (savedVouchersJson != null) {
-          try {
-            final List decoded = jsonDecode(savedVouchersJson);
-            final customVouchers = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
-            for (var v in customVouchers) {
-              if (!_userVouchers.any((existing) => existing['code'] == v['code'])) {
-                _userVouchers.insert(0, v);
-              }
+          final List decoded = jsonDecode(savedVouchersJson);
+          final customVouchers = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+          for (var v in customVouchers) {
+            if (!_userVouchers.any((existing) => existing['code'] == v['code'])) {
+              _userVouchers.insert(0, v);
             }
-          } catch (_) {}
-        }
+          }
+        } catch (_) {}
       }
 
       // Fetch promotions and kitchens
@@ -192,16 +192,24 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _saveUserData() async {
-    final userId = await ApiService.getUserId();
-    if (userId != null && userId.isNotEmpty) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('user_coins_$userId', _userCoins);
-      await prefs.setInt('user_vouchers_$userId', _voucherCount);
-      await prefs.setInt('user_streak_day_$userId', _currentDayIndex);
-      await prefs.setBool('user_chef_plus_$userId', _isChefPlus);
-      await prefs.setStringList('claimed_offers_$userId', _claimedOfferIds.toList());
-      await prefs.setString('user_claimed_vouchers_$userId', jsonEncode(_userVouchers));
-    }
+    final prefs = await SharedPreferences.getInstance();
+    final userId = await ApiService.getUserId() ?? prefs.getString('user_id') ?? 'local_user';
+
+    // User-specific keys
+    await prefs.setInt('user_coins_$userId', _userCoins);
+    await prefs.setInt('user_vouchers_$userId', _voucherCount);
+    await prefs.setInt('user_streak_day_$userId', _currentDayIndex);
+    await prefs.setBool('user_chef_plus_$userId', _isChefPlus);
+    await prefs.setStringList('claimed_offers_$userId', _claimedOfferIds.toList());
+    await prefs.setString('user_claimed_vouchers_$userId', jsonEncode(_userVouchers));
+
+    // Global fallback keys (guarantees persistence even if session key shifts)
+    await prefs.setInt('user_coins', _userCoins);
+    await prefs.setInt('user_vouchers', _voucherCount);
+    await prefs.setInt('user_streak_day', _currentDayIndex);
+    await prefs.setBool('user_chef_plus', _isChefPlus);
+    await prefs.setStringList('claimed_offers_global', _claimedOfferIds.toList());
+    await prefs.setString('user_claimed_vouchers_global', jsonEncode(_userVouchers));
   }
 
   // ==========================================
@@ -317,18 +325,17 @@ class _SearchScreenState extends State<SearchScreen> {
 
     final coinsGained = _dailyCoins[_currentDayIndex];
     final todayStr = DateTime.now().toIso8601String().substring(0, 10);
-    final userId = await ApiService.getUserId();
 
     setState(() {
       _userCoins += coinsGained;
       _isTodayClaimed = true;
     });
 
-    if (userId != null && userId.isNotEmpty) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('daily_claim_date_$userId', todayStr);
-      await _saveUserData();
-    }
+    final prefs = await SharedPreferences.getInstance();
+    final userId = await ApiService.getUserId() ?? prefs.getString('user_id') ?? 'local_user';
+    await prefs.setString('daily_claim_date_$userId', todayStr);
+    await prefs.setString('daily_claim_date', todayStr);
+    await _saveUserData();
 
     if (!mounted) return;
     _showCoinClaimedSuccessDialog(coinsGained);
