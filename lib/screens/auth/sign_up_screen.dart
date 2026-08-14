@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../services/api_service.dart';
 import 'login_screen.dart';
 
 /// Sign Up Screen — replicates Sign Up.html exactly
@@ -69,7 +70,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://astroboomin.co/api/register.php'),
+        Uri.parse('${ApiService.baseUrl}/register.php'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': name,
@@ -113,7 +114,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       
       if (account != null) {
         final response = await http.post(
-          Uri.parse('https://astroboomin.co/api/login_google.php'), // Using same API as it handles upsert
+          Uri.parse('${ApiService.baseUrl}/login_google.php'), // Using same API as it handles upsert
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'email': account.email,

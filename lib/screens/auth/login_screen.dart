@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen>
     
     try {
       final response = await http.post(
-        Uri.parse('https://astroboomin.co/api/login.php'),
+        Uri.parse('${ApiService.baseUrl}/login.php'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -127,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen>
       
       if (account != null) {
         final response = await http.post(
-          Uri.parse('https://astroboomin.co/api/login_google.php'),
+          Uri.parse('${ApiService.baseUrl}/login_google.php'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'email': account.email,
