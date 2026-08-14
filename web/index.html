@@ -72,8 +72,22 @@
     <img src="logo.png" alt="GoChef Logo" class="logo-bounce" />
     <div class="loading-text">Preparing GoChef...</div>
   </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
-  <script src="flutter_bootstrap.js?v=3" async></script>
+  <script>
+    const s = document.createElement('script');
+    s.src = 'flutter_bootstrap.js?v=' + Date.now();
+    s.async = true;
+    document.body.appendChild(s);
+  </script>
 </body>
 </html>
