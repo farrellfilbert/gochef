@@ -1,29 +1,53 @@
-# Enable Gzip Compression
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP:Accept-Encoding} gzip
+    RewriteCond %{DOCUMENT_ROOT}/main.dart.js.gz -f
+    RewriteRule ^main\.dart\.js$ main.dart.js.gz [L]
+
+    RewriteCond %{HTTP:Accept-Encoding} gzip
+    RewriteCond %{DOCUMENT_ROOT}/flutter_bootstrap.js.gz -f
+    RewriteRule ^flutter_bootstrap\.js$ flutter_bootstrap.js.gz [L]
+</IfModule>
+
+<FilesMatch "main\.dart\.js\.gz$">
+    ForceType application/javascript
+    <IfModule mod_headers.c>
+        Header set Content-Encoding gzip
+        Header set Cache-Control "public, max-age=604800"
+    </IfModule>
+</FilesMatch>
+
+<FilesMatch "flutter_bootstrap\.js\.gz$">
+    ForceType application/javascript
+    <IfModule mod_headers.c>
+        Header set Content-Encoding gzip
+        Header set Cache-Control "public, max-age=604800"
+    </IfModule>
+</FilesMatch>
+
 <IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/wasm
-    AddOutputFilterByType DEFLATE application/x-font-ttf application/x-font-opentype image/svg+xml
-    BrowserMatch ^Mozilla/4 gzip-only-text/html
-    BrowserMatch ^Mozilla/4\.0[678] no-gzip
-    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
-    Header append Vary User-Agent
+    SetOutputFilter DEFLATE
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript text/javascript
+    AddOutputFilterByType DEFLATE application/json application/xml application/wasm
+    AddOutputFilterByType DEFLATE font/opentype application/x-font-ttf application/x-font-opentype
+    AddOutputFilterByType DEFLATE image/svg+xml image/x-icon
 </IfModule>
 
-# Caching Configuration
 <IfModule mod_headers.c>
-    # Always fetch latest code & bootstrap
-    <FilesMatch "\.(html|js|json)$">
-        Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+    <FilesMatch "\.(html)$">
+        Header set Cache-Control "no-cache, must-revalidate, max-age=0"
         Header set Pragma "no-cache"
-        Header set Expires 0
     </FilesMatch>
-    # Assets / fonts / media cache
-    <FilesMatch "\.(png|jpg|jpeg|gif|ico|css|ttf|otf|svg|wasm|frag|bin)$">
-        Header set Cache-Control "public, max-age=86400"
+
+    <FilesMatch "\.(js|wasm|css|png|jpg|jpeg|gif|ico|ttf|otf|woff|woff2|svg|frag|bin)$">
+        Header set Cache-Control "public, max-age=604800"
     </FilesMatch>
 </IfModule>
 
-# MIME types
 <IfModule mod_mime.c>
     AddType application/wasm .wasm
     AddType application/javascript .js
+    AddType image/svg+xml .svg
+    AddEncoding gzip .gz
 </IfModule>
