@@ -1051,7 +1051,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             ),
                         ],
                       ),
-                      const NotificationBell(iconColor: AppColors.primary),
+                      const NotificationBell(iconColor: Colors.white),
                     ],
                   ),
                 ),
