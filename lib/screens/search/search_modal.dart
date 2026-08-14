@@ -113,7 +113,7 @@ class _SearchModalState extends State<SearchModal> {
                             onSubmitted: _submitSearch,
                             textInputAction: TextInputAction.search,
                             decoration: InputDecoration(
-                              hintText: 'Search student chefs or meals...',
+                              hintText: 'Search Chefs, Kitchens or Meals…',
                               hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
                               border: InputBorder.none,
                               isDense: true,

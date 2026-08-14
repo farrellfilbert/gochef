@@ -279,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 },
                                 style: AppTextStyles.bodyMd(color: AppColors.onSurface),
                                 decoration: InputDecoration(
-                                  hintText: 'Search student chefs or meals...',
+                                  hintText: 'Search Chefs, Kitchens or Meals…',
                                   hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
                                   border: InputBorder.none,
                                 ),
