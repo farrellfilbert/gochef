@@ -193,10 +193,11 @@ class _MainNavigationState extends State<MainNavigation> {
             items: [
               BottomNavigationBarItem(
                 icon: Image.asset(
-                  'assets/images/GoCheflogo.png',
+                  'assets/images/home_nav.png',
                   width: 24,
                   height: 24,
                   fit: BoxFit.contain,
+                  color: Colors.white70,
                 ),
                 activeIcon: Container(
                   padding: const EdgeInsets.all(2),
@@ -210,10 +211,11 @@ class _MainNavigationState extends State<MainNavigation> {
                     ],
                   ),
                   child: Image.asset(
-                    'assets/images/GoCheflogo.png',
+                    'assets/images/home_nav.png',
                     width: 26,
                     height: 26,
                     fit: BoxFit.contain,
+                    color: Colors.white,
                   ),
                 ),
                 label: 'Home',
