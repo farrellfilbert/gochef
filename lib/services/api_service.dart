@@ -17,7 +17,15 @@ import '../models/category_model.dart';
 import '../models/address_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://astroboomin.co/api';
+  static String get baseUrl {
+    if (kIsWeb) {
+      final origin = Uri.base.origin;
+      if (origin.isNotEmpty && !origin.contains('localhost') && !origin.contains('127.0.0.1')) {
+        return '$origin/api';
+      }
+    }
+    return 'https://thegrubnextdoor.com/api';
+  }
   
   static String? _cachedUserId;
   static String? _cachedRole;

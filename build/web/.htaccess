@@ -8,24 +8,22 @@
     Header append Vary User-Agent
 </IfModule>
 
-# Enable Brotli Compression (if available)
-<IfModule mod_brotli.c>
-    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/wasm
-</IfModule>
-
-# Caching
+# Caching Configuration
 <IfModule mod_headers.c>
-    # HTML - no cache (always fetch latest)
-    <FilesMatch "\.(html)$">
-        Header set Cache-Control "no-cache, must-revalidate"
+    # Always fetch latest code & bootstrap
+    <FilesMatch "\.(html|js|json)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires 0
     </FilesMatch>
-    # Static assets - cache 1 year
-    <FilesMatch "\.(js|wasm|png|jpg|jpeg|gif|ico|css|json|ttf|otf|svg|frag|bin)$">
-        Header set Cache-Control "public, max-age=31536000, immutable"
+    # Assets / fonts / media cache
+    <FilesMatch "\.(png|jpg|jpeg|gif|ico|css|ttf|otf|svg|wasm|frag|bin)$">
+        Header set Cache-Control "public, max-age=86400"
     </FilesMatch>
 </IfModule>
 
-# MIME types for wasm
+# MIME types
 <IfModule mod_mime.c>
     AddType application/wasm .wasm
+    AddType application/javascript .js
 </IfModule>
