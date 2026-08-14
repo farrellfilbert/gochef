@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'order_complete_screen.dart';
@@ -22,7 +24,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   
   bool _isLoading = true;
   AddressModel? _primaryAddress;
-  double _grandTotal = 0;
+  List<CartItemModel> _cartItems = [];
+
+  // Price components
+  double _subtotal = 0.0;
+  double _baseDeliveryFee = 4.00;
+  double _serviceFee = 2.50;
+  double _discountAmount = 0.0;
+  double _grandTotal = 0.0;
+
+  // Selected Voucher
+  Map<String, dynamic>? _selectedVoucher;
+
+  // Available vouchers
+  List<Map<String, dynamic>> _availableVouchers = [
+    {
+      'code': 'FIRST50',
+      'discount': '50% OFF',
+      'title': '50% Off Your First Order',
+      'subtitle': 'Exclusive University student voucher',
+      'discountType': 'percent',
+      'discountValue': 50.0,
+      'minSpend': 0.0,
+    },
+    {
+      'code': 'FREEDELIV',
+      'discount': 'FREE DELIVERY',
+      'title': 'Free Delivery This Week',
+      'subtitle': 'Zero delivery fee',
+      'discountType': 'free_delivery',
+      'discountValue': 4.0,
+      'minSpend': 0.0,
+    },
+    {
+      'code': 'B2G1RAMEN',
+      'discount': 'BUY 2 GET 1',
+      'title': 'Buy 2 Get 1 Free Promo',
+      'subtitle': 'Special discount voucher',
+      'discountType': 'fixed',
+      'discountValue': 12.0,
+      'minSpend': 15.0,
+    },
+    {
+      'code': 'GOCHEF40',
+      'discount': '40% OFF',
+      'title': 'Gourmet Feast Special',
+      'subtitle': '40% discount on entire order',
+      'discountType': 'percent',
+      'discountValue': 40.0,
+      'minSpend': 20.0,
+    },
+    {
+      'code': 'PLUSVIP15',
+      'discount': '15% OFF',
+      'title': 'GoChef PLUS VIP Member',
+      'subtitle': 'VIP 15% discount',
+      'discountType': 'percent',
+      'discountValue': 15.0,
+      'minSpend': 0.0,
+    },
+  ];
 
   @override
   void initState() {
@@ -34,25 +95,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _isLoading = true);
     try {
       final allItems = await ApiService.getCart();
-      final items = allItems.where((i) => i.kitchenId == widget.kitchenId).toList();
+      _cartItems = allItems.where((i) => i.kitchenId == widget.kitchenId).toList();
       final addresses = await ApiService.getAddresses();
       
-      double subtotal = 0;
-      for (var item in items) {
-        subtotal += item.totalPrice;
-      }
-      double deliveryFee = items.isNotEmpty ? 4.00 : 0.00;
-      double serviceFee = items.isNotEmpty ? 2.50 : 0.00;
-      
-      setState(() {
-        _grandTotal = subtotal + deliveryFee + serviceFee;
-        if (addresses.isNotEmpty) {
-          _primaryAddress = addresses.firstWhere(
-            (a) => a.isDefault,
-            orElse: () => addresses.first,
-          );
+      // Load claimed vouchers from storage
+      try {
+        final userId = await ApiService.getUserId();
+        if (userId != null && userId.isNotEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          final savedVouchersJson = prefs.getString('user_claimed_vouchers_$userId');
+          if (savedVouchersJson != null) {
+            final List decoded = jsonDecode(savedVouchersJson);
+            final customVouchers = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+            for (var v in customVouchers) {
+              if (!_availableVouchers.any((existing) => existing['code'] == v['code'])) {
+                _availableVouchers.insert(0, v);
+              }
+            }
+          }
         }
-      });
+      } catch (_) {}
+
+      double sub = 0;
+      for (var item in _cartItems) {
+        sub += item.totalPrice;
+      }
+      _subtotal = sub;
+      _baseDeliveryFee = _cartItems.isNotEmpty ? 4.00 : 0.00;
+      _serviceFee = _cartItems.isNotEmpty ? 2.50 : 0.00;
+
+      if (addresses.isNotEmpty) {
+        _primaryAddress = addresses.firstWhere(
+          (a) => a.isDefault,
+          orElse: () => addresses.first,
+        );
+      }
+
+      _recalculateTotal();
     } catch (e) {
       debugPrint('Error loading checkout: $e');
     } finally {
@@ -60,6 +139,243 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  void _recalculateTotal() {
+    double delivery = _baseDeliveryFee;
+    double discount = 0.0;
+
+    if (_selectedVoucher != null) {
+      final type = _selectedVoucher!['discountType'] ?? 'percent';
+      final val = (_selectedVoucher!['discountValue'] as num?)?.toDouble() ?? 0.0;
+
+      if (type == 'percent') {
+        discount = _subtotal * (val / 100.0);
+      } else if (type == 'free_delivery') {
+        discount = delivery;
+        delivery = 0.0;
+      } else if (type == 'fixed') {
+        discount = val.clamp(0.0, _subtotal);
+      }
+    }
+
+    _discountAmount = discount;
+    final total = (_subtotal + delivery + _serviceFee - (typeIsFreeDelivery() ? 0.0 : _discountAmount));
+    _grandTotal = total.clamp(0.0, 999999.0);
+  }
+
+  bool typeIsFreeDelivery() {
+    return _selectedVoucher != null && _selectedVoucher!['discountType'] == 'free_delivery';
+  }
+
+  // ==========================================
+  // VOUCHER SELECTION MODAL
+  // ==========================================
+  void _showVoucherSelectionModal() {
+    final promoController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Apply Voucher / Promo', style: AppTextStyles.headlineMd(color: Colors.white)),
+                      if (_selectedVoucher != null)
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedVoucher = null;
+                              _recalculateTotal();
+                            });
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text('Remove', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Promo Code Input
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: promoController,
+                          textCapitalization: TextCapitalization.characters,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          decoration: InputDecoration(
+                            hintText: 'Enter Promo Code (e.g. FIRST50)',
+                            hintStyle: TextStyle(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 13),
+                            filled: true,
+                            fillColor: AppColors.surfaceContainerLow,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          final code = promoController.text.trim().toUpperCase();
+                          if (code.isEmpty) return;
+                          
+                          final is50 = (code == 'FIRST50' || code == 'GOCHEF50');
+                          final custom = {
+                            'code': code,
+                            'discount': is50 ? '50% OFF' : '20% OFF',
+                            'title': '$code Promo Code',
+                            'subtitle': 'Applied from code',
+                            'discountType': 'percent',
+                            'discountValue': is50 ? 50.0 : 20.0,
+                          };
+
+                          setState(() {
+                            _selectedVoucher = custom;
+                            _recalculateTotal();
+                          });
+                          Navigator.pop(ctx);
+
+                          ScaffoldMessenger.of(this.context).showSnackBar(
+                            SnackBar(
+                              content: Text('Voucher "$code" applied! Saved \$${_discountAmount.toStringAsFixed(2)}'),
+                              backgroundColor: Colors.green,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.onPrimary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Apply'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Your Available Vouchers', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                  const SizedBox(height: 10),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 280),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: _availableVouchers.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 10),
+                      itemBuilder: (context, idx) {
+                        final v = _availableVouchers[idx];
+                        final isApplied = _selectedVoucher != null && _selectedVoucher!['code'] == v['code'];
+                        return Material(
+                          color: isApplied ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(14),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () {
+                              setState(() {
+                                _selectedVoucher = v;
+                                _recalculateTotal();
+                              });
+                              Navigator.pop(ctx);
+
+                              ScaffoldMessenger.of(this.context).showSnackBar(
+                                SnackBar(
+                                  content: Text('🎉 Applied "${v['title']}"! You saved \$${_discountAmount.toStringAsFixed(2)}'),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 3),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: isApplied ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.1),
+                                  width: isApplied ? 1.5 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: isApplied ? AppColors.primary.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(Icons.confirmation_number, color: isApplied ? AppColors.primary : Colors.orange, size: 20),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(v['discount'] ?? 'PROMO', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                                            const SizedBox(width: 6),
+                                            Text('• ${v['code']}', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11)),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(v['title'] ?? '', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    isApplied ? 'Applied ✓' : 'Use',
+                                    style: TextStyle(
+                                      color: isApplied ? Colors.greenAccent : AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ==========================================
+  // PLACE ORDER
+  // ==========================================
   Future<void> _placeOrder() async {
     if (_primaryAddress == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -72,24 +388,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       isOrdering = true;
     });
 
+    String orderNotes = isAsap ? 'ASAP Delivery' : 'Scheduled Delivery';
+    if (_selectedVoucher != null) {
+      orderNotes += ' | Voucher: ${_selectedVoucher!['code']} (${_selectedVoucher!['discount']})';
+    }
+
     final result = await ApiService.checkout(
       addressId: _primaryAddress!.id,
       kitchenId: widget.kitchenId,
-      notes: isAsap ? 'ASAP Delivery' : 'Scheduled Delivery',
+      notes: orderNotes,
     );
 
     if (mounted) {
       if (result != null && result['success'] == true) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => OrderCompleteScreen(
-            orderId: result['order_id'] ?? 'Unknown',
-            kitchenId: result['kitchen_id']?.toString() ?? '',
-            kitchenName: result['kitchen_name'] ?? 'Unknown Kitchen',
-            totalAmount: (result['total'] ?? 0).toDouble(),
-            itemsCount: result['items_count'] ?? 1,
-            kitchenAvatar: result['kitchen_avatar'] ?? '',
-          )),
+          MaterialPageRoute(
+            builder: (context) => OrderCompleteScreen(
+              orderId: result['order_id'] ?? 'Unknown',
+              kitchenId: result['kitchen_id']?.toString() ?? '',
+              kitchenName: result['kitchen_name'] ?? 'Unknown Kitchen',
+              totalAmount: _grandTotal,
+              itemsCount: result['items_count'] ?? 1,
+              kitchenAvatar: result['kitchen_avatar'] ?? '',
+            ),
+          ),
         );
       } else {
         setState(() {
@@ -115,8 +438,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Checkout',
-            style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+        title: Text('Checkout', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
@@ -135,8 +457,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Delivery Address',
-                        style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                    Text('Delivery Address', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                     TextButton(
                       onPressed: () async {
                         final selected = await Navigator.push(
@@ -174,129 +495,125 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.location_on, color: AppColors.primary),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(_primaryAddress?.label ?? 'No Address Set',
-                                style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            Text(_primaryAddress != null ? _primaryAddress!.address : 'Please add an address',
-                                style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant.withValues(alpha: 0.8))),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                ),
-                const SizedBox(height: 16),
-
-                // Delivery Time
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(32),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => isAsap = true),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isAsap ? const Color(0xFFE42278) : Colors.transparent,
-                              borderRadius: BorderRadius.circular(32),
-                              boxShadow: isAsap
-                                  ? [BoxShadow(color: const Color(0xFFE42278).withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 4))]
-                                  : null,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'ASAP (25-35 min)',
-                              style: AppTextStyles.bodyMd(
-                                color: isAsap ? AppColors.onSurface : AppColors.onSurfaceVariant,
-                              ).copyWith(fontWeight: isAsap ? FontWeight.bold : FontWeight.normal),
-                            ),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.location_on, color: AppColors.primary),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(_primaryAddress?.label ?? 'No Address Set',
+                                  style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              Text(_primaryAddress != null ? _primaryAddress!.address : 'Please add an address',
+                                  style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant.withValues(alpha: 0.8))),
+                            ],
                           ),
-                        ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => isAsap = false),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: !isAsap ? const Color(0xFFE42278) : Colors.transparent,
-                              borderRadius: BorderRadius.circular(32),
-                              boxShadow: !isAsap
-                                  ? [BoxShadow(color: const Color(0xFFE42278).withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 4))]
-                                  : null,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'Schedule',
-                              style: AppTextStyles.bodyMd(
-                                color: !isAsap ? AppColors.onSurface : AppColors.onSurfaceVariant,
-                              ).copyWith(fontWeight: !isAsap ? FontWeight.bold : FontWeight.normal),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                        )
+                      ],
+                    ),
                   ),
                 ),
+                
                 const SizedBox(height: 24),
-
-                // Payment Method
+                // Delivery Time
+                Text('Delivery Time', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                const SizedBox(height: 12),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Payment Method',
-                        style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text('Change', style: AppTextStyles.labelMono(color: AppColors.primary)),
-                    )
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => isAsap = true),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isAsap ? AppColors.primaryContainer.withValues(alpha: 0.1) : AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isAsap ? AppColors.primary : Colors.white.withValues(alpha: 0.05),
+                              width: isAsap ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.bolt, color: isAsap ? AppColors.primary : AppColors.onSurfaceVariant, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text('ASAP', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text('25-35 mins', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => isAsap = false),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: !isAsap ? AppColors.primaryContainer.withValues(alpha: 0.1) : AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: !isAsap ? AppColors.primary : Colors.white.withValues(alpha: 0.05),
+                              width: !isAsap ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.schedule, color: !isAsap ? AppColors.primary : AppColors.onSurfaceVariant, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text('Schedule', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text('Select time', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 12),
                 
-                // Mastercard
+                const SizedBox(height: 24),
+                // Payment Method
+                Text('Payment Method', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                const SizedBox(height: 12),
                 GestureDetector(
                   onTap: () => setState(() => selectedPayment = 'mastercard'),
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+                      color: selectedPayment == 'mastercard' ? AppColors.primaryContainer.withValues(alpha: 0.1) : AppColors.surfaceContainerLow.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: selectedPayment == 'mastercard'
-                            ? AppColors.primary.withValues(alpha: 0.5)
-                            : Colors.white.withValues(alpha: 0.05),
+                        color: selectedPayment == 'mastercard' ? AppColors.primary : Colors.white.withValues(alpha: 0.05),
                       ),
                     ),
                     child: Row(
                       children: [
                         Container(
-                          width: 48,
-                          height: 32,
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppColors.surfaceContainerHighest,
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
                           ),
                           child: const Icon(Icons.credit_card, color: AppColors.onSurface),
                         ),
@@ -339,7 +656,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 const SizedBox(height: 12),
                 
-                // Alt methods
+                // Alt payment methods
                 Row(
                   children: [
                     Expanded(
@@ -388,9 +705,99 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ],
                 ),
+
+                const SizedBox(height: 24),
+                // VOUCHER & DISCOUNT SECTION
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Voucher & Discounts', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                    if (_selectedVoucher != null)
+                      GestureDetector(
+                        onTap: _showVoucherSelectionModal,
+                        child: Text('Change', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Material(
+                  color: _selectedVoucher != null
+                      ? AppColors.primary.withValues(alpha: 0.1)
+                      : AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: _showVoucherSelectionModal,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: _selectedVoucher != null ? AppColors.primary : Colors.white.withValues(alpha: 0.05),
+                          width: _selectedVoucher != null ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: _selectedVoucher != null ? AppColors.primary.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(Icons.local_offer, color: _selectedVoucher != null ? AppColors.primary : Colors.orange, size: 22),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: _selectedVoucher != null
+                                ? Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primary.withValues(alpha: 0.2),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              _selectedVoucher!['discount'] ?? 'PROMO',
+                                              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            _selectedVoucher!['code'] ?? '',
+                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _selectedVoucher!['title'] ?? 'Voucher Applied',
+                                        style: AppTextStyles.labelSm(color: Colors.greenAccent).copyWith(fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Apply Voucher / Promo Code', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 2),
+                                      Text('Select claimed voucher or enter code', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                    ],
+                                  ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios, color: AppColors.onSurfaceVariant, size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
                 
                 const SizedBox(height: 24),
-                // Summary
+                // Order Summary Breakdown
                 Text('Order Summary', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                 const SizedBox(height: 12),
                 Container(
@@ -402,6 +809,51 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   child: Column(
                     children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Subtotal', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                          Text('\$${_subtotal.toStringAsFixed(2)}', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Delivery Fee', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                          Text(
+                            typeIsFreeDelivery() ? 'FREE' : '\$${_baseDeliveryFee.toStringAsFixed(2)}',
+                            style: AppTextStyles.bodyMd(color: typeIsFreeDelivery() ? Colors.greenAccent : AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Service Fee', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                          Text('\$${_serviceFee.toStringAsFixed(2)}', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      if (_discountAmount > 0) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Voucher Discount (${_selectedVoucher!['discount']})',
+                              style: AppTextStyles.bodyMd(color: Colors.greenAccent),
+                            ),
+                            Text(
+                              '-\$${_discountAmount.toStringAsFixed(2)}',
+                              style: AppTextStyles.bodyMd(color: Colors.greenAccent).copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

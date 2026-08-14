@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,8 +35,45 @@ class _SearchScreenState extends State<SearchScreen> {
   List<PromotionModel> _promotions = [];
   List<KitchenModel> _featuredKitchens = [];
 
+  // Claimed Exclusive Offers Tracking
+  Set<String> _claimedOfferIds = {};
+
+  // Exclusive Offers List
+  final List<Map<String, dynamic>> _exclusiveOffers = [
+    {
+      'id': 'offer_50_first',
+      'title': '50% Off Your First Order',
+      'subtitle': 'Exclusive to University District students',
+      'code': 'FIRST50',
+      'discount': '50% OFF',
+      'discountType': 'percent',
+      'discountValue': 50.0,
+      'minSpend': 0.0,
+    },
+    {
+      'id': 'offer_free_deliv',
+      'title': 'Free Delivery This Week',
+      'subtitle': 'On all orders above \$20',
+      'code': 'FREEDELIV',
+      'discount': 'FREE DELIVERY',
+      'discountType': 'free_delivery',
+      'discountValue': 4.0,
+      'minSpend': 20.0,
+    },
+    {
+      'id': 'offer_buy2get1',
+      'title': 'Buy 2 Get 1 Free',
+      'subtitle': "On selected ramen bowls at Yosuke's",
+      'code': 'B2G1RAMEN',
+      'discount': 'BUY 2 GET 1',
+      'discountType': 'fixed',
+      'discountValue': 12.0,
+      'minSpend': 15.0,
+    },
+  ];
+
   // Active user vouchers
-  final List<Map<String, dynamic>> _userVouchers = [
+  List<Map<String, dynamic>> _userVouchers = [
     {
       'code': 'GOCHEF40',
       'discount': '40% OFF',
@@ -43,6 +81,8 @@ class _SearchScreenState extends State<SearchScreen> {
       'minSpend': 30,
       'expiresIn': '5 Days',
       'category': 'All Kitchens',
+      'discountType': 'percent',
+      'discountValue': 40.0,
     },
     {
       'code': 'FREEDELIV',
@@ -51,6 +91,8 @@ class _SearchScreenState extends State<SearchScreen> {
       'minSpend': 0,
       'expiresIn': '3 Days',
       'category': 'Orders > \$15',
+      'discountType': 'free_delivery',
+      'discountValue': 4.0,
     },
     {
       'code': 'BUY1GET1',
@@ -59,6 +101,8 @@ class _SearchScreenState extends State<SearchScreen> {
       'minSpend': 20,
       'expiresIn': '7 Days',
       'category': 'Selected Dishes',
+      'discountType': 'fixed',
+      'discountValue': 10.0,
     },
     {
       'code': 'PLUSVIP15',
@@ -67,6 +111,8 @@ class _SearchScreenState extends State<SearchScreen> {
       'minSpend': 10,
       'expiresIn': '14 Days',
       'category': 'VIP Exclusive',
+      'discountType': 'percent',
+      'discountValue': 15.0,
     },
     {
       'code': 'ASIAN25',
@@ -75,6 +121,8 @@ class _SearchScreenState extends State<SearchScreen> {
       'minSpend': 25,
       'expiresIn': '4 Days',
       'category': 'Asian Category',
+      'discountType': 'percent',
+      'discountValue': 25.0,
     },
   ];
 
@@ -102,6 +150,24 @@ class _SearchScreenState extends State<SearchScreen> {
         _voucherCount = prefs.getInt('user_vouchers_$userId') ?? 25;
         _currentDayIndex = prefs.getInt('user_streak_day_$userId') ?? 3;
         _isChefPlus = prefs.getBool('user_chef_plus_$userId') ?? true;
+
+        // Load claimed offers
+        final claimedList = prefs.getStringList('claimed_offers_$userId') ?? [];
+        _claimedOfferIds = claimedList.toSet();
+
+        // Load saved vouchers if any
+        final savedVouchersJson = prefs.getString('user_claimed_vouchers_$userId');
+        if (savedVouchersJson != null) {
+          try {
+            final List decoded = jsonDecode(savedVouchersJson);
+            final customVouchers = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+            for (var v in customVouchers) {
+              if (!_userVouchers.any((existing) => existing['code'] == v['code'])) {
+                _userVouchers.insert(0, v);
+              }
+            }
+          } catch (_) {}
+        }
       }
 
       // Fetch promotions and kitchens
@@ -133,7 +199,111 @@ class _SearchScreenState extends State<SearchScreen> {
       await prefs.setInt('user_vouchers_$userId', _voucherCount);
       await prefs.setInt('user_streak_day_$userId', _currentDayIndex);
       await prefs.setBool('user_chef_plus_$userId', _isChefPlus);
+      await prefs.setStringList('claimed_offers_$userId', _claimedOfferIds.toList());
+      await prefs.setString('user_claimed_vouchers_$userId', jsonEncode(_userVouchers));
     }
+  }
+
+  // ==========================================
+  // ACTION: CLAIM EXCLUSIVE OFFER
+  // ==========================================
+  Future<void> _claimExclusiveOffer(Map<String, dynamic> offer) async {
+    final offerId = offer['id'] as String;
+    if (_claimedOfferIds.contains(offerId)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('You have already claimed "${offer['title']}"! It is ready to use at Checkout.'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final newVoucher = {
+      'code': offer['code'],
+      'discount': offer['discount'],
+      'title': offer['title'],
+      'subtitle': offer['subtitle'],
+      'minSpend': offer['minSpend'] ?? 0.0,
+      'expiresIn': '7 Days',
+      'category': 'Exclusive Offer',
+      'discountType': offer['discountType'] ?? 'percent',
+      'discountValue': (offer['discountValue'] as num?)?.toDouble() ?? 0.0,
+    };
+
+    setState(() {
+      _claimedOfferIds.add(offerId);
+      _voucherCount++;
+      if (!_userVouchers.any((v) => v['code'] == offer['code'])) {
+        _userVouchers.insert(0, newVoucher);
+      }
+    });
+
+    await _saveUserData();
+
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.celebration, color: AppColors.primary, size: 28),
+            const SizedBox(width: 10),
+            Text('Voucher Claimed! 🎉', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${offer['title']} has been claimed!',
+              style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.local_offer, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Code: ${offer['code']} (${offer['discount']})',
+                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'This voucher will automatically apply a discount when you place an order at Checkout!',
+              style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Awesome!'),
+          ),
+        ],
+      ),
+    );
   }
 
   // ==========================================
@@ -477,14 +647,14 @@ class _SearchScreenState extends State<SearchScreen> {
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
-                                        v['discount'],
+                                        v['discount'] ?? 'PROMO',
                                         style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11),
                                       ),
                                     ),
                                     const SizedBox(height: 4),
-                                    Text(v['title'], style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
+                                    Text(v['title'] ?? 'Discount Voucher', style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
                                     const SizedBox(height: 2),
-                                    Text('Code: ${v['code']} • Expires in ${v['expiresIn']}', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                    Text('Code: ${v['code']} • Expires in ${v['expiresIn'] ?? '7 Days'}', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
                                   ],
                                 ),
                               ),
@@ -494,7 +664,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   Navigator.pop(ctx);
                                   ScaffoldMessenger.of(this.context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Voucher code "${v['code']}" copied to clipboard!'),
+                                      content: Text('Voucher code "${v['code']}" copied! Use it at Checkout.'),
                                       backgroundColor: AppColors.primary,
                                       behavior: SnackBarBehavior.floating,
                                       duration: const Duration(seconds: 3),
@@ -702,14 +872,16 @@ class _SearchScreenState extends State<SearchScreen> {
                           setDialogState(() => isValidating = true);
                           await Future.delayed(const Duration(milliseconds: 500));
 
-                          // Apply discount voucher
+                          final is50 = (code == 'GOCHEF50' || code == 'FIRST50');
                           final newVoucher = {
                             'code': code,
-                            'discount': code == 'GOCHEF50' ? '50% OFF' : '20% OFF',
+                            'discount': is50 ? '50% OFF' : '20% OFF',
                             'title': '$code Promo Applied',
-                            'minSpend': 15,
+                            'minSpend': 15.0,
                             'expiresIn': '7 Days',
                             'category': 'All Orders',
+                            'discountType': 'percent',
+                            'discountValue': is50 ? 50.0 : 20.0,
                           };
 
                           setState(() {
@@ -723,7 +895,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           if (mounted) {
                             ScaffoldMessenger.of(this.context).showSnackBar(
                               SnackBar(
-                                content: Text('🎉 Promo Code "$code" successfully applied! Voucher added.'),
+                                content: Text('🎉 Promo Code "$code" successfully applied! Voucher added to wallet.'),
                                 backgroundColor: Colors.green,
                                 behavior: SnackBarBehavior.floating,
                                 duration: const Duration(seconds: 4),
@@ -1208,54 +1380,162 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
 
-              // Promotions section if any from API
-              if (_promotions.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Exclusive Offers', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                        const SizedBox(height: 12),
-                        ..._promotions.map((p) => Container(
+              // Exclusive Offers Section (Claimable Vouchers with dynamic Claim -> Claimed status)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Exclusive Offers', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                      const SizedBox(height: 16),
+                      ..._exclusiveOffers.map((offer) {
+                        final isClaimed = _claimedOfferIds.contains(offer['id']);
+                        return Container(
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: AppColors.surface,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                            border: Border.all(
+                              color: isClaimed
+                                  ? Colors.green.withValues(alpha: 0.3)
+                                  : AppColors.outlineVariant.withValues(alpha: 0.15),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.local_activity, color: AppColors.primary, size: 28),
-                              const SizedBox(width: 12),
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: isClaimed
+                                      ? Colors.green.withValues(alpha: 0.15)
+                                      : AppColors.primary.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  isClaimed ? Icons.check_circle : Icons.local_activity,
+                                  color: isClaimed ? Colors.greenAccent : AppColors.primary,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(p.title, style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
-                                    if (p.subtitle.isNotEmpty)
-                                      Text(p.subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                    Text(
+                                      offer['title'] ?? '',
+                                      style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 14),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      offer['subtitle'] ?? '',
+                                      style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                                    ),
                                   ],
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               ElevatedButton(
-                                onPressed: _showVouchersModal,
+                                onPressed: () => _claimExclusiveOffer(offer),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: AppColors.onPrimary,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  backgroundColor: isClaimed
+                                      ? Colors.white.withValues(alpha: 0.15)
+                                      : const Color(0xFFE899AE),
+                                  foregroundColor: isClaimed ? Colors.white70 : const Color(0xFF4A1024),
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                 ),
-                                child: const Text('Claim'),
+                                child: Text(
+                                  isClaimed ? 'Claimed ✓' : 'Claim',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
                               )
                             ],
                           ),
-                        )),
+                        );
+                      }),
+                      // Additional API promotions if available
+                      if (_promotions.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        ..._promotions.map((p) {
+                          final apiId = 'api_promo_${p.id}';
+                          final isClaimed = _claimedOfferIds.contains(apiId);
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isClaimed
+                                    ? Colors.green.withValues(alpha: 0.3)
+                                    : AppColors.primary.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    color: isClaimed ? Colors.green.withValues(alpha: 0.15) : AppColors.primary.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    isClaimed ? Icons.check_circle : Icons.local_activity,
+                                    color: isClaimed ? Colors.greenAccent : AppColors.primary,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(p.title, style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
+                                      if (p.subtitle.isNotEmpty)
+                                        Text(p.subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11)),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    final offerMap = {
+                                      'id': apiId,
+                                      'title': p.title,
+                                      'subtitle': p.subtitle,
+                                      'code': p.code.isNotEmpty ? p.code : 'PROMO${p.id}',
+                                      'discount': p.discountPercent > 0 ? '${p.discountPercent}% OFF' : 'SPECIAL',
+                                      'discountType': 'percent',
+                                      'discountValue': p.discountPercent > 0 ? p.discountPercent.toDouble() : 15.0,
+                                      'minSpend': 0.0,
+                                    };
+                                    _claimExclusiveOffer(offerMap);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: isClaimed ? Colors.white.withValues(alpha: 0.15) : const Color(0xFFE899AE),
+                                    foregroundColor: isClaimed ? Colors.white70 : const Color(0xFF4A1024),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  ),
+                                  child: Text(
+                                    isClaimed ? 'Claimed ✓' : 'Claim',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  ),
+                                )
+                              ],
+                            ),
+                          );
+                        }),
                       ],
-                    ),
+                    ],
                   ),
                 ),
+              ),
 
               const SliverToBoxAdapter(child: SizedBox(height: 80)),
             ],
