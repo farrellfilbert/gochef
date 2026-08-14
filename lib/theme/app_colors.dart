@@ -6,16 +6,16 @@ class AppColors {
   AppColors._();
 
   // ─── Primary ───
-  static const Color primary = Color(0xFFFFB1C6);
-  static const Color primaryContainer = Color(0xFFFF4A90);
+  static const Color primary = Color(0xFFEB1E8C); // Vibrant Fuchsia
+  static const Color primaryContainer = Color(0xFFFF2E93);
   static const Color primaryFixed = Color(0xFFFFD9E1);
   static const Color primaryFixedDim = Color(0xFFFFB1C6);
-  static const Color onPrimary = Color(0xFF650030);
-  static const Color onPrimaryContainer = Color(0xFF590029);
+  static const Color onPrimary = Color(0xFFFFFFFF);
+  static const Color onPrimaryContainer = Color(0xFFFFFFFF);
   static const Color onPrimaryFixed = Color(0xFF3F001B);
   static const Color onPrimaryFixedVariant = Color(0xFF8E0046);
   static const Color inversePrimary = Color(0xFFBA005E);
-  static const Color fuchsia = Color(0xFFFF1493); // Vibrant Fuchsia
+  static const Color fuchsia = Color(0xFFEB1E8C); // Vibrant Fuchsia
 
   // ─── Secondary ───
   static const Color secondary = Color(0xFFC6C6C7);

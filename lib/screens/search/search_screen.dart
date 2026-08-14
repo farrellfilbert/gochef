@@ -1179,7 +1179,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [AppColors.primary, AppColors.tertiary],
+                        colors: [Color(0xFFD81B60), Color(0xFFC2185B)],
                       ),
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -1207,8 +1207,8 @@ class _SearchScreenState extends State<SearchScreen> {
                               ElevatedButton(
                                 onPressed: _claimDailyReward,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: _isTodayClaimed ? Colors.white.withValues(alpha: 0.3) : AppColors.onPrimary,
-                                  foregroundColor: _isTodayClaimed ? Colors.white : AppColors.primary,
+                                  backgroundColor: _isTodayClaimed ? Colors.white.withValues(alpha: 0.3) : Colors.white,
+                                  foregroundColor: _isTodayClaimed ? Colors.white : const Color(0xFFD81B60),
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                 ),
@@ -1559,23 +1559,17 @@ class _SearchScreenState extends State<SearchScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => _onCategoryTap(label),
-        child: Column(
-          children: [
-            Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                color: AppColors.fuchsia.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.fuchsia.withValues(alpha: 0.35)),
-              ),
-              child: Icon(icon, color: Colors.white, size: 32),
-            ),
-            const SizedBox(height: 8),
-            Text(label, style: AppTextStyles.labelSm(color: Colors.white70)),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Column(
+            children: [
+              Icon(icon, color: Colors.white, size: 36),
+              const SizedBox(height: 8),
+              Text(label, style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontWeight: FontWeight.w500)),
+            ],
+          ),
         ),
       ),
     );
