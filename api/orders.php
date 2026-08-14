@@ -1,6 +1,5 @@
 <?php
-
-
+require_once 'db_connect.php';
 
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -10,14 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$db_host = 'localhost';
-$db_user = 'astroboomin_id_rsa';
-$db_pass = 'Astroboomin2026!';
-$db_name = 'astroboomin_gochef';
-
 try {
-    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     $user_id = $_GET['user_id'] ?? null;
     $kitchen_id = $_GET['kitchen_id'] ?? null;

@@ -30,14 +30,9 @@ if (empty($order_id) || empty($status)) {
     exit();
 }
 
-$db_host = 'localhost';
-$db_user = 'astroboomin_id_rsa';
-$db_pass = 'Astroboomin2026!';
-$db_name = 'astroboomin_gochef';
+require_once 'db_connect.php';
 
 try {
-    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Check if order exists
     $stmt = $pdo->prepare("SELECT user_id, kitchen_name FROM orders WHERE id = ?");

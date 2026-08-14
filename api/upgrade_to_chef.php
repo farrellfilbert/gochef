@@ -26,14 +26,9 @@ if (!$user_id || empty($kitchen_name)) {
     exit();
 }
 
-$db_host = 'localhost';
-$db_user = 'astroboomin_id_rsa';
-$db_pass = 'Astroboomin2026!';
-$db_name = 'astroboomin_gochef';
+require_once 'db_connect.php';
 
 try {
-    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Check if user exists
     $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ?");

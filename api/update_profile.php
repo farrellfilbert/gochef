@@ -1,6 +1,5 @@
 <?php
-
-
+require_once 'db_connect.php';
 
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -10,15 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$db_host = 'localhost';
-$db_user = 'astroboomin_id_rsa';
-$db_pass = 'Astroboomin2026!';
-$db_name = 'astroboomin_gochef';
-
 try {
-    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
     $user_id = $_POST['user_id'] ?? null;
     if (!$user_id) {
         http_response_code(400);
@@ -42,10 +33,12 @@ try {
             $targetPath = $uploadDir . $fileName;
             
             if (move_uploaded_file($tmpName, $targetPath)) {
-                $avatarUrl = 'https://astroboomin.co/avatars/' . $fileName;
+                $host = $_SERVER['HTTP_HOST'] ?? 'thegrubnextdoor.com';
+                $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+                $avatarUrl = "$scheme://$host/avatars/" . $fileName;
             } else {
                 http_response_code(500);
-                echo json_encode(['success' => false, 'error' => 'Failed to move uploaded file. Check permissions on avatars directory.']);
+                echo json_encode(['success' => false, 'error' => 'Failed to move uploaded file.']);
                 exit();
             }
         } else {
@@ -58,30 +51,38 @@ try {
     $updates = [];
     $params = [];
     
-    if ($name !== null) {
-        $updates[] = "name = ?";
-        $params[] = $name;
+    if ($name !== null && trim($name) !== '') {
+        $updates[] = 'name = ?';
+        $params[] = trim($name);
     }
     if ($phone !== null) {
-        $updates[] = "phone = ?";
-        $params[] = $phone;
+        $updates[] = 'phone = ?';
+        $params[] = trim($phone);
     }
     if ($avatarUrl !== null) {
-        $updates[] = "avatar = ?";
+        $updates[] = 'avatar = ?';
         $params[] = $avatarUrl;
     }
     
-    if (count($updates) > 0) {
-        $sql = "UPDATE users SET " . implode(", ", $updates) . " WHERE id = ?";
-        $params[] = $user_id;
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        
-        echo json_encode(['success' => true, 'message' => 'Profile updated']);
-    } else {
+    if (empty($updates)) {
         echo json_encode(['success' => true, 'message' => 'No changes made']);
+        exit();
     }
+    
+    $params[] = $user_id;
+    $sql = "UPDATE users SET " . implode(', ', $updates) . " WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    
+    $stmt = $pdo->prepare("SELECT id, name, email, phone, avatar, role FROM users WHERE id = ? LIMIT 1");
+    $stmt->execute([$user_id]);
+    $updatedUser = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Profile updated successfully',
+        'data' => $updatedUser
+    ]);
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);

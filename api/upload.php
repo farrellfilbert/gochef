@@ -47,7 +47,9 @@ $filepath = $uploadDir . $filename;
 
 if (move_uploaded_file($file['tmp_name'], $filepath)) {
     // Return the public URL
-    $baseUrl = 'https://astroboomin.co/uploads/';
+    $host = $_SERVER['HTTP_HOST'] ?? 'thegrubnextdoor.com';
+    $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+    $baseUrl = "$scheme://$host/uploads/";
     $imageUrl = $baseUrl . $filename;
 
     echo json_encode(['success' => true, 'url' => $imageUrl, 'filename' => $filename]);
