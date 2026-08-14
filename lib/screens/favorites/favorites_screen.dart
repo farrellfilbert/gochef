@@ -279,14 +279,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
                           ],
                         ),
                         GestureDetector(
-                          onTap: () async {
+                          onTap: () {
                             if (id > 0) {
-                              final success = await ApiService.addToCart(id);
-                              if (success && mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Added to cart'), backgroundColor: AppColors.primary),
-                                );
-                              }
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: id)),
+                              );
                             }
                           },
                           child: Container(

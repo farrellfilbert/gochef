@@ -428,11 +428,11 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                 ),
                 // Add to cart button
                 GestureDetector(
-                  onTap: () async {
-                    final success = await ApiService.addToCart(menuItem.id);
-                    if (success && mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to cart'), backgroundColor: AppColors.primary));
-                    }
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: menuItem.id)),
+                    );
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
