@@ -1,11 +1,5 @@
 ---
 deployment:
   tasks:
-    - /bin/cp -a build/web/* /home/gochefmy/public_html/ || true
-    - /bin/cp -a api /home/gochefmy/public_html/ || true
-    - /bin/cp -a build/web/* /home/astroboomin/public_html/ || true
-    - /bin/cp -a api /home/astroboomin/public_html/ || true
-    - /bin/cp -a build/web/* /home/gochefmy/astroboomin.co/ || true
-    - /bin/cp -a api /home/gochefmy/astroboomin.co/ || true
     - /bin/cp -a build/web/* /home/ghst2026/public_html/ || true
     - /bin/cp -a api /home/ghst2026/public_html/ || true
