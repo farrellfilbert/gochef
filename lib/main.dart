@@ -199,24 +199,12 @@ class _MainNavigationState extends State<MainNavigation> {
                   fit: BoxFit.contain,
                   color: Colors.white70,
                 ),
-                activeIcon: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.4),
-                        blurRadius: 8,
-                      )
-                    ],
-                  ),
-                  child: Image.asset(
-                    'assets/images/home_nav.png',
-                    width: 26,
-                    height: 26,
-                    fit: BoxFit.contain,
-                    color: Colors.white,
-                  ),
+                activeIcon: Image.asset(
+                  'assets/images/home_nav.png',
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.contain,
+                  color: Colors.white,
                 ),
                 label: 'Home',
               ),

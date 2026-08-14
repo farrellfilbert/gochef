@@ -1308,17 +1308,17 @@ class _SearchScreenState extends State<SearchScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Row(
                           children: [
-                            _buildShortcutIcon(Icons.local_fire_department, 'Trending', Colors.orange),
+                            _buildShortcutIcon(Icons.local_fire_department, 'Trending'),
                             const SizedBox(width: 16),
-                            _buildShortcutIcon(Icons.ramen_dining, 'Asian', Colors.redAccent),
+                            _buildShortcutIcon(Icons.ramen_dining, 'Asian'),
                             const SizedBox(width: 16),
-                            _buildShortcutIcon(Icons.local_pizza, 'Western', Colors.amber),
+                            _buildShortcutIcon(Icons.local_pizza, 'Western'),
                             const SizedBox(width: 16),
-                            _buildShortcutIcon(Icons.fastfood, 'Fast Food', Colors.purpleAccent),
+                            _buildShortcutIcon(Icons.fastfood, 'Fast Food'),
                             const SizedBox(width: 16),
-                            _buildShortcutIcon(Icons.eco, 'Healthy', Colors.green),
+                            _buildShortcutIcon(Icons.eco, 'Healthy'),
                             const SizedBox(width: 16),
-                            _buildShortcutIcon(Icons.cake, 'Dessert', Colors.pinkAccent),
+                            _buildShortcutIcon(Icons.cake, 'Dessert'),
                           ],
                         ),
                       ),
@@ -1548,7 +1548,7 @@ class _SearchScreenState extends State<SearchScreen> {
   // ==========================================
   // HELPER WIDGETS
   // ==========================================
-  Widget _buildShortcutIcon(IconData icon, String label, Color color) {
+  Widget _buildShortcutIcon(IconData icon, String label) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1560,14 +1560,14 @@ class _SearchScreenState extends State<SearchScreen> {
               width: 70,
               height: 70,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
+                color: AppColors.fuchsia.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: color.withValues(alpha: 0.3)),
+                border: Border.all(color: AppColors.fuchsia.withValues(alpha: 0.35)),
               ),
-              child: Icon(icon, color: color, size: 32),
+              child: Icon(icon, color: Colors.white, size: 32),
             ),
             const SizedBox(height: 8),
-            Text(label, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+            Text(label, style: AppTextStyles.labelSm(color: Colors.white70)),
           ],
         ),
       ),
@@ -1626,7 +1626,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: const BoxDecoration(
-                        color: Colors.redAccent,
+                        color: AppColors.fuchsia,
                         borderRadius: BorderRadius.horizontal(right: Radius.circular(8)),
                       ),
                       child: Text(
@@ -1693,7 +1693,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: const BoxDecoration(
-                        color: Colors.redAccent,
+                        color: AppColors.fuchsia,
                         borderRadius: BorderRadius.horizontal(right: Radius.circular(8)),
                       ),
                       child: Text(
