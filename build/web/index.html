@@ -41,24 +41,23 @@
       align-items: center;
       justify-content: center;
     }
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 3px solid rgba(255, 64, 129, 0.2);
-      border-radius: 50%;
-      border-top-color: #FF4081;
-      animation: spin 1s ease-in-out infinite;
-      margin-bottom: 20px;
+    .logo-bounce {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 24px;
+      animation: bounce 2s infinite ease-in-out;
+      border-radius: 20px;
     }
     .loading-text {
       color: #FFFFFF;
-      font-size: 16px;
-      font-weight: 500;
+      font-size: 18px;
+      font-weight: 600;
       letter-spacing: 1px;
       animation: pulse 1.5s infinite;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-15px) scale(1.05); }
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
@@ -68,7 +67,7 @@
 </head>
 <body>
   <div class="loading-container" id="app-loader">
-    <div class="spinner"></div>
+    <img src="favicon.png" alt="GoChef Logo" class="logo-bounce" />
     <div class="loading-text">Preparing GoChef...</div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>

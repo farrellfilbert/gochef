@@ -1,221 +1,260 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Chef Promotions Manager</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Karla:wght@400;500&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<style>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Chef Promotions Manager</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Karla:wght@400;500&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <style>
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
+
         .glass-card {
             background: rgba(28, 32, 41, 0.6);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(169, 136, 144, 0.1);
         }
+
         .neon-glow-rose {
             box-shadow: 0 0 15px rgba(255, 74, 144, 0.3);
         }
+
         .spring-behavior {
             transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+
         @keyframes pulse-soft {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
         }
+
         .animate-pulse-soft {
             animation: pulse-soft 3s infinite ease-in-out;
         }
     </style>
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "on-secondary-fixed": "#1a1c1c",
-                    "tertiary-fixed-dim": "#ffb0cd",
-                    "on-primary": "#650030",
-                    "inverse-on-surface": "#2c303a",
-                    "surface-variant": "#31353f",
-                    "surface-tint": "#ffb1c6",
-                    "surface": "#0f131c",
-                    "on-primary-container": "#590029",
-                    "on-error-container": "#ffdad6",
-                    "tertiary-fixed": "#ffd9e4",
-                    "surface-container-high": "#262a34",
-                    "primary-fixed": "#ffd9e1",
-                    "surface-container": "#1c2029",
-                    "on-tertiary-container": "#570032",
-                    "secondary-fixed": "#e2e2e2",
-                    "surface-container-lowest": "#0a0e17",
-                    "on-error": "#690005",
-                    "error-container": "#93000a",
-                    "secondary-fixed-dim": "#c6c6c7",
-                    "secondary": "#c6c6c7",
-                    "on-tertiary-fixed": "#3e0021",
-                    "on-secondary-fixed-variant": "#454747",
-                    "on-primary-fixed": "#3f001b",
-                    "outline-variant": "#5a4046",
-                    "surface-container-low": "#181b25",
-                    "surface-bright": "#353943",
-                    "inverse-surface": "#dfe2ef",
-                    "on-secondary": "#2f3131",
-                    "on-background": "#dfe2ef",
-                    "on-tertiary-fixed-variant": "#7f2250",
-                    "primary-fixed-dim": "#ffb1c6",
-                    "outline": "#a98890",
-                    "tertiary-container": "#db6c9b",
-                    "primary": "#ffb1c6",
-                    "surface-dim": "#0f131c",
-                    "error": "#ffb4ab",
-                    "tertiary": "#ffb0cd",
-                    "secondary-container": "#454747",
-                    "on-primary-fixed-variant": "#8e0046",
-                    "inverse-primary": "#ba005e",
-                    "background": "#0f131c",
-                    "surface-container-highest": "#31353f",
-                    "on-secondary-container": "#b4b5b5",
-                    "primary-container": "#ff4a90",
-                    "on-tertiary": "#620639",
-                    "on-surface": "#dfe2ef",
-                    "on-surface-variant": "#e2bdc5"
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#1a1c1c",
+                        "tertiary-fixed-dim": "#ffb0cd",
+                        "on-primary": "#650030",
+                        "inverse-on-surface": "#2c303a",
+                        "surface-variant": "#31353f",
+                        "surface-tint": "#ffb1c6",
+                        "surface": "#0f131c",
+                        "on-primary-container": "#590029",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffd9e4",
+                        "surface-container-high": "#262a34",
+                        "primary-fixed": "#ffd9e1",
+                        "surface-container": "#1c2029",
+                        "on-tertiary-container": "#570032",
+                        "secondary-fixed": "#e2e2e2",
+                        "surface-container-lowest": "#0a0e17",
+                        "on-error": "#690005",
+                        "error-container": "#93000a",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "secondary": "#c6c6c7",
+                        "on-tertiary-fixed": "#3e0021",
+                        "on-secondary-fixed-variant": "#454747",
+                        "on-primary-fixed": "#3f001b",
+                        "outline-variant": "#5a4046",
+                        "surface-container-low": "#181b25",
+                        "surface-bright": "#353943",
+                        "inverse-surface": "#dfe2ef",
+                        "on-secondary": "#2f3131",
+                        "on-background": "#dfe2ef",
+                        "on-tertiary-fixed-variant": "#7f2250",
+                        "primary-fixed-dim": "#ffb1c6",
+                        "outline": "#a98890",
+                        "tertiary-container": "#db6c9b",
+                        "primary": "#ffb1c6",
+                        "surface-dim": "#0f131c",
+                        "error": "#ffb4ab",
+                        "tertiary": "#ffb0cd",
+                        "secondary-container": "#454747",
+                        "on-primary-fixed-variant": "#8e0046",
+                        "inverse-primary": "#ba005e",
+                        "background": "#0f131c",
+                        "surface-container-highest": "#31353f",
+                        "on-secondary-container": "#b4b5b5",
+                        "primary-container": "#ff4a90",
+                        "on-tertiary": "#620639",
+                        "on-surface": "#dfe2ef",
+                        "on-surface-variant": "#e2bdc5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "24px",
+                        "stack-lg": "48px",
+                        "gutter-mobile": "20px",
+                        "stack-xs": "4px",
+                        "stack-sm": "12px",
+                        "margin-desktop": "64px",
+                        "baseline": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Montserrat"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "body-lg": ["Karla"],
+                        "headline-lg": ["Montserrat"],
+                        "headline-lg-mobile": ["Montserrat"],
+                        "label-mono": ["Karla"],
+                        "body-md": ["Karla"],
+                        "label-sm": ["Karla"],
+                        "display-lg": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-mono": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                },
             },
-            "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                    "full": "9999px"
-            },
-            "spacing": {
-                    "stack-md": "24px",
-                    "stack-lg": "48px",
-                    "gutter-mobile": "20px",
-                    "stack-xs": "4px",
-                    "stack-sm": "12px",
-                    "margin-desktop": "64px",
-                    "baseline": "8px"
-            },
-            "fontFamily": {
-                    "headline-md": ["Montserrat"],
-                    "display-lg-mobile": ["Montserrat"],
-                    "body-lg": ["Karla"],
-                    "headline-lg": ["Montserrat"],
-                    "headline-lg-mobile": ["Montserrat"],
-                    "label-mono": ["Karla"],
-                    "body-md": ["Karla"],
-                    "label-sm": ["Karla"],
-                    "display-lg": ["Montserrat"]
-            },
-            "fontSize": {
-                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
-                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
-                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
-                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
-                    "label-mono": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
-                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
-                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
-            }
-          },
-        },
-      }
+        }
     </script>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
 </head>
-<body class="bg-surface text-on-surface min-h-screen font-body-md overflow-x-hidden">
-<!-- Top Navigation Anchor -->
-<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl shadow-sm border-b border-outline-variant/10">
-<div class="flex justify-between items-center px-gutter-mobile py-4 max-w-7xl mx-auto">
-<div class="flex items-center gap-4">
-<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors active:scale-95 duration-200">
-<span class="material-symbols-outlined text-primary">arrow_back</span>
-</button>
-<h1 class="font-headline-md text-headline-md-mobile text-primary tracking-tight">Kitchen Profile</h1>
-</div>
-<div class="flex items-center gap-2">
-<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors active:scale-95 duration-200">
-<span class="material-symbols-outlined text-primary">share</span>
-</button>
-</div>
-</div>
-</header>
-<main class="pt-24 pb-32 px-gutter-mobile max-w-7xl mx-auto">
-<!-- Hero Section -->
-<section class="mb-stack-lg">
-<div class="relative rounded-3xl overflow-hidden h-48 md:h-64 glass-card p-8 flex flex-col justify-end">
-<div class="absolute inset-0 opacity-40">
 
-</div>
-<div class="relative z-10">
-<span class="font-label-mono text-label-sm uppercase tracking-widest text-primary-container mb-2 block">Marketing Hub</span>
-<h2 class="font-display-lg-mobile text-display-lg-mobile text-white leading-tight">Master Your <br/><span class="text-primary">Promotions</span></h2>
-</div>
-</div>
-</section>
-<!-- Stats Overview (Bento Style) -->
-<section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-stack-lg">
-<div class="glass-card p-6 rounded-2xl">
-<p class="text-on-surface-variant font-label-sm mb-1">Active Deals</p>
-<p class="font-headline-lg-mobile text-white">12</p>
-</div>
-<div class="glass-card p-6 rounded-2xl">
-<p class="text-on-surface-variant font-label-sm mb-1">Total Uses</p>
-<p class="font-headline-lg-mobile text-white">1.4k</p>
-</div>
-<div class="glass-card p-6 rounded-2xl border-primary/20">
-<p class="text-primary-container font-label-sm mb-1">Promo Revenue</p>
-<p class="font-headline-lg-mobile text-primary">$4,280</p>
-</div>
-<div class="glass-card p-6 rounded-2xl">
-<p class="text-on-surface-variant font-label-sm mb-1">Engagement</p>
-<p class="font-headline-lg-mobile text-white">24%</p>
-</div>
-</section>
-<!-- Category Tabs -->
-<nav class="flex gap-2 mb-8 overflow-x-auto no-scrollbar pb-2">
-<button class="px-6 py-2 rounded-full glass-card border-primary text-primary font-label-mono text-label-sm whitespace-nowrap transition-all duration-300" id="tab-coupons" onclick="switchTab('coupons')">Coupons</button>
-<button class="px-6 py-2 rounded-full glass-card text-on-surface-variant font-label-mono text-label-sm whitespace-nowrap transition-all duration-300" id="tab-discounts" onclick="switchTab('discounts')">Discounts</button>
-<button class="px-6 py-2 rounded-full glass-card text-on-surface-variant font-label-mono text-label-sm whitespace-nowrap transition-all duration-300" id="tab-bundles" onclick="switchTab('bundles')">Bundles</button>
-</nav>
-<!-- Content Area -->
-<div class="space-y-6" id="promo-container">
-<!-- Dynamic Content Injected Here -->
-</div>
-</main>
-<!-- FAB -->
-<button class="fixed bottom-28 right-6 md:right-12 w-14 h-14 bg-gradient-to-tr from-primary to-tertiary rounded-full shadow-lg neon-glow-rose flex items-center justify-center z-50 hover:scale-110 active:scale-90 transition-all spring-behavior">
-<span class="material-symbols-outlined text-on-primary font-bold">add</span>
-</button>
-<!-- Bottom Nav Anchor -->
-<nav class="fixed bottom-0 w-full z-50 bg-surface/90 dark:bg-surface/90 backdrop-blur-2xl border-t border-outline-variant/10 rounded-t-xl shadow-[0_-4px_20px_rgba(0,0,0,0.5)] h-20 px-4 pb-safe flex justify-around items-center">
-<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all">
-<span class="material-symbols-outlined">explore</span>
-<span class="font-label-sm text-label-sm">Explore</span>
-</div>
-<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all">
-<span class="material-symbols-outlined">receipt_long</span>
-<span class="font-label-sm text-label-sm">Orders</span>
-</div>
-<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all">
-<span class="material-symbols-outlined">favorite</span>
-<span class="font-label-sm text-label-sm">Favorites</span>
-</div>
-<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 transition-all">
-<span class="material-symbols-outlined">person</span>
-<span class="font-label-sm text-label-sm">Profile</span>
-</div>
-</nav>
-<script>
+<body class="bg-surface text-on-surface min-h-screen font-body-md overflow-x-hidden">
+    <!-- Top Navigation Anchor -->
+    <header
+        class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl shadow-sm border-b border-outline-variant/10">
+        <div class="flex justify-between items-center px-gutter-mobile py-4 max-w-7xl mx-auto">
+            <div class="flex items-center gap-4">
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors active:scale-95 duration-200">
+                    <span class="material-symbols-outlined text-primary">arrow_back</span>
+                </button>
+                <h1 class="font-headline-md text-headline-md-mobile text-primary tracking-tight">Kitchen Profile</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors active:scale-95 duration-200">
+                    <span class="material-symbols-outlined text-primary">share</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <main class="pt-24 pb-32 px-gutter-mobile max-w-7xl mx-auto">
+        <!-- Hero Section -->
+        <section class="mb-stack-lg">
+            <div class="relative rounded-3xl overflow-hidden h-48 md:h-64 glass-card p-8 flex flex-col justify-end">
+                <div class="absolute inset-0 opacity-40">
+
+                </div>
+                <div class="relative z-10">
+                    <span
+                        class="font-label-mono text-label-sm uppercase tracking-widest text-primary-container mb-2 block">Marketing
+                        Hub</span>
+                    <h2 class="font-display-lg-mobile text-display-lg-mobile text-white leading-tight">Master Your
+                        <br /><span class="text-primary">Promotions</span></h2>
+                </div>
+            </div>
+        </section>
+        <!-- Stats Overview (Bento Style) -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-stack-lg">
+            <div class="glass-card p-6 rounded-2xl">
+                <p class="text-on-surface-variant font-label-sm mb-1">Active Deals</p>
+                <p class="font-headline-lg-mobile text-white">12</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <p class="text-on-surface-variant font-label-sm mb-1">Total Uses</p>
+                <p class="font-headline-lg-mobile text-white">1.4k</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl border-primary/20">
+                <p class="text-primary-container font-label-sm mb-1">Promo Revenue</p>
+                <p class="font-headline-lg-mobile text-primary">$4,280</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <p class="text-on-surface-variant font-label-sm mb-1">Engagement</p>
+                <p class="font-headline-lg-mobile text-white">24%</p>
+            </div>
+        </section>
+        <!-- Category Tabs -->
+        <nav class="flex gap-2 mb-8 overflow-x-auto no-scrollbar pb-2">
+            <button
+                class="px-6 py-2 rounded-full glass-card border-primary text-primary font-label-mono text-label-sm whitespace-nowrap transition-all duration-300"
+                id="tab-coupons" onclick="switchTab('coupons')">Coupons</button>
+            <button
+                class="px-6 py-2 rounded-full glass-card text-on-surface-variant font-label-mono text-label-sm whitespace-nowrap transition-all duration-300"
+                id="tab-discounts" onclick="switchTab('discounts')">Discounts</button>
+            <button
+                class="px-6 py-2 rounded-full glass-card text-on-surface-variant font-label-mono text-label-sm whitespace-nowrap transition-all duration-300"
+                id="tab-bundles" onclick="switchTab('bundles')">Bundles</button>
+        </nav>
+        <!-- Content Area -->
+        <div class="space-y-6" id="promo-container">
+            <!-- Dynamic Content Injected Here -->
+        </div>
+    </main>
+    <!-- FAB -->
+    <button
+        class="fixed bottom-28 right-6 md:right-12 w-14 h-14 bg-gradient-to-tr from-primary to-tertiary rounded-full shadow-lg neon-glow-rose flex items-center justify-center z-50 hover:scale-110 active:scale-90 transition-all spring-behavior">
+        <span class="material-symbols-outlined text-on-primary font-bold">add</span>
+    </button>
+    <!-- Bottom Nav Anchor -->
+    <nav
+        class="fixed bottom-0 w-full z-50 bg-surface/90 dark:bg-surface/90 backdrop-blur-2xl border-t border-outline-variant/10 rounded-t-xl shadow-[0_-4px_20px_rgba(0,0,0,0.5)] h-20 px-4 pb-safe flex justify-around items-center">
+        <div
+            class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all">
+            <span class="material-symbols-outlined">explore</span>
+            <span class="font-label-sm text-label-sm">Explore</span>
+        </div>
+        <div
+            class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all">
+            <span class="material-symbols-outlined">receipt_long</span>
+            <span class="font-label-sm text-label-sm">Orders</span>
+        </div>
+        <div
+            class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all">
+            <span class="material-symbols-outlined">favorite</span>
+            <span class="font-label-sm text-label-sm">Favorites</span>
+        </div>
+        <div
+            class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 transition-all">
+            <span class="material-symbols-outlined">person</span>
+            <span class="font-label-sm text-label-sm">Profile</span>
+        </div>
+    </nav>
+    <script>
         const promoData = {
             coupons: [
                 { id: 1, title: 'FREESHIP24', subtitle: 'Free delivery for new users', status: 'Active', usage: 145, revenue: '$0.00', icon: 'local_shipping' },
@@ -235,11 +274,11 @@
         function renderPromos(category) {
             const container = document.getElementById('promo-container');
             container.innerHTML = '';
-            
+
             promoData[category].forEach(promo => {
                 const card = document.createElement('div');
                 card.className = 'glass-card rounded-2xl overflow-hidden flex flex-col md:flex-row group transition-all duration-300 hover:border-primary/40';
-                
+
                 const statusColor = promo.status === 'Active' ? 'text-emerald-400' : 'text-amber-400';
                 const statusDot = promo.status === 'Active' ? 'bg-emerald-400 animate-pulse-soft' : 'bg-amber-400';
 
@@ -319,4 +358,6 @@
         // Initial render
         renderPromos('coupons');
     </script>
-</body></html>
+</body>
+
+</html>

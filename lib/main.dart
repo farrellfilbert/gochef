@@ -181,39 +181,61 @@ class _MainNavigationState extends State<MainNavigation> {
             highlightColor: Colors.transparent,
           ),
           child: BottomNavigationBar(
-            backgroundColor: AppColors.surface.withValues(alpha: 0.8),
-            selectedItemColor: AppColors.primary,
-            unselectedItemColor: AppColors.onSurfaceVariant,
-            selectedLabelStyle: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
-            unselectedLabelStyle: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+            backgroundColor: AppColors.surface.withValues(alpha: 0.95),
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.white70,
+            selectedLabelStyle: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+            unselectedLabelStyle: AppTextStyles.labelSm(color: Colors.white70),
             currentIndex: _currentIndex,
             onTap: (index) => setState(() => _currentIndex = index),
             type: BottomNavigationBarType.fixed,
             elevation: 0,
-            items: const [
+            items: [
               BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
+                icon: Image.asset(
+                  'assets/images/GoCheflogo.png',
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.contain,
+                ),
+                activeIcon: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        blurRadius: 8,
+                      )
+                    ],
+                  ),
+                  child: Image.asset(
+                    'assets/images/GoCheflogo.png',
+                    width: 26,
+                    height: 26,
+                    fit: BoxFit.contain,
+                  ),
+                ),
                 label: 'Home',
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.local_offer_outlined),
-                activeIcon: Icon(Icons.local_offer),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.local_offer_outlined, color: Colors.white70),
+                activeIcon: Icon(Icons.local_offer, color: Colors.white),
                 label: 'Promo',
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.receipt_long_outlined),
-                activeIcon: Icon(Icons.receipt_long),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.receipt_long_outlined, color: Colors.white70),
+                activeIcon: Icon(Icons.receipt_long, color: Colors.white),
                 label: 'Orders',
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.favorite_outline),
-                activeIcon: Icon(Icons.favorite),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.favorite_outline, color: Colors.white70),
+                activeIcon: Icon(Icons.favorite, color: Colors.white),
                 label: 'Favorites',
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline, color: Colors.white70),
+                activeIcon: Icon(Icons.person, color: Colors.white),
                 label: 'Profile',
               ),
             ],

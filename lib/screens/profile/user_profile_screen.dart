@@ -197,11 +197,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         elevation: 0,
         title: Row(
           children: [
+            Image.asset(
+              'assets/images/GoCheflogo.png',
+              width: 32,
+              height: 32,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('GoChef', style: AppTextStyles.headlineLgMobile(color: AppColors.primary).copyWith(fontSize: 20)),
+                Text('GoChef', style: AppTextStyles.headlineLgMobile(color: Colors.white).copyWith(fontSize: 20)),
                 Text(
                   'Your Profile',
                   style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
@@ -212,7 +219,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.shopping_bag, color: AppColors.primary),
+            icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
             },
@@ -350,15 +357,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('LOYALTY POINTS', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                          Text('LOYALTY POINTS', style: AppTextStyles.labelSm(color: Colors.white70)),
                           const SizedBox(height: 4),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('$loyaltyPoints', style: AppTextStyles.displayLgMobile(color: AppColors.primary).copyWith(height: 1)),
+                              Text('$loyaltyPoints', style: AppTextStyles.displayLgMobile(color: Colors.white).copyWith(height: 1)),
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 4, left: 4),
-                                child: Text('pts', style: AppTextStyles.bodyMd(color: AppColors.primary.withValues(alpha: 0.7))),
+                                child: Text('pts', style: AppTextStyles.bodyMd(color: Colors.white70)),
                               ),
                             ],
                           ),
@@ -378,8 +385,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Progress to Platinum', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                      Text('250 pts left', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
+                      Text('Progress to Platinum', style: AppTextStyles.labelSm(color: Colors.white70)),
+                      Text('250 pts left', style: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -437,7 +444,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Rewards Gallery', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                Text('View All', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                Text('View All', style: AppTextStyles.labelSm(color: Colors.white)),
               ],
             ),
             const SizedBox(height: 16),
@@ -563,15 +570,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.onPrimary,
+                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.storefront),
+                      const Icon(Icons.storefront, color: Colors.black),
                       const SizedBox(width: 8),
-                      Text('Switch to Chef Dashboard', style: AppTextStyles.bodyMd(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold)),
+                      Text('Switch to Chef Dashboard', style: AppTextStyles.bodyMd(color: Colors.black).copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),

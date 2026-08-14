@@ -135,17 +135,17 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_name, style: AppTextStyles.headlineLgMobile(color: AppColors.primary).copyWith(fontSize: 20)),
+              Text(_name, style: AppTextStyles.headlineLgMobile(color: Colors.white).copyWith(fontSize: 20)),
               Row(
                 children: [
-                  const Icon(Icons.location_on, size: 14, color: AppColors.onSurfaceVariant),
+                  const Icon(Icons.location_on, size: 14, color: AppColors.fuchsia),
                   const SizedBox(width: 4),
                   Text(
                     widget.subtitle.isNotEmpty ? widget.subtitle : location,
-                    style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                    style: AppTextStyles.labelSm(color: AppColors.fuchsia).copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down, color: AppColors.onSurfaceVariant, size: 14),
+                  const Icon(Icons.keyboard_arrow_down, color: AppColors.fuchsia, size: 14),
                 ],
               ),
             ],

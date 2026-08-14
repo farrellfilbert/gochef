@@ -280,7 +280,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 70, left: 20, right: 20),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Our Story', style: AppTextStyles.headlineMd(color: AppColors.primary)),
+                    Text('Our Story', style: AppTextStyles.headlineMd(color: Colors.white)),
                     const SizedBox(height: 8),
                     Text(kitchen.description, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(height: 1.5)),
                   ]),

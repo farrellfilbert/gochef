@@ -216,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   return Stack(
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.shopping_bag_outlined, color: AppColors.onSurfaceVariant),
+                                        icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
                                         onPressed: () {
                                           Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
                                         },
@@ -241,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                                 },
                               ),
-                              const NotificationBell(iconColor: AppColors.onSurfaceVariant),
+                              const NotificationBell(iconColor: Colors.white),
                             ],
                           )
                         ],
@@ -331,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   child: Text(
                                     'LIMITED OFFER',
-                                    style: AppTextStyles.labelSm(color: AppColors.onPrimaryContainer)
+                                    style: AppTextStyles.labelSm(color: Colors.white)
                                         .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -373,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     );
                                   },
-                                  child: Text('View All', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                                  child: Text('View All', style: AppTextStyles.labelSm(color: Colors.white)),
                                 ),
                               ],
                             ),
@@ -408,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 Text('Popular Meals', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                                 IconButton(
-                                  icon: const Icon(Icons.tune, color: AppColors.primary),
+                                  icon: const Icon(Icons.tune, color: Colors.white),
                                   onPressed: () => _showFilterModal(context),
                                 ),
                               ],
@@ -474,7 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface.withValues(alpha: 0.7),
+          color: isSelected ? AppColors.primaryContainer : AppColors.surface.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isSelected ? Colors.transparent : AppColors.outlineVariant.withValues(alpha: 0.1),
@@ -483,7 +483,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Text(
           label,
           style: AppTextStyles.labelMono(
-              color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceVariant),
+              color: isSelected ? Colors.white : Colors.white70),
         ),
       ),
     );
@@ -623,7 +623,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text('\$${meal.price.toStringAsFixed(2)}',
-                          style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
+                          style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 4),

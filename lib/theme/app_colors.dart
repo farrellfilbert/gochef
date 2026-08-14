@@ -15,6 +15,7 @@ class AppColors {
   static const Color onPrimaryFixed = Color(0xFF3F001B);
   static const Color onPrimaryFixedVariant = Color(0xFF8E0046);
   static const Color inversePrimary = Color(0xFFBA005E);
+  static const Color fuchsia = Color(0xFFFF1493); // Vibrant Fuchsia
 
   // ─── Secondary ───
   static const Color secondary = Color(0xFFC6C6C7);
