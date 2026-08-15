@@ -147,15 +147,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         : '${order.itemsCount} items';
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 24),
-                      child: _buildOrderCard(
-                          chefName: order.kitchenName,
-                          dateStr: order.date.split(' • ')[0],
-                          orderId: order.id,
-                          status: order.status == 'Active' ? 'Scheduled' : order.status,
-                          avatar: order.avatar.isNotEmpty ? order.avatar : 'https://via.placeholder.com/150',
-                          itemsStr: itemsStr,
-                          price: '\$${order.totalAmount.toStringAsFixed(2)}',
-                          onChat: order.kitchenUserId.isNotEmpty ? () {
+                          child: _buildOrderCard(
+                              chefName: order.kitchenName,
+                              dateStr: order.date.split(' • ')[0],
+                              orderId: order.id,
+                              status: (order.status == 'Active' && order.orderType != 'dine_in') ? 'Scheduled' : order.status,
+                              avatar: order.avatar.isNotEmpty ? order.avatar : 'https://via.placeholder.com/150',
+                              itemsStr: itemsStr,
+                              price: '\$${order.totalAmount.toStringAsFixed(2)}',
+                              orderType: order.orderType,
+                              dineInDate: order.dineInDate,
+                              dineInTime: order.dineInTime,
+                              onChat: order.kitchenUserId.isNotEmpty ? () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -231,6 +234,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     required String avatar,
     required String itemsStr,
     required String price,
+    String? orderType,
+    String? dineInDate,
+    String? dineInTime,
     required VoidCallback onDetails,
     required VoidCallback onReorder,
     VoidCallback? onChat,
@@ -301,6 +307,22 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               )
             ],
           ),
+          
+          if (orderType == 'dine_in') ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+              child: Row(
+                children: [
+                  const Icon(Icons.table_restaurant, color: Colors.orange, size: 16),
+                  const SizedBox(width: 8),
+                  Text('Dine-In Booking: ${dineInDate ?? ""} ${dineInTime ?? ""}', style: const TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ],
+          
           const SizedBox(height: 16),
           Text(itemsStr, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
           const SizedBox(height: 16),

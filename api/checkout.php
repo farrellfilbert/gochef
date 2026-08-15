@@ -10,6 +10,12 @@ if ($method === 'POST') {
     $address_id = intval($input['address_id'] ?? 0);
     $kitchen_id = intval($input['kitchen_id'] ?? 0);
     $notes = $input['notes'] ?? '';
+    
+    // New fields
+    $order_type = $input['order_type'] ?? 'delivery';
+    $dine_in_date = $input['dine_in_date'] ?? null;
+    $dine_in_time = $input['dine_in_time'] ?? null;
+    $promo_code = $input['promo_code'] ?? null;
 
     if (!$user_id) {
         echo json_encode(['success' => false, 'error' => 'user_id required']);
@@ -53,12 +59,27 @@ if ($method === 'POST') {
             $itemsCount += $item['quantity'];
         }
 
-        // Get delivery address
+        // Get delivery address (only if not dine-in)
         $deliveryAddress = '';
-        if ($address_id) {
+        if ($address_id && $order_type !== 'dine_in') {
             $stmt = $pdo->prepare("SELECT address FROM addresses WHERE id = ? AND user_id = ?");
             $stmt->execute([$address_id, $user_id]);
             $deliveryAddress = $stmt->fetchColumn() ?: '';
+        }
+
+        // Handle Promo Code
+        $discountAmount = 0;
+        if (!empty($promo_code)) {
+            $promoStmt = $pdo->prepare("SELECT discount_percent FROM promotions WHERE code = ? AND is_active = 1");
+            $promoStmt->execute([$promo_code]);
+            $discountPercent = $promoStmt->fetchColumn();
+            
+            if ($discountPercent) {
+                $discountAmount = ($total * $discountPercent) / 100;
+                $total -= $discountAmount;
+            } else {
+                $promo_code = null; // Invalid promo
+            }
         }
 
         // Create order ID
@@ -68,11 +89,13 @@ if ($method === 'POST') {
         $kitchenName = $cartItems[0]['kitchen_name'];
         $kitchenAvatar = $cartItems[0]['kitchen_avatar'] ?? '';
 
+        $status = ($order_type === 'dine_in') ? 'Pending' : 'Active';
+
         // Insert order
-        $stmt = $pdo->prepare("INSERT INTO orders (id, user_id, kitchen_id, kitchen_name, order_date, status, total_amount, items_count, avatar, delivery_address, notes) VALUES (?, ?, ?, ?, ?, 'Active', ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO orders (id, user_id, kitchen_id, kitchen_name, order_date, order_type, dine_in_date, dine_in_time, discount_amount, promo_code, status, total_amount, items_count, avatar, delivery_address, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $orderId, $user_id, $kitchen_id, $kitchenName,
-            gmdate('Y-m-d\TH:i:s\Z'), $total, $itemsCount,
+            gmdate('Y-m-d\TH:i:s\Z'), $order_type, $dine_in_date, $dine_in_time, $discountAmount, $promo_code, $status, $total, $itemsCount,
             $kitchenAvatar, $deliveryAddress, $notes
         ]);
 
@@ -125,9 +148,11 @@ if ($method === 'POST') {
             'order_id' => $orderId,
             'kitchen_id' => $kitchen_id,
             'total' => $total,
+            'discount' => $discountAmount,
             'items_count' => $itemsCount,
             'kitchen_name' => $kitchenName,
-            'kitchen_avatar' => $kitchenAvatar
+            'kitchen_avatar' => $kitchenAvatar,
+            'status' => $status
         ]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);

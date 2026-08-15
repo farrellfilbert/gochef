@@ -39,6 +39,11 @@ class OrderModel {
   final int itemsCount;
   final String avatar;
   final String? notes;
+  final String orderType;
+  final String? dineInDate;
+  final String? dineInTime;
+  final double discountAmount;
+  final String? promoCode;
   final List<OrderItemModel> items;
 
   OrderModel({
@@ -56,6 +61,11 @@ class OrderModel {
     required this.itemsCount,
     required this.avatar,
     this.notes,
+    this.orderType = 'delivery',
+    this.dineInDate,
+    this.dineInTime,
+    this.discountAmount = 0.0,
+    this.promoCode,
     required this.items,
   });
 
@@ -97,6 +107,11 @@ class OrderModel {
           : (json['itemsCount'] != null ? int.tryParse(json['itemsCount'].toString()) ?? parsedItems.length : parsedItems.length),
       avatar: json['avatar'] ?? '',
       notes: json['notes'],
+      orderType: json['order_type'] ?? 'delivery',
+      dineInDate: json['dine_in_date'],
+      dineInTime: json['dine_in_time'],
+      discountAmount: json['discount_amount'] != null ? double.tryParse(json['discount_amount'].toString()) ?? 0.0 : 0.0,
+      promoCode: json['promo_code'],
       items: parsedItems,
     );
   }

@@ -15,7 +15,7 @@ class ChefOrdersScreen extends StatefulWidget {
 
 class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   int _selectedTabIndex = 0;
-  final List<String> _tabs = ['Active', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
+  final List<String> _tabs = ['Pending', 'Active', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
   bool _isLoading = true;
   List<OrderModel> _orders = [];
   Timer? _pollingTimer;
@@ -83,6 +83,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
 
   String _getNextStatus(String currentStatus) {
     switch (currentStatus) {
+      case 'Pending': return 'Active'; // For dine-in
       case 'Active': return 'Preparing';
       case 'Preparing': return 'Ready';
       case 'Ready': return 'Completed';
@@ -173,14 +174,9 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: _buildOrderCard(
-                              orderId: order.id,
-                              orderDate: order.date,
-                              totalAmount: '\$${order.totalAmount.toStringAsFixed(2)}',
-                              status: order.status,
-                              items: order.items ?? [],
-                              note: order.notes,
-                              primaryActionText: nextStatus.isNotEmpty ? 'Mark $nextStatus' : '',
-                              secondaryActionText: order.status == 'Active' ? 'Cancel' : null,
+                              order: order,
+                              primaryActionText: nextStatus.isNotEmpty ? (order.status == 'Pending' ? 'Confirm Booking' : 'Mark $nextStatus') : '',
+                              secondaryActionText: (order.status == 'Active' || order.status == 'Pending') ? (order.status == 'Pending' ? 'Reject' : 'Cancel') : null,
                               onPrimaryAction: nextStatus.isNotEmpty ? () => _updateOrderStatus(order.id, nextStatus) : null,
                               onSecondaryAction: order.status == 'Active' ? () => _updateOrderStatus(order.id, 'Cancelled') : null,
                               onContactCustomer: order.userId.isNotEmpty ? () {
@@ -208,12 +204,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   }
 
   Widget _buildOrderCard({
-    required String orderId,
-    required String orderDate,
-    required String totalAmount,
-    required String status,
-    required List<OrderItemModel> items,
-    String? note,
+    required OrderModel order,
     required String primaryActionText,
     String? secondaryActionText,
     VoidCallback? onPrimaryAction,
@@ -245,8 +236,20 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Order $orderId', style: AppTextStyles.headlineMd(color: Colors.white)),
-                      Text(orderDate, style: AppTextStyles.labelMono(color: AppColors.primary)),
+                      Row(
+                        children: [
+                          Text('Order ${order.id}', style: AppTextStyles.headlineMd(color: Colors.white)),
+                          if (order.orderType == 'dine_in') ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(4)),
+                              child: const Text('DINE-IN', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ],
+                      ),
+                      Text(order.date, style: AppTextStyles.labelMono(color: AppColors.primary)),
                     ],
                   ),
                 ],
@@ -261,13 +264,29 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                       constraints: const BoxConstraints(),
                     ),
                   if (onContactCustomer != null) const SizedBox(width: 8),
-                  Text(totalAmount, style: AppTextStyles.headlineMd(color: AppColors.primary)),
+                  Text('\$${order.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: AppColors.primary)),
                 ],
               ),
             ],
           ),
+          
+          if (order.orderType == 'dine_in' && order.dineInDate != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.orange.withValues(alpha: 0.3))),
+              child: Row(
+                children: [
+                  const Icon(Icons.table_restaurant, color: Colors.orange, size: 20),
+                  const SizedBox(width: 8),
+                  Text('Booking: ${order.dineInDate} at ${order.dineInTime ?? ""}', style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ],
+          
           const SizedBox(height: 16),
-          ...items.map((item) {
+          ...order.items.map((item) {
              final qty = item.quantity;
              final name = item.name;
              final price = item.price;
@@ -321,7 +340,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
             );
           }),
           
-          if (note != null && note.isNotEmpty) ...[
+          if (order.notes != null && order.notes!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
@@ -336,7 +355,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                   const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(note, style: AppTextStyles.labelSm(color: Colors.white)),
+                    child: Text(order.notes!, style: AppTextStyles.labelSm(color: Colors.white)),
                   ),
                 ],
               ),

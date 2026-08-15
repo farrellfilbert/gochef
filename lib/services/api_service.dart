@@ -625,7 +625,15 @@ class ApiService {
   // CHECKOUT
   // =============================================
 
-  static Future<Map<String, dynamic>?> checkout({int? addressId, required int kitchenId, String notes = ''}) async {
+  static Future<Map<String, dynamic>?> checkout({
+    int? addressId, 
+    required int kitchenId, 
+    String notes = '',
+    String orderType = 'delivery',
+    String? dineInDate,
+    String? dineInTime,
+    String? promoCode,
+  }) async {
     final userId = await getUserId();
     if (userId == null) return null;
     
@@ -638,6 +646,10 @@ class ApiService {
           'kitchen_id': kitchenId,
           'address_id': addressId,
           'notes': notes,
+          'order_type': orderType,
+          'dine_in_date': dineInDate,
+          'dine_in_time': dineInTime,
+          'promo_code': promoCode,
         }),
       ).timeout(const Duration(seconds: 10));
       

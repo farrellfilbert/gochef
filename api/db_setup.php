@@ -221,6 +221,11 @@ try {
         kitchen_id INT NULL,
         kitchen_name VARCHAR(100) NOT NULL,
         order_date VARCHAR(50) NOT NULL,
+        order_type VARCHAR(20) NOT NULL DEFAULT 'delivery',
+        dine_in_date VARCHAR(50) NULL,
+        dine_in_time VARCHAR(50) NULL,
+        discount_amount DECIMAL(10,2) DEFAULT 0.00,
+        promo_code VARCHAR(50) NULL,
         status VARCHAR(20) NOT NULL DEFAULT 'Active',
         total_amount DECIMAL(10,2) NOT NULL,
         items_count INT NOT NULL,
@@ -235,6 +240,11 @@ try {
     try { $pdo->exec("ALTER TABLE orders ADD COLUMN delivery_address VARCHAR(300) DEFAULT ''"); } catch(PDOException $e) {}
     try { $pdo->exec("ALTER TABLE orders ADD COLUMN notes TEXT"); } catch(PDOException $e) {}
     try { $pdo->exec("ALTER TABLE orders ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"); } catch(PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE orders ADD COLUMN order_type VARCHAR(20) NOT NULL DEFAULT 'delivery'"); } catch(PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE orders ADD COLUMN dine_in_date VARCHAR(50) NULL"); } catch(PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE orders ADD COLUMN dine_in_time VARCHAR(50) NULL"); } catch(PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE orders ADD COLUMN discount_amount DECIMAL(10,2) DEFAULT 0.00"); } catch(PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE orders ADD COLUMN promo_code VARCHAR(50) NULL"); } catch(PDOException $e) {}
     
     // Only try to add foreign key if we know how, simpler to just add column on existing data.
     // If we want to strictly add foreign key to existing table in mysql: 

@@ -22,6 +22,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String selectedPayment = 'mastercard'; // 'mastercard', 'apple', 'google'
   bool isOrdering = false;
   
+  // Dine-in fields
+  bool isDineIn = false;
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
+  
   bool _isLoading = true;
   AddressModel? _primaryAddress;
   List<CartItemModel> _cartItems = [];
@@ -140,7 +145,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _recalculateTotal() {
-    double delivery = _baseDeliveryFee;
+    double delivery = isDineIn ? 0.0 : _baseDeliveryFee;
     double discount = 0.0;
 
     if (_selectedVoucher != null) {
@@ -158,12 +163,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     _discountAmount = discount;
-    final total = (_subtotal + delivery + _serviceFee - (typeIsFreeDelivery() ? 0.0 : _discountAmount));
+    final total = (_subtotal + delivery + _serviceFee - _discountAmount);
     _grandTotal = total.clamp(0.0, 999999.0);
   }
 
   bool typeIsFreeDelivery() {
     return _selectedVoucher != null && _selectedVoucher!['discountType'] == 'free_delivery';
+  }
+
+  Future<void> _pickDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 30)),
+    );
+    if (date != null) {
+      setState(() => selectedDate = date);
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (time != null) {
+      setState(() => selectedTime = time);
+    }
   }
 
   // ==========================================
@@ -377,9 +404,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // PLACE ORDER
   // ==========================================
   Future<void> _placeOrder() async {
-    if (_primaryAddress == null) {
+    if (!isDineIn && _primaryAddress == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please add a delivery address first'), backgroundColor: AppColors.error),
+      );
+      return;
+    }
+    
+    if (isDineIn && (selectedDate == null || selectedTime == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select Date and Time for Dine-in'), backgroundColor: AppColors.error),
       );
       return;
     }
@@ -388,15 +422,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       isOrdering = true;
     });
 
-    String orderNotes = isAsap ? 'ASAP Delivery' : 'Scheduled Delivery';
+    String orderNotes = isDineIn 
+        ? 'Dine-in Booking' 
+        : (isAsap ? 'ASAP Delivery' : 'Scheduled Delivery');
+        
     if (_selectedVoucher != null) {
       orderNotes += ' | Voucher: ${_selectedVoucher!['code']} (${_selectedVoucher!['discount']})';
     }
 
     final result = await ApiService.checkout(
-      addressId: _primaryAddress!.id,
+      addressId: isDineIn ? null : _primaryAddress!.id,
       kitchenId: widget.kitchenId,
       notes: orderNotes,
+      orderType: isDineIn ? 'dine_in' : 'delivery',
+      dineInDate: selectedDate != null ? "${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}" : null,
+      dineInTime: selectedTime != null ? "${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}" : null,
+      promoCode: _selectedVoucher != null ? _selectedVoucher!['code'] : null,
     );
 
     if (mounted) {
@@ -453,7 +494,60 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Delivery Address
+                // Order Type Toggle
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isDineIn = false;
+                              _recalculateTotal();
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
+                              color: !isDineIn ? AppColors.primary : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text('Delivery', style: TextStyle(color: !isDineIn ? Colors.white : AppColors.onSurfaceVariant, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isDineIn = true;
+                              _recalculateTotal();
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
+                              color: isDineIn ? AppColors.primary : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text('Dine-In Booking', style: TextStyle(color: isDineIn ? Colors.white : AppColors.onSurfaceVariant, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                if (!isDineIn) ...[
+                  // Delivery Address
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -591,6 +685,60 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ],
                 ),
+                ] else ...[
+                  // Dine-in Schedule
+                  Text('Dine-In Schedule', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _pickDate,
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.calendar_month, color: AppColors.primary, size: 20),
+                                const SizedBox(height: 8),
+                                Text(selectedDate != null ? "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}" : 'Select Date', 
+                                    style: AppTextStyles.bodyMd(color: selectedDate != null ? AppColors.onSurface : AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _pickTime,
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.access_time, color: AppColors.primary, size: 20),
+                                const SizedBox(height: 8),
+                                Text(selectedTime != null ? selectedTime!.format(context) : 'Select Time', 
+                                    style: AppTextStyles.bodyMd(color: selectedTime != null ? AppColors.onSurface : AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 
                 const SizedBox(height: 24),
                 // Payment Method
@@ -816,17 +964,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           Text('\$${_subtotal.toStringAsFixed(2)}', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Delivery Fee', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
-                          Text(
-                            typeIsFreeDelivery() ? 'FREE' : '\$${_baseDeliveryFee.toStringAsFixed(2)}',
-                            style: AppTextStyles.bodyMd(color: typeIsFreeDelivery() ? Colors.greenAccent : AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
+                      if (!isDineIn) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Delivery Fee', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                            Text(
+                              typeIsFreeDelivery() ? 'FREE' : '\$${_baseDeliveryFee.toStringAsFixed(2)}',
+                              style: AppTextStyles.bodyMd(color: typeIsFreeDelivery() ? Colors.greenAccent : AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
