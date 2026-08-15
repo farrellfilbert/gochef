@@ -18,7 +18,7 @@ class OrderHistoryScreen extends StatefulWidget {
 
 class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   int _selectedFilter = 0;
-  final List<String> _filters = ['All', 'Completed', 'Scheduled', 'Cancelled'];
+  final List<String> _filters = ['All', 'Active', 'Scheduled', 'Completed', 'Cancelled'];
   late Future<List<OrderModel>> _ordersFuture;
 
   @override
@@ -132,7 +132,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 final orders = snapshot.data!;
                 List<OrderModel> filteredOrders = orders;
                 if (_selectedFilter != 0) {
-                  final filterMap = {1: 'Completed', 2: 'Active', 3: 'Cancelled'};
+                  final filterMap = {1: 'Active', 2: 'Scheduled', 3: 'Completed', 4: 'Cancelled'};
                   filteredOrders = orders.where((o) => o.status == filterMap[_selectedFilter]).toList();
                 }
 
