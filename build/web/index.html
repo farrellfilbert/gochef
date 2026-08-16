@@ -143,6 +143,35 @@
     document.addEventListener('click', function() {
       _getCtx();
     }, { once: false });
+
+    // HTML5 Real GPS Geolocation for Web
+    window.goChefGetLocation = function(successCallback, errorCallback) {
+      if (!navigator.geolocation) {
+        if (errorCallback) errorCallback("Geolocation is not supported by this browser.");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          if (successCallback) {
+            successCallback(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy || 0);
+          }
+        },
+        function(err) {
+          if (errorCallback) {
+            let msg = "Unable to retrieve location";
+            if (err.code === 1) msg = "Location permission denied";
+            else if (err.code === 2) msg = "Location position unavailable";
+            else if (err.code === 3) msg = "Location request timed out";
+            errorCallback(msg);
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 30000
+        }
+      );
+    };
   </script>
 
   <script>

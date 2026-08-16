@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../services/api_service.dart';
+import '../services/location_service.dart';
 import '../models/user_model.dart';
 import '../models/address_model.dart';
 import '../screens/map_screen.dart';
@@ -96,8 +97,18 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
     }
   }
 
-  void _fetchDeviceLocation() {
-    // Disabled geolocation for web compatibility
+  void _fetchDeviceLocation() async {
+    try {
+      final cached = await LocationService.getLastKnownAddress();
+      if (cached != null && cached.isNotEmpty && mounted) {
+        setState(() => _deviceLocation = cached);
+      }
+
+      final loc = await LocationService.getCurrentLocation();
+      if (loc?.address != null && mounted) {
+        setState(() => _deviceLocation = loc!.address!);
+      }
+    } catch (_) {}
   }
 
   @override
