@@ -61,15 +61,22 @@ $current_origin = "$current_scheme://$current_host";
 if (!ob_get_level()) {
     ob_start(function($output) use ($current_origin) {
         if (empty($output)) return $output;
-        $domains = [
-            'https://thegrubnextdoor.com',
-            'http://thegrubnextdoor.com',
-            'https://www.thegrubnextdoor.com',
-            'http://www.thegrubnextdoor.com',
-            'https://astroboomin.co',
-            'http://astroboomin.co'
+        $escaped_origin = str_replace('/', '\/', $current_origin);
+        $replacements = [
+            'https:\/\/thegrubnextdoor.com' => $escaped_origin,
+            'http:\/\/thegrubnextdoor.com' => $escaped_origin,
+            'https:\/\/www.thegrubnextdoor.com' => $escaped_origin,
+            'http:\/\/www.thegrubnextdoor.com' => $escaped_origin,
+            'https:\/\/astroboomin.co' => $escaped_origin,
+            'http:\/\/astroboomin.co' => $escaped_origin,
+            'https://thegrubnextdoor.com' => $current_origin,
+            'http://thegrubnextdoor.com' => $current_origin,
+            'https://www.thegrubnextdoor.com' => $current_origin,
+            'http://www.thegrubnextdoor.com' => $current_origin,
+            'https://astroboomin.co' => $current_origin,
+            'http://astroboomin.co' => $current_origin,
         ];
-        return str_replace($domains, $current_origin, $output);
+        return str_replace(array_keys($replacements), array_values($replacements), $output);
     });
 }
 ?>
