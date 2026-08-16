@@ -220,7 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       IconButton(
                                         icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
                                         onPressed: () {
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
+                                          Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()))
+                                              .then((_) => setState(() => _cartFuture = ApiService.getCart()));
                                         },
                                       ),
                                       if (cartCount > 0)
@@ -230,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           child: Container(
                                             padding: const EdgeInsets.all(4),
                                             decoration: const BoxDecoration(
-                                              color: AppColors.error,
+                                              color: AppColors.primary,
                                               shape: BoxShape.circle,
                                             ),
                                             child: Text(
@@ -319,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     );
                                   },
-                                  child: Text('View All', style: AppTextStyles.labelSm(color: Colors.white)),
+                                  child: Text('View All', style: AppTextStyles.labelSm(color: AppColors.primary)),
                                 ),
                               ],
                             ),

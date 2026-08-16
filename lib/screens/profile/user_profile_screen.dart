@@ -1139,9 +1139,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.storefront, color: Colors.black),
+                            const Icon(Icons.storefront, color: AppColors.onPrimary),
                             const SizedBox(width: 8),
-                            Text('Switch to Chef Dashboard', style: AppTextStyles.bodyMd(color: Colors.black).copyWith(fontWeight: FontWeight.bold)),
+                            Text('Switch to Chef Dashboard', style: AppTextStyles.bodyMd(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -1161,9 +1161,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.storefront, color: Colors.black),
+                            const Icon(Icons.storefront, color: AppColors.onPrimary),
                             const SizedBox(width: 8),
-                            Text('Become a Chef', style: AppTextStyles.bodyMd(color: Colors.black).copyWith(fontWeight: FontWeight.bold)),
+                            Text('Become a Chef', style: AppTextStyles.bodyMd(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),

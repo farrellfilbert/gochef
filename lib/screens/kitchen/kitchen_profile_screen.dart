@@ -22,12 +22,14 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
   bool _isFollowing = false;
+  int _cartCount = 0;
   late Future<KitchenModel?> _kitchenFuture;
 
   @override
   void initState() {
     super.initState();
     _kitchenFuture = ApiService.getKitchenDetail(widget.kitchenId);
+    _loadCartCount();
     ApiService.getFavorites(type: 'kitchen').then((favs) {
       if (mounted) {
         setState(() {
@@ -42,6 +44,13 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
         setState(() => _isScrolled = false);
       }
     });
+  }
+
+  Future<void> _loadCartCount() async {
+    final cart = await ApiService.getCart();
+    if (mounted) {
+      setState(() => _cartCount = cart.length);
+    }
   }
 
   @override
@@ -281,18 +290,18 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 70, left: 20, right: 20),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Our Story', style: AppTextStyles.headlineMd(color: Colors.white)),
+                    Text('Our Story', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                     if (kitchen.cuisineType.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Text(
                         kitchen.cuisineType,
-                        style: AppTextStyles.bodyMd(color: Colors.white70).copyWith(fontWeight: FontWeight.w500),
+                        style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.w500),
                       ),
                     ],
                     const SizedBox(height: 12),
                     Text(
                       kitchen.description,
-                      style: AppTextStyles.bodyMd(color: Colors.white).copyWith(height: 1.6, fontSize: 15),
+                      style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(height: 1.6, fontSize: 15),
                     ),
                   ]),
                 ),
@@ -343,58 +352,49 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        FutureBuilder<List<dynamic>>(
-                          future: ApiService.getCart(),
-                          builder: (context, cartSnapshot) {
-                            int cartCount = 0;
-                            if (cartSnapshot.hasData && cartSnapshot.data != null) {
-                              cartCount = cartSnapshot.data!.length;
-                            }
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const CartScreen()),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.55),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-                                ),
-                                child: Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    const Icon(Icons.shopping_cart, color: Colors.white, size: 20),
-                                    if (cartCount > 0)
-                                      Positioned(
-                                        right: -6,
-                                        top: -6,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(3),
-                                          decoration: const BoxDecoration(
-                                            color: AppColors.primary,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                                          child: Text(
-                                            '$cartCount',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            );
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const CartScreen()),
+                            ).then((_) => _loadCartCount());
                           },
+                          child: Container(
+                            padding: const EdgeInsets.all(9),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.55),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                            ),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                const Icon(Icons.shopping_cart, color: Colors.white, size: 20),
+                                if (_cartCount > 0)
+                                  Positioned(
+                                    right: -6,
+                                    top: -6,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(3),
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.primary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                      child: Text(
+                                        '$_cartCount',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         GestureDetector(
@@ -477,7 +477,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Expanded(child: Text(menuItem.name, style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis)),
               const SizedBox(width: 8),
-              Text('\$' + menuItem.price.toStringAsFixed(2), style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+              Text('\$' + menuItem.price.toStringAsFixed(2), style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
             ]),
             const SizedBox(height: 4),
             Text(menuItem.description, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant), maxLines: 2, overflow: TextOverflow.ellipsis),

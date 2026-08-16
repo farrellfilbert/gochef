@@ -365,8 +365,8 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: _loadProfile,
-                    icon: const Icon(Icons.refresh, color: Colors.black),
-                    label: const Text('Retry', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                    icon: const Icon(Icons.refresh, color: AppColors.onPrimary),
+                    label: const Text('Retry', style: TextStyle(color: AppColors.onPrimary, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
