@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../models/chat_model.dart';
 import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:js' as js;
 
 class ChatScreen extends StatefulWidget {
   final String otherParticipantId;
@@ -36,6 +39,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = true;
   Timer? _timer;
   String? _myUserId;
+  int _lastMessageCount = 0;
 
   @override
   void initState() {
@@ -64,19 +68,41 @@ class _ChatScreenState extends State<ChatScreen> {
     );
     
     if (mounted) {
+      final newMessages = messagesRaw.map((m) {
+        return MessageModel(
+          id: m['id'].toString(),
+          text: m['message'],
+          isMe: m['sender_id'].toString() == _myUserId,
+          timestamp: DateTime.parse(m['created_at'].toString().replaceAll(' ', 'T') + 'Z').toLocal(),
+        );
+      }).toList();
+
+      // Play sound if new message arrived from the other person during polling
+      if (isPolling && newMessages.length > _lastMessageCount && kIsWeb) {
+        final lastNew = newMessages.last;
+        if (!lastNew.isMe) {
+          try { js.context.callMethod('goChefPlayMessage', []); } catch (_) {}
+        }
+      }
+
       setState(() {
-        _messages = messagesRaw.map((m) {
-          return MessageModel(
-            id: m['id'].toString(),
-            text: m['message'],
-            isMe: m['sender_id'].toString() == _myUserId,
-            timestamp: DateTime.parse(m['created_at'].toString().replaceAll(' ', 'T') + 'Z').toLocal(),
-          );
-        }).toList();
+        _messages = newMessages;
+        _lastMessageCount = newMessages.length;
         _isLoading = false;
       });
       
       if (!isPolling && _messages.isNotEmpty) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      } else if (isPolling && newMessages.length > _lastMessageCount) {
+        // Auto-scroll on new messages during polling
         Future.delayed(const Duration(milliseconds: 100), () {
           if (_scrollController.hasClients) {
             _scrollController.animateTo(

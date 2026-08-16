@@ -90,6 +90,61 @@
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+
+  <!-- GoChef Web Audio: synthesized notification sounds, no audio files needed -->
+  <script>
+    let _goChefAudioCtx = null;
+
+    function _getCtx() {
+      if (!_goChefAudioCtx) {
+        _goChefAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      // Resume if suspended (browser policy)
+      if (_goChefAudioCtx.state === 'suspended') {
+        _goChefAudioCtx.resume();
+      }
+      return _goChefAudioCtx;
+    }
+
+    function _playTone(freq, startTime, duration, gainVal, type) {
+      const ctx = _getCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(gainVal, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    }
+
+    // Two-tone pleasant ding for notifications
+    window.goChefPlayNotification = function() {
+      try {
+        const ctx = _getCtx();
+        const now = ctx.currentTime;
+        _playTone(880, now,       0.18, 0.22, 'sine');
+        _playTone(1100, now + 0.12, 0.22, 0.18, 'sine');
+      } catch(e) { console.warn('GoChef audio error:', e); }
+    };
+
+    // Light single ping for chat messages
+    window.goChefPlayMessage = function() {
+      try {
+        const ctx = _getCtx();
+        const now = ctx.currentTime;
+        _playTone(1200, now, 0.14, 0.15, 'sine');
+      } catch(e) { console.warn('GoChef audio error:', e); }
+    };
+
+    // Unlock audio context on first user interaction
+    document.addEventListener('click', function() {
+      _getCtx();
+    }, { once: false });
+  </script>
+
   <script>
     const s = document.createElement('script');
     s.src = 'flutter_bootstrap.js?v=' + Date.now();

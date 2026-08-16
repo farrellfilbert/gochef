@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../screens/notifications/notifications_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:js' as js;
 
 class NotificationBell extends StatefulWidget {
   final Color iconColor;
@@ -16,6 +19,7 @@ class NotificationBell extends StatefulWidget {
 
 class _NotificationBellState extends State<NotificationBell> {
   int _unreadCount = 0;
+  int _prevUnreadCount = 0;
   Timer? _pollingTimer;
 
   @override
@@ -41,8 +45,14 @@ class _NotificationBellState extends State<NotificationBell> {
       
       final counts = await ApiService.getUnreadCounts(lastOpenTime: lastOpenTime);
       if (mounted) {
+        final newCount = (counts['total_unread'] as int?) ?? 0;
+        // Play sound if count increased
+        if (newCount > _prevUnreadCount && _prevUnreadCount >= 0 && kIsWeb) {
+          try { js.context.callMethod('goChefPlayNotification', []); } catch (_) {}
+        }
         setState(() {
-          _unreadCount = (counts['total_unread'] as int?) ?? 0;
+          _prevUnreadCount = newCount;
+          _unreadCount = newCount;
         });
       }
     } catch (e) {
@@ -64,6 +74,7 @@ class _NotificationBellState extends State<NotificationBell> {
             // When opened, clear the dot locally, then navigate
             if (mounted) {
               setState(() {
+                _prevUnreadCount = 0;
                 _unreadCount = 0;
               });
               Navigator.push(
@@ -96,3 +107,4 @@ class _NotificationBellState extends State<NotificationBell> {
     );
   }
 }
+
