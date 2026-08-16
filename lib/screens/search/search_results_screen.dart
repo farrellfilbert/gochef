@@ -424,12 +424,26 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                         style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
                       ),
                       Container(
-                        padding: const EdgeInsets.all(6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            )
+                          ],
                         ),
-                        child: const Icon(Icons.add, color: AppColors.primary, size: 16),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.add, color: AppColors.onPrimary, size: 14),
+                            const SizedBox(width: 4),
+                            Text('Add', style: AppTextStyles.labelSm(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
                       )
                     ],
                   )

@@ -511,12 +511,29 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: menuItem.id)),
-                    );
+                    ).then((_) => _loadCartCount());
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
-                    child: Text('Add', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.add, color: AppColors.onPrimary, size: 14),
+                        const SizedBox(width: 4),
+                        Text('Add', style: AppTextStyles.labelSm(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
                   ),
                 ),
               ]),

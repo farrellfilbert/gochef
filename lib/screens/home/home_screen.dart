@@ -570,7 +570,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text('\$${meal.price.toStringAsFixed(2)}',
-                          style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                          style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -594,14 +594,28 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryContainer,
+                            color: AppColors.primary,
                             borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.3),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              )
+                            ],
                           ),
-                          child: Text('Add to Cart',
-                              style: AppTextStyles.labelSm(color: AppColors.onPrimaryContainer)
-                                  .copyWith(fontWeight: FontWeight.bold)),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.add, color: AppColors.onPrimary, size: 14),
+                              const SizedBox(width: 4),
+                              Text('Add',
+                                  style: AppTextStyles.labelSm(color: AppColors.onPrimary)
+                                      .copyWith(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                         ),
                       )
                     ],
