@@ -520,16 +520,16 @@ class _SearchScreenState extends State<SearchScreen> {
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isPast
-                      ? Colors.green.withValues(alpha: 0.15)
-                      : (isToday ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surfaceContainerHigh),
-                  borderRadius: BorderRadius.circular(20),
-                ),
+                decoration: isPast
+                    ? BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      )
+                    : null,
                 child: Text(
                   status,
                   style: TextStyle(
-                    color: isPast ? Colors.green : (isToday ? AppColors.primary : AppColors.onSurfaceVariant),
+                    color: isPast ? Colors.green : Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
@@ -1189,9 +1189,12 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.only(top: 16, left: 20, right: 20),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFFD81B60), Color(0xFFC2185B)],
+                      ),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1209,7 +1212,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text('A gift for you!', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
-                                      Text('Claim your daily coins.', style: AppTextStyles.labelSm(color: Colors.white70)),
+                                      Text('Claim your daily coins.', style: AppTextStyles.labelSm(color: Colors.white.withValues(alpha: 0.9))),
                                     ],
                                   ),
                                 ],
@@ -1217,8 +1220,8 @@ class _SearchScreenState extends State<SearchScreen> {
                               ElevatedButton(
                                 onPressed: _claimDailyReward,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: _isTodayClaimed ? Colors.white.withValues(alpha: 0.15) : AppColors.primary,
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: _isTodayClaimed ? Colors.white.withValues(alpha: 0.25) : Colors.white,
+                                  foregroundColor: _isTodayClaimed ? Colors.white : const Color(0xFFD81B60),
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -1227,16 +1230,19 @@ class _SearchScreenState extends State<SearchScreen> {
                                   _isTodayClaimed ? 'Claimed ✓' : 'Claim',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: _isTodayClaimed ? Colors.white70 : Colors.white,
+                                    color: _isTodayClaimed ? Colors.white : const Color(0xFFD81B60),
                                   ),
                                 ),
                               )
                             ],
                           ),
                         ),
-                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                         Container(
                           padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+                          decoration: const BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+                          ),
                           child: Column(
                             children: [
                               Row(
