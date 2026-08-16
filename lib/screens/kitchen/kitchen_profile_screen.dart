@@ -249,7 +249,16 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                 const SizedBox(width: 4),
                                 Text(kitchen.rating.toStringAsFixed(1), style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
                                 const SizedBox(width: 8),
-                                Text('\ reviews', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(decoration: TextDecoration.underline)),
+                                Text(
+                                  kitchen.totalReviews > 0 ? '(${kitchen.totalReviews} reviews)' : 'reviews',
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: AppColors.primary,
+                                  ),
+                                ),
                               ]),
                             ),
                             Row(children: [

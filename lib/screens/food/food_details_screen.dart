@@ -235,7 +235,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                       const SizedBox(height: 4),
                                       Text(
                                         '\$${item.price.toStringAsFixed(2)}',
-                                        style: AppTextStyles.headlineMd(color: AppColors.primary)
+                                        style: AppTextStyles.headlineMd(color: Colors.white)
                                             .copyWith(fontWeight: FontWeight.bold),
                                       ),
                                     ],
@@ -289,7 +289,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(item.kitchenName, style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
-                                          Text('View Kitchen Profile', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                                          const Text('View Kitchen Profile', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
                                         ],
                                       ),
                                     ),
@@ -325,7 +325,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                             const SizedBox(height: 8),
                             Text(
                               item.description,
-                              style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(height: 1.5),
+                              style: AppTextStyles.bodyMd(color: Colors.white).copyWith(height: 1.5),
                             ),
                             const SizedBox(height: 32),
 
@@ -393,11 +393,11 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                             const SizedBox(height: 12),
                             TextField(
                               controller: _notesController,
-                              style: const TextStyle(color: AppColors.onSurface),
+                              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w500),
                               maxLines: 3,
                               decoration: InputDecoration(
                                 hintText: 'e.g. no onions, extra spicy, etc.',
-                                hintStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+                                hintStyle: TextStyle(color: AppColors.primary.withValues(alpha: 0.7)),
                                 filled: true,
                                 fillColor: AppColors.surfaceContainerLow,
                                 border: OutlineInputBorder(
