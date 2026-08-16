@@ -1126,11 +1126,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
-                          );
+                        onPressed: () async {
+                          await ApiService.saveUserId(user.id, role: 'chef', kitchenId: user.kitchenId);
+                          if (context.mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,

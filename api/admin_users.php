@@ -139,6 +139,15 @@ if ($method === 'POST') {
             }
 
             echo json_encode(['success' => true, 'message' => 'Account / Kitchen restored to active']);
+        } else if ($action === 'change_role') {
+            $newRole = $input['role'] ?? 'user';
+            if ($userId) {
+                $stmt = $pdo->prepare("UPDATE users SET role = ? WHERE id = ?");
+                $stmt->execute([$newRole, $userId]);
+                echo json_encode(['success' => true, 'message' => "Role updated to $newRole"]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'User ID required']);
+            }
         } else if ($action === 'delete') {
             // Disable foreign key checks for clean cascading deletion
             $pdo->exec("SET FOREIGN_KEY_CHECKS = 0;");

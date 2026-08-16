@@ -362,15 +362,39 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   const Text('Could not load your kitchen profile. Please check your connection or tap retry.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14)),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: _loadProfile,
-                    icon: const Icon(Icons.refresh, color: AppColors.onPrimary),
-                    label: const Text('Retry', style: TextStyle(color: AppColors.onPrimary, fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _loadProfile,
+                        icon: const Icon(Icons.refresh, color: AppColors.onPrimary),
+                        label: const Text('Retry', style: TextStyle(color: AppColors.onPrimary, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final userIdStr = await ApiService.getUserId();
+                          if (userIdStr != null) {
+                            await ApiService.saveUserId(userIdStr, role: 'user');
+                          }
+                          if (mounted) {
+                            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainNavigation()), (route) => false);
+                          }
+                        },
+                        icon: const Icon(Icons.person, color: Colors.white),
+                        label: const Text('Foodie App', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.white38),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -382,6 +406,21 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
             backgroundColor: AppColors.surface.withValues(alpha: 0.9),
             pinned: true,
             expandedHeight: 250.0,
+            actions: [
+              TextButton.icon(
+                onPressed: () async {
+                  final userIdStr = await ApiService.getUserId();
+                  if (userIdStr != null) {
+                    await ApiService.saveUserId(userIdStr, role: 'user', kitchenId: _kitchen?.id.toString());
+                  }
+                  if (mounted) {
+                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainNavigation()), (route) => false);
+                  }
+                },
+                icon: const Icon(Icons.visibility_outlined, color: AppColors.primary, size: 16),
+                label: const Text('Foodie View', style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
