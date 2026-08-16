@@ -2,7 +2,7 @@
 // create_admin.php - Create or update the administrator account
 require_once 'db_connect.php';
 
-$admin_email = 'dany.tri@gmail.com';
+$admin_email = 'dany.r.tri@gmail.com';
 $admin_pass = 'TheGrubNextDoor2026!';
 $admin_name = 'Dany (Admin)';
 $hashed_password = password_hash($admin_pass, PASSWORD_BCRYPT);
