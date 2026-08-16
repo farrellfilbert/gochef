@@ -204,59 +204,66 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(0, 10))],
                         ),
                         child: Column(children: [
-                          Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                          Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                             // Avatar - tap to fullscreen
-                            Transform.translate(
-                              offset: const Offset(0, -30),
-                              child: GestureDetector(
-                                onTap: () => _openFullscreenImage(context, kitchen.avatar, 'avatar_' + kitchen.id.toString()),
-                                child: Hero(
-                                  tag: 'avatar_' + kitchen.id.toString(),
-                                  child: Container(
-                                    width: 80, height: 80,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: AppColors.primaryContainer, width: 3),
-                                      image: DecorationImage(image: NetworkImage(kitchen.avatar), fit: BoxFit.cover),
-                                    ),
-                                    child: Align(
-                                      alignment: Alignment.bottomRight,
-                                      child: Container(
-                                        width: 22, height: 22,
-                                        margin: const EdgeInsets.only(bottom: 2, right: 2),
-                                        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                                        child: const Icon(Icons.zoom_in, size: 13, color: Colors.white),
-                                      ),
+                            GestureDetector(
+                              onTap: () => _openFullscreenImage(context, kitchen.avatar, 'avatar_' + kitchen.id.toString()),
+                              child: Hero(
+                                tag: 'avatar_' + kitchen.id.toString(),
+                                child: Container(
+                                  width: 76, height: 76,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFFFF80AB), width: 3),
+                                    image: DecorationImage(image: NetworkImage(kitchen.avatar), fit: BoxFit.cover),
+                                  ),
+                                  child: Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: Container(
+                                      width: 22, height: 22,
+                                      margin: const EdgeInsets.only(bottom: 2, right: 2),
+                                      decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                                      child: const Icon(Icons.zoom_in, size: 13, color: Colors.white),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 16),
-                            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text(kitchen.cuisineType.toUpperCase(), style: AppTextStyles.labelMono(color: AppColors.primary).copyWith(letterSpacing: 1)),
-                              Text(kitchen.name, style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface).copyWith(height: 1.1), maxLines: 1, overflow: TextOverflow.ellipsis),
-                              if (kitchen.location.isNotEmpty)
+                            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                              Text(
+                                kitchen.chefName.isNotEmpty
+                                    ? 'CHEF ${kitchen.chefName.toUpperCase()}'
+                                    : (kitchen.description.contains('created by')
+                                        ? 'CHEF ${kitchen.description.split('created by')[1].split(',')[0].trim().toUpperCase()}'
+                                        : (kitchen.cuisineType.isNotEmpty ? kitchen.cuisineType.toUpperCase() : 'CHEF')),
+                                style: AppTextStyles.labelMono(color: const Color(0xFFFF80AB)).copyWith(letterSpacing: 1, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(kitchen.name, style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface).copyWith(height: 1.15), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              if (kitchen.location.isNotEmpty) ...[
+                                const SizedBox(height: 2),
                                 Text(kitchen.location, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                              ],
                             ])),
                           ]),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                             GestureDetector(
                               onTap: () { Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewsRatingsScreen(kitchenId: kitchen.id))); },
                               child: Row(children: [
-                                const Icon(Icons.star, color: AppColors.primary, size: 20),
+                                const Icon(Icons.star, color: Color(0xFFFF80AB), size: 20),
                                 const SizedBox(width: 4),
                                 Text(kitchen.rating.toStringAsFixed(1), style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
                                 const SizedBox(width: 8),
                                 Text(
                                   kitchen.totalReviews > 0 ? '(${kitchen.totalReviews} reviews)' : 'reviews',
                                   style: const TextStyle(
-                                    color: AppColors.primary,
+                                    color: Color(0xFFFF80AB),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                     decoration: TextDecoration.underline,
-                                    decorationColor: AppColors.primary,
+                                    decorationColor: Color(0xFFFF80AB),
                                   ),
                                 ),
                               ]),
@@ -403,21 +410,6 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                   ),
                               ],
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () {
-                            Share.share('Check out ${kitchen.name} on The Grub Next Door: https://thegrubnextdoor.com');
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(9),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.55),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-                            ),
-                            child: const Icon(Icons.more_vert, color: Colors.white, size: 20),
                           ),
                         ),
                       ],

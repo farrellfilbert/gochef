@@ -26,7 +26,7 @@ class _NotificationBellState extends State<NotificationBell> {
   void initState() {
     super.initState();
     _fetchUnreadCount();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       _fetchUnreadCount();
     });
   }
@@ -40,10 +40,7 @@ class _NotificationBellState extends State<NotificationBell> {
   Future<void> _fetchUnreadCount() async {
     if (!mounted) return;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final lastOpenTime = prefs.getString('last_notification_open_time');
-      
-      final counts = await ApiService.getUnreadCounts(lastOpenTime: lastOpenTime);
+      final counts = await ApiService.getUnreadCounts();
       if (mounted) {
         final newCount = (counts['total_unread'] as int?) ?? 0;
         // Play sound if count increased
@@ -63,6 +60,7 @@ class _NotificationBellState extends State<NotificationBell> {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         IconButton(
           icon: Icon(Icons.notifications_none, color: widget.iconColor),
@@ -71,17 +69,11 @@ class _NotificationBellState extends State<NotificationBell> {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString('last_notification_open_time', DateTime.now().toIso8601String());
 
-            // When opened, clear the dot locally, then navigate
             if (mounted) {
-              setState(() {
-                _prevUnreadCount = 0;
-                _unreadCount = 0;
-              });
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const NotificationsScreen()),
               ).then((_) {
-                // Re-fetch after returning
                 _fetchUnreadCount();
               });
             }
@@ -89,17 +81,27 @@ class _NotificationBellState extends State<NotificationBell> {
         ),
         if (_unreadCount > 0)
           Positioned(
-            right: 12,
-            top: 12,
+            right: 6,
+            top: 6,
             child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Colors.red,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
                 shape: BoxShape.circle,
+                border: Border.all(color: Colors.black, width: 1.5),
               ),
               constraints: const BoxConstraints(
-                minWidth: 8,
-                minHeight: 8,
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Text(
+                _unreadCount > 9 ? '9+' : '$_unreadCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
           )

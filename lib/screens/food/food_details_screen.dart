@@ -393,11 +393,11 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                             const SizedBox(height: 12),
                             TextField(
                               controller: _notesController,
-                              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w500),
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.normal),
                               maxLines: 3,
                               decoration: InputDecoration(
                                 hintText: 'e.g. no onions, extra spicy, etc.',
-                                hintStyle: TextStyle(color: AppColors.primary.withValues(alpha: 0.7)),
+                                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
                                 filled: true,
                                 fillColor: AppColors.surfaceContainerLow,
                                 border: OutlineInputBorder(
@@ -485,7 +485,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                     color: AppColors.surface.withValues(alpha: 0.5),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.shopping_bag_outlined, color: AppColors.onSurface),
+                                  child: const Icon(Icons.shopping_cart_outlined, color: AppColors.onSurface),
                                 ),
                               ),
                             ],
@@ -589,7 +589,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.shopping_bag, color: AppColors.onPrimary),
+                                    const Icon(Icons.shopping_cart, color: AppColors.onPrimary),
                                     const SizedBox(width: 8),
                                     Text(
                                       'Add • \$${totalPrice.toStringAsFixed(2)}',

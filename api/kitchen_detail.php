@@ -11,11 +11,11 @@ if (!$id && !$user_id) {
 
 try {
     if ($id > 0) {
-        $stmt = $pdo->prepare("SELECT * FROM kitchens WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT k.*, u.name as chef_name FROM kitchens k LEFT JOIN users u ON k.user_id = u.id WHERE k.id = ?");
         $stmt->execute([$id]);
         $kitchen = $stmt->fetch();
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM kitchens WHERE user_id = ? LIMIT 1");
+        $stmt = $pdo->prepare("SELECT k.*, u.name as chef_name FROM kitchens k LEFT JOIN users u ON k.user_id = u.id WHERE k.user_id = ? LIMIT 1");
         $stmt->execute([$user_id]);
         $kitchen = $stmt->fetch();
         if ($kitchen) {

@@ -14,25 +14,13 @@ if (!$user_id) {
 
 try {
     // Unread notifications (Promos/System)
-    $q1 = "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0";
-    $params1 = [$user_id];
-    if ($last_open_time) {
-        $q1 .= " AND created_at > ?";
-        $params1[] = $last_open_time;
-    }
-    $stmt1 = $pdo->prepare($q1);
-    $stmt1->execute($params1);
+    $stmt1 = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
+    $stmt1->execute([$user_id]);
     $unread_notifications = intval($stmt1->fetchColumn());
 
     // Unread chats
-    $q2 = "SELECT COUNT(*) FROM chat_messages WHERE receiver_id = ? AND is_read = 0";
-    $params2 = [$user_id];
-    if ($last_open_time) {
-        $q2 .= " AND created_at > ?";
-        $params2[] = $last_open_time;
-    }
-    $stmt2 = $pdo->prepare($q2);
-    $stmt2->execute($params2);
+    $stmt2 = $pdo->prepare("SELECT COUNT(*) FROM chat_messages WHERE receiver_id = ? AND is_read = 0");
+    $stmt2->execute([$user_id]);
     $unread_chats = intval($stmt2->fetchColumn());
 
     echo json_encode([

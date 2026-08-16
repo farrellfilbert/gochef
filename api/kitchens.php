@@ -8,7 +8,7 @@ if ($method === 'GET') {
     $search = isset($_GET['q']) ? trim($_GET['q']) : '';
     $cuisine = isset($_GET['cuisine']) ? trim($_GET['cuisine']) : '';
 
-    $sql = "SELECT * FROM kitchens WHERE is_verified = 1 AND (status IS NULL OR status = 'active')";
+    $sql = "SELECT k.*, u.name as chef_name FROM kitchens k LEFT JOIN users u ON k.user_id = u.id WHERE k.is_verified = 1 AND (k.status IS NULL OR k.status = 'active')";
     $params = [];
 
     if ($featured) {

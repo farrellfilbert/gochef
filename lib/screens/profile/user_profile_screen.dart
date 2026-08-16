@@ -711,7 +711,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
+            icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
             },

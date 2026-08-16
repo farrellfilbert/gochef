@@ -6,6 +6,7 @@ class KitchenModel {
   final int id;
   final int userId;
   final String name;
+  final String chefName;
   final String description;
   final String avatar;
   final String coverImage;
@@ -25,6 +26,7 @@ class KitchenModel {
     required this.id,
     this.userId = 0,
     required this.name,
+    this.chefName = '',
     this.description = '',
     this.avatar = '',
     this.coverImage = '',
@@ -46,6 +48,7 @@ class KitchenModel {
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       userId: int.tryParse(json['user_id']?.toString() ?? '0') ?? 0,
       name: json['name'] ?? '',
+      chefName: json['chef_name'] ?? '',
       description: json['description'] ?? '',
       avatar: ApiService.formatImageUrl(json['avatar']),
       coverImage: ApiService.formatImageUrl(json['cover_image']),
