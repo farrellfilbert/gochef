@@ -1189,11 +1189,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.only(top: 16, left: 20, right: 20),
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFFD81B60), Color(0xFFC2185B)],
-                      ),
+                      color: AppColors.primary,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -1221,7 +1217,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 onPressed: _claimDailyReward,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: _isTodayClaimed ? Colors.white.withValues(alpha: 0.25) : Colors.white,
-                                  foregroundColor: _isTodayClaimed ? Colors.white : const Color(0xFFD81B60),
+                                  foregroundColor: _isTodayClaimed ? Colors.white : AppColors.primary,
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -1230,7 +1226,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   _isTodayClaimed ? 'Claimed ✓' : 'Claim',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: _isTodayClaimed ? Colors.white : const Color(0xFFD81B60),
+                                    color: _isTodayClaimed ? Colors.white : AppColors.primary,
                                   ),
                                 ),
                               )
