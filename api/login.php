@@ -42,18 +42,30 @@ try {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if ($user && password_verify($password, $user['password'])) {
+        // Check if account is suspended
+        if (isset($user['status']) && $user['status'] === 'suspended') {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Your account has been suspended by Admin. Please contact support.'
+            ]);
+            exit();
+        }
+
         // Login successful
         unset($user['password']); // Don't send password hash back
         
         // Fetch kitchen_id and is_verified if they have a kitchen
-        $kStmt = $pdo->prepare("SELECT id, is_verified FROM kitchens WHERE user_id = ? LIMIT 1");
+        $kStmt = $pdo->prepare("SELECT id, is_verified, status FROM kitchens WHERE user_id = ? LIMIT 1");
         $kStmt->execute([$user['id']]);
         $kitchen = $kStmt->fetch(PDO::FETCH_ASSOC);
         if ($kitchen) {
             $user['kitchen_id'] = $kitchen['id'];
             $user['is_verified'] = (int)$kitchen['is_verified'];
+            $user['kitchen_status'] = $kitchen['status'] ?? 'active';
         } else {
             $user['is_verified'] = 1;
+            $user['kitchen_status'] = 'active';
         }
         
         echo json_encode([

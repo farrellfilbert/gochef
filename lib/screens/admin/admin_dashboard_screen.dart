@@ -5,6 +5,7 @@ import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../main.dart';
 import '../auth/login_screen.dart';
+import '../chat/chat_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -17,15 +18,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   late TabController _tabController;
   bool _isLoadingChefs = true;
   bool _isLoadingPromos = true;
+  bool _isLoadingUsers = true;
   List<Map<String, dynamic>> _chefApplications = [];
   List<Map<String, dynamic>> _promotions = [];
+  List<Map<String, dynamic>> _adminUsers = [];
   String _chefFilter = 'pending';
+  String _userTypeFilter = 'all';
+  final TextEditingController _userSearchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _loadChefs();
+    _loadUsers();
     _loadPromotions();
   }
 
@@ -43,6 +52,180 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
         _chefApplications = data;
         _isLoadingChefs = false;
       });
+    }
+  }
+
+  Future<void> _loadUsers() async {
+    setState(() => _isLoadingUsers = true);
+    final data = await ApiService.getAdminUsers(
+      type: _userTypeFilter,
+      search: _userSearchController.text.trim(),
+    );
+    if (mounted) {
+      setState(() {
+        _adminUsers = data;
+        _isLoadingUsers = false;
+      });
+    }
+  }
+
+  void _openChatWithUser(Map<String, dynamic> user) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(
+          otherParticipantId: user['id'].toString(),
+          otherParticipantName: user['name'] ?? user['kitchen_name'] ?? 'User',
+          otherParticipantAvatar: ApiService.formatImageUrl(user['avatar'] ?? user['kitchen_avatar'] ?? ''),
+          kitchenId: user['kitchen_id']?.toString(),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmSuspendUser(Map<String, dynamic> user) async {
+    final reasonController = TextEditingController(text: 'Violation of Community Guidelines');
+    final isChef = user['role'] == 'chef' || user['kitchen_id'] != null;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.pause_circle_filled, color: Colors.orange, size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                isChef ? 'Suspend Kitchen & Chef' : 'Suspend User Account', 
+                style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to suspend "${user['name']}"? They will not be able to log in or make transactions.',
+              style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: reasonController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Reason for suspension',
+                labelStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+                filled: true,
+                fillColor: AppColors.surfaceContainerLow,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant))),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade800),
+            child: const Text('Suspend Account', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final success = await ApiService.adminSuspendUser(
+        userId: user['id'].toString(),
+        kitchenId: user['kitchen_id']?.toString(),
+        reason: reasonController.text.trim(),
+      );
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account suspended successfully ⏸️'), backgroundColor: Colors.orange),
+          );
+          _loadUsers();
+          _loadChefs();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to suspend account'), backgroundColor: AppColors.error),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _unsuspendUser(Map<String, dynamic> user) async {
+    final success = await ApiService.adminUnsuspendUser(
+      userId: user['id'].toString(),
+      kitchenId: user['kitchen_id']?.toString(),
+    );
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account restored to active! ✅'), backgroundColor: Colors.green),
+        );
+        _loadUsers();
+        _loadChefs();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to restore account'), backgroundColor: AppColors.error),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteUser(Map<String, dynamic> user) async {
+    final isChef = user['role'] == 'chef' || user['kitchen_id'] != null;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever, color: Colors.redAccent, size: 24),
+            SizedBox(width: 8),
+            Text('Permanent Deletion', style: TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to permanently delete "${user['name']}"${isChef ? " and their kitchen data" : ""}? This action CANNOT be undone.',
+          style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant))),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            child: const Text('Delete Permanently', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final success = await ApiService.adminDeleteUser(
+        userId: user['id'].toString(),
+        kitchenId: user['kitchen_id']?.toString(),
+      );
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account deleted permanently 🗑️'), backgroundColor: Colors.redAccent),
+          );
+          _loadUsers();
+          _loadChefs();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to delete account'), backgroundColor: AppColors.error),
+          );
+        }
+      }
     }
   }
 
@@ -454,11 +637,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           indicatorWeight: 3,
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.onSurfaceVariant,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           tabs: const [
-            Tab(icon: Icon(Icons.how_to_reg), text: 'Chef Approvals'),
-            Tab(icon: Icon(Icons.campaign), text: 'Promo Banners'),
-            Tab(icon: Icon(Icons.analytics_outlined), text: 'Platform Stats'),
+            Tab(icon: Icon(Icons.how_to_reg, size: 20), text: 'Approvals'),
+            Tab(icon: Icon(Icons.people_alt_outlined, size: 20), text: 'Users & Kitchens'),
+            Tab(icon: Icon(Icons.campaign_outlined, size: 20), text: 'Banners'),
+            Tab(icon: Icon(Icons.analytics_outlined, size: 20), text: 'Stats'),
           ],
         ),
       ),
@@ -466,11 +650,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
         controller: _tabController,
         children: [
           _buildChefApprovalsTab(),
+          _buildUsersAndKitchensTab(),
           _buildPromotionsTab(),
           _buildStatsTab(),
         ],
       ),
-      floatingActionButton: _tabController.index == 1
+      floatingActionButton: _tabController.index == 2
           ? FloatingActionButton.extended(
               onPressed: _showAddPromotionModal,
               backgroundColor: AppColors.primary,
@@ -615,6 +800,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                                   const SizedBox(height: 16),
                                   Row(
                                     children: [
+                                      // Quick Chat button with applicant
+                                      IconButton.filledTonal(
+                                        onPressed: () {
+                                          if (userId != null) {
+                                            _openChatWithUser({
+                                              'id': userId,
+                                              'name': chef['user_name'] ?? 'Chef Applicant',
+                                              'avatar': chef['user_avatar'] ?? chef['kitchen_avatar'],
+                                              'kitchen_id': kitchenId.toString(),
+                                            });
+                                          }
+                                        },
+                                        icon: const Icon(Icons.chat_bubble_outline, color: AppColors.primary, size: 20),
+                                        tooltip: 'Chat with Applicant',
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                                          padding: const EdgeInsets.all(12),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
                                       Expanded(
                                         child: OutlinedButton.icon(
                                           onPressed: () => _rejectChef(kitchenId, userId),
@@ -627,17 +832,42 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 12),
+                                      const SizedBox(width: 8),
                                       Expanded(
                                         child: ElevatedButton.icon(
                                           onPressed: () => _approveChef(kitchenId, userId),
                                           icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                                          label: const Text('Approve Chef', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                          label: const Text('Approve', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.green.shade700,
                                             padding: const EdgeInsets.symmetric(vertical: 12),
                                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                           ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ] else ...[
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      ElevatedButton.icon(
+                                        onPressed: () {
+                                          if (userId != null) {
+                                            _openChatWithUser({
+                                              'id': userId,
+                                              'name': chef['kitchen_name'] ?? chef['user_name'] ?? 'Chef',
+                                              'avatar': chef['kitchen_avatar'] ?? chef['user_avatar'],
+                                              'kitchen_id': kitchenId.toString(),
+                                            });
+                                          }
+                                        },
+                                        icon: const Icon(Icons.chat_bubble_outline, size: 16, color: Colors.white),
+                                        label: const Text('Chat Kitchen', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primary,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                         ),
                                       ),
                                     ],
@@ -681,7 +911,304 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   }
 
   // ==========================================
-  // TAB 2: PROMO BANNERS
+  // TAB 2: USERS & KITCHENS MODERATION
+  // ==========================================
+  Widget _buildUsersAndKitchensTab() {
+    final suspendedCount = _adminUsers.where((u) => u['status'] == 'suspended' || u['kitchen_status'] == 'suspended').length;
+
+    return Column(
+      children: [
+        // Search & Filter Header
+        Container(
+          padding: const EdgeInsets.all(16),
+          color: AppColors.surfaceContainerLow.withValues(alpha: 0.3),
+          child: Column(
+            children: [
+              // Search Field
+              TextField(
+                controller: _userSearchController,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: 'Search by name, email, phone, or kitchen...',
+                  hintStyle: TextStyle(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 13),
+                  prefixIcon: const Icon(Icons.search, color: AppColors.primary, size: 20),
+                  suffixIcon: _userSearchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: AppColors.onSurfaceVariant, size: 18),
+                          onPressed: () {
+                            _userSearchController.clear();
+                            _loadUsers();
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: AppColors.surfaceContainerLow,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                ),
+                onSubmitted: (_) => _loadUsers(),
+                onChanged: (val) {
+                  // Debounced search
+                  Future.delayed(const Duration(milliseconds: 400), () {
+                    if (val == _userSearchController.text) {
+                      _loadUsers();
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              // Filter Chips
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildUserFilterChip('all', 'All (${_adminUsers.length})'),
+                    const SizedBox(width: 8),
+                    _buildUserFilterChip('users', 'Foodies Only'),
+                    const SizedBox(width: 8),
+                    _buildUserFilterChip('kitchens', 'Chefs & Kitchens'),
+                    const SizedBox(width: 8),
+                    _buildUserFilterChip('suspended', 'Suspended ($suspendedCount)'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Users List
+        Expanded(
+          child: _isLoadingUsers
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : _adminUsers.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.person_search, color: AppColors.onSurfaceVariant.withValues(alpha: 0.5), size: 56),
+                          const SizedBox(height: 12),
+                          Text('No accounts found', style: AppTextStyles.headlineMd(color: Colors.white)),
+                          const SizedBox(height: 6),
+                          Text('Try adjusting your search or filter keywords', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadUsers,
+                      color: AppColors.primary,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _adminUsers.length,
+                        itemBuilder: (context, index) {
+                          final user = _adminUsers[index];
+                          final isChef = user['role'] == 'chef' || user['kitchen_id'] != null;
+                          final isSuspended = user['status'] == 'suspended' || user['kitchen_status'] == 'suspended';
+                          final kitchenName = user['kitchen_name'];
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSuspended
+                                    ? Colors.orange.withValues(alpha: 0.6)
+                                    : AppColors.outlineVariant.withValues(alpha: 0.2),
+                                width: isSuspended ? 1.5 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Top Row: Avatar + Info + Badges
+                                Row(
+                                  children: [
+                                    // Avatar with Status Ring
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: isSuspended ? Colors.orange : Colors.greenAccent,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 22,
+                                        backgroundImage: NetworkImage(
+                                          ApiService.formatImageUrl(user['avatar'] ?? user['kitchen_avatar'] ?? ''),
+                                        ),
+                                        onBackgroundImageError: (_, __) {},
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // Name & Details
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  user['name'] ?? 'Unknown User',
+                                                  style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              // Role Badge
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: isChef ? Colors.deepOrange.withValues(alpha: 0.2) : Colors.blue.withValues(alpha: 0.2),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  isChef ? 'CHEF' : 'FOODIE',
+                                                  style: TextStyle(
+                                                    color: isChef ? Colors.deepOrangeAccent : Colors.lightBlueAccent,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              // Status Badge
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: isSuspended ? Colors.orange.withValues(alpha: 0.2) : Colors.green.withValues(alpha: 0.2),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  isSuspended ? 'SUSPENDED' : 'ACTIVE',
+                                                  style: TextStyle(
+                                                    color: isSuspended ? Colors.orange : Colors.greenAccent,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            user['email'] ?? '-',
+                                            style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          if (kitchenName != null && kitchenName.toString().isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 2),
+                                              child: Text(
+                                                'Kitchen: $kitchenName',
+                                                style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.w600),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 12),
+                                const Divider(color: AppColors.outlineVariant, height: 1),
+                                const SizedBox(height: 10),
+
+                                // Bottom Action Buttons
+                                Row(
+                                  children: [
+                                    // 💬 Chat Button
+                                    ElevatedButton.icon(
+                                      onPressed: () => _openChatWithUser(user),
+                                      icon: const Icon(Icons.chat_bubble_outline, size: 15, color: Colors.white),
+                                      label: const Text('Chat', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+
+                                    // ⏸️ / ▶️ Suspend / Unsuspend Button
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        if (isSuspended) {
+                                          _unsuspendUser(user);
+                                        } else {
+                                          _confirmSuspendUser(user);
+                                        }
+                                      },
+                                      icon: Icon(
+                                        isSuspended ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                                        size: 16,
+                                        color: isSuspended ? Colors.greenAccent : Colors.orange,
+                                      ),
+                                      label: Text(
+                                        isSuspended ? 'Unsuspend' : 'Suspend',
+                                        style: TextStyle(
+                                          color: isSuspended ? Colors.greenAccent : Colors.orange,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(color: isSuspended ? Colors.greenAccent : Colors.orange),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      ),
+                                    ),
+
+                                    const Spacer(),
+
+                                    // 🗑️ Permanent Delete Button
+                                    IconButton(
+                                      onPressed: () => _confirmDeleteUser(user),
+                                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                      tooltip: 'Delete Account',
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUserFilterChip(String filter, String label) {
+    final isSelected = _userTypeFilter == filter;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _userTypeFilter = filter);
+        _loadUsers();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.3)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 12,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // TAB 3: PROMO BANNERS
   // ==========================================
   Widget _buildPromotionsTab() {
     return Column(

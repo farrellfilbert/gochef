@@ -1183,4 +1183,99 @@ class ApiService {
       return false;
     }
   }
+
+  // ==========================================
+  // ADMIN USERS & KITCHENS MODERATION METHODS
+  // ==========================================
+
+  static Future<List<Map<String, dynamic>>> getAdminUsers({String type = 'all', String search = ''}) async {
+    try {
+      final queryParams = <String, String>{};
+      if (type != 'all') queryParams['type'] = type;
+      if (search.isNotEmpty) queryParams['search'] = search;
+
+      final uri = Uri.parse('$baseUrl/admin_users.php').replace(queryParameters: queryParams);
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] is List) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching admin users: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> adminSuspendUser({String? userId, String? kitchenId, String reason = 'Terms Violation'}) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_users.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'suspend',
+          'user_id': userId,
+          'kitchen_id': kitchenId,
+          'reason': reason,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error suspending user: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> adminUnsuspendUser({String? userId, String? kitchenId}) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_users.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'unsuspend',
+          'user_id': userId,
+          'kitchen_id': kitchenId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error unsuspending user: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> adminDeleteUser({String? userId, String? kitchenId}) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_users.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'delete',
+          'user_id': userId,
+          'kitchen_id': kitchenId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error deleting user: $e');
+      return false;
+    }
+  }
 }
