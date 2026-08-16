@@ -36,7 +36,7 @@ class OrderModel {
   final String kitchenUserId;
   final String kitchenName;
   final String date;
-  final String status;
+  String status;
   final double totalAmount;
   final int itemsCount;
   final String avatar;

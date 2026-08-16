@@ -217,7 +217,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.4), dashPattern: const [6, 3] as dynamic),
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
                           image: imageController.text.isNotEmpty
                               ? DecorationImage(
                                   image: NetworkImage(ApiService.formatImageUrl(imageController.text)),

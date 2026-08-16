@@ -43,6 +43,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   bool _isLoadingItems = true;
   String _orderType = 'delivery';
   String _dineInDate = '';
+  Timer? _timer;
   
 // Add these variables:
   final MapController _mapController = MapController();
@@ -53,9 +54,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   void initState() {
     super.initState();
     _currentStatus = widget.initialStatus;
+    _fetchOrderDetails();
     _startPolling();
     _startDriverSimulation();
-    _fetchOrderDetails();
   }
 
   Future<void> _fetchOrderDetails() async {
@@ -66,7 +67,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         setState(() {
           _orderItems = order.items;
           _orderType = order.orderType;
-          _dineInDate = order.dineInDate;
+          _dineInDate = order.dineInDate ?? '';
           _isLoadingItems = false;
         });
       }
@@ -101,7 +102,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         setState(() {
           _currentStatus = currentOrder.status;
           _orderType = currentOrder.orderType;
-          _dineInDate = currentOrder.dineInDate;
+          _dineInDate = currentOrder.dineInDate ?? '';
         });
         
         if (_currentStatus == 'Completed' && !_isAutoArriveTriggered) {

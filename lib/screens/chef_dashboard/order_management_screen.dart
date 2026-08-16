@@ -56,11 +56,12 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   void _checkScheduledOrders(List<OrderModel> orders) {
     final now = DateTime.now();
     for (var order in orders) {
-      if (order.status == 'Scheduled' && order.dineInDate.isNotEmpty && order.dineInTime.isNotEmpty) {
+      if (order.status == 'Scheduled' && (order.dineInDate?.isNotEmpty == true) && (order.dineInTime?.isNotEmpty == true)) {
         try {
           // Assuming format: yyyy-MM-dd and HH:mm
           // Adding :00 for seconds to make it ISO 8601 parsable
-          final timeStr = order.dineInTime.length == 5 ? '${order.dineInTime}:00' : order.dineInTime;
+          final time = order.dineInTime!;
+          final timeStr = time.length == 5 ? '$time:00' : time;
           final targetTime = DateTime.parse('${order.dineInDate} $timeStr');
           final diff = targetTime.difference(now).inMinutes;
           
@@ -109,7 +110,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
 
   String _getNextStatus(OrderModel order) {
     if (order.status == 'Pending') {
-      return (order.orderType == 'dine_in' || order.dineInDate.isNotEmpty) ? 'Scheduled' : 'Active';
+      return (order.orderType == 'dine_in' || (order.dineInDate?.isNotEmpty == true)) ? 'Scheduled' : 'Active';
     }
     switch (order.status) {
       case 'Scheduled': return 'Active';
@@ -203,7 +204,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                           String primaryBtnText = '';
                           if (nextStatus.isNotEmpty) {
                             if (order.status == 'Pending') {
-                              primaryBtnText = (order.orderType == 'dine_in' || order.dineInDate.isNotEmpty) ? 'Confirm Booking' : 'Accept Order';
+                              primaryBtnText = (order.orderType == 'dine_in' || (order.dineInDate?.isNotEmpty == true)) ? 'Confirm Booking' : 'Accept Order';
                             } else if (order.status == 'Scheduled') {
                               primaryBtnText = 'Start Cooking Now'; // Manual override
                             } else {
