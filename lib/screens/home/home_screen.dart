@@ -266,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           children: [
                             const SizedBox(width: 16),
-                            const Icon(Icons.search, color: AppColors.onSurfaceVariant),
+                            const Icon(Icons.search, color: Colors.white70),
                             const SizedBox(width: 12),
                             Expanded(
                               child: TextField(
@@ -280,10 +280,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   );
                                 },
-                                style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+                                style: AppTextStyles.bodyMd(color: Colors.white),
                                 decoration: InputDecoration(
                                   hintText: 'Search Chefs, Kitchens or Meals…',
-                                  hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                                  hintStyle: AppTextStyles.bodyMd(color: Colors.white70),
                                   border: InputBorder.none,
                                 ),
                               ),
@@ -320,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     );
                                   },
-                                  child: Text('View All', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                                  child: Text('View All', style: AppTextStyles.labelSm(color: Colors.white)),
                                 ),
                               ],
                             ),

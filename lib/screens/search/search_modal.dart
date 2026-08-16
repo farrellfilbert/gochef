@@ -103,18 +103,18 @@ class _SearchModalState extends State<SearchModal> {
                     child: Row(
                       children: [
                         const SizedBox(width: 16),
-                        const Icon(Icons.search, color: AppColors.primary, size: 20),
+                        const Icon(Icons.search, color: Colors.white70, size: 20),
                         const SizedBox(width: 12),
                         Expanded(
                           child: TextField(
                             controller: _searchController,
                             focusNode: _focusNode,
-                            style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+                            style: AppTextStyles.bodyMd(color: Colors.white),
                             onSubmitted: _submitSearch,
                             textInputAction: TextInputAction.search,
                             decoration: InputDecoration(
                               hintText: 'Search Chefs, Kitchens or Meals…',
-                              hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                              hintStyle: AppTextStyles.bodyMd(color: Colors.white70),
                               border: InputBorder.none,
                               isDense: true,
                             ),
@@ -122,7 +122,7 @@ class _SearchModalState extends State<SearchModal> {
                         ),
                         if (_searchController.text.isNotEmpty)
                           IconButton(
-                            icon: const Icon(Icons.clear, color: AppColors.onSurfaceVariant, size: 20),
+                            icon: const Icon(Icons.clear, color: Colors.white70, size: 20),
                             onPressed: () {
                               setState(() {
                                 _searchController.clear();
@@ -135,7 +135,7 @@ class _SearchModalState extends State<SearchModal> {
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Cancel', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                  child: Text('Cancel', style: AppTextStyles.labelSm(color: Colors.white)),
                 ),
               ],
             ),
@@ -155,7 +155,14 @@ class _SearchModalState extends State<SearchModal> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Recent Searches', style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontSize: 16)),
-                          Text('Clear All', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _searchHistory.clear();
+                              });
+                            },
+                            child: Text('Clear All', style: AppTextStyles.labelSm(color: Colors.white)),
+                          ),
                         ],
                       ),
                     ),
@@ -264,14 +271,32 @@ class _SearchModalState extends State<SearchModal> {
                                   width: double.infinity,
                                   height: double.infinity,
                                   alignment: Alignment.bottomRight,
-                                  padding: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.all(10),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: AppColors.surface.withValues(alpha: 0.9),
+                                      color: AppColors.primary,
                                       borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.primary.withValues(alpha: 0.4),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
                                     ),
-                                    child: Text('View Full Map', style: AppTextStyles.labelMono(color: AppColors.primary).copyWith(fontSize: 10)),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.map_outlined, color: Colors.white, size: 13),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          'View Full Map',
+                                          style: AppTextStyles.labelSm(color: Colors.white)
+                                              .copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),

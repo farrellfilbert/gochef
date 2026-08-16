@@ -979,7 +979,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       Text('Rewards Gallery', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                       GestureDetector(
                         onTap: () => _showRewardsGalleryModal(loyaltyPoints),
-                        child: Text('View All', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
+                        child: Text('View All', style: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),

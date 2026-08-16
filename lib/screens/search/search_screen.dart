@@ -1347,7 +1347,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           Text('Top Promos Today ~', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                           GestureDetector(
                             onTap: () => _onCategoryTap('Promos'),
-                            child: Text('View All', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                            child: Text('View All', style: AppTextStyles.labelSm(color: Colors.white)),
                           ),
                         ],
                       ),
