@@ -29,8 +29,29 @@ try {
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    if (!$user) {
-        $stmt = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
+    if ($user) {
+        if (isset($user['status']) && $user['status'] === 'suspended') {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Your account has been suspended. Please contact admin at support@gochef.com'
+            ]);
+            exit();
+        }
+
+        $kCheck = $pdo->prepare("SELECT status FROM kitchens WHERE user_id = ? LIMIT 1");
+        $kCheck->execute([$user['id']]);
+        $kStatus = $kCheck->fetchColumn();
+        if ($kStatus === 'suspended') {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Your account has been suspended. Please contact admin at support@gochef.com'
+            ]);
+            exit();
+        }
+    } else {
+        $stmt = $pdo->prepare("INSERT INTO users (name, email, password, status) VALUES (?, ?, ?, 'active')");
         $stmt->execute([$name, $email, '']);
         $user_id = $pdo->lastInsertId();
         
