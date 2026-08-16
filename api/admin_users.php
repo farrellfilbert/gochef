@@ -140,40 +140,72 @@ if ($method === 'POST') {
 
             echo json_encode(['success' => true, 'message' => 'Account / Kitchen restored to active']);
         } else if ($action === 'delete') {
-            if ($userId) {
-                // Delete user and associated data
-                $pdo->beginTransaction();
+            // Disable foreign key checks for clean cascading deletion
+            $pdo->exec("SET FOREIGN_KEY_CHECKS = 0;");
 
-                // 1. Delete menu items of user's kitchens
-                $pdo->prepare("DELETE FROM menu_items WHERE kitchen_id IN (SELECT id FROM kitchens WHERE user_id = ?)")->execute([$userId]);
-                // 2. Delete kitchens
-                $pdo->prepare("DELETE FROM kitchens WHERE user_id = ?")->execute([$userId]);
-                // 3. Delete cart items
-                $pdo->prepare("DELETE FROM cart WHERE user_id = ?")->execute([$userId]);
-                // 4. Delete favorites
-                $pdo->prepare("DELETE FROM favorites WHERE user_id = ?")->execute([$userId]);
-                // 5. Delete notifications
-                $pdo->prepare("DELETE FROM notifications WHERE user_id = ?")->execute([$userId]);
-                // 6. Delete user
-                $pdo->prepare("DELETE FROM users WHERE id = ?")->execute([$userId]);
+            try {
+                if ($userId) {
+                    // 1. Get all kitchens owned by this user
+                    $kStmt = $pdo->prepare("SELECT id FROM kitchens WHERE user_id = ?");
+                    $kStmt->execute([$userId]);
+                    $kitchenIds = $kStmt->fetchAll(PDO::FETCH_COLUMN);
 
-                $pdo->commit();
-            } else if ($kitchenId) {
-                $pdo->beginTransaction();
-                $pdo->prepare("DELETE FROM menu_items WHERE kitchen_id = ?")->execute([$kitchenId]);
-                $pdo->prepare("DELETE FROM kitchens WHERE id = ?")->execute([$kitchenId]);
-                $pdo->commit();
+                    // Delete kitchen-related records if any
+                    if (!empty($kitchenIds)) {
+                        foreach ($kitchenIds as $kId) {
+                            try { $pdo->prepare("DELETE FROM menu_addons WHERE menu_item_id IN (SELECT id FROM menu_items WHERE kitchen_id = ?)")->execute([$kId]); } catch (Exception $e) {}
+                            try { $pdo->prepare("DELETE FROM menu_addon_categories WHERE menu_item_id IN (SELECT id FROM menu_items WHERE kitchen_id = ?)")->execute([$kId]); } catch (Exception $e) {}
+                            try { $pdo->prepare("DELETE FROM menu_items WHERE kitchen_id = ?")->execute([$kId]); } catch (Exception $e) {}
+                            try { $pdo->prepare("DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE kitchen_id = ?)")->execute([$kId]); } catch (Exception $e) {}
+                            try { $pdo->prepare("DELETE FROM orders WHERE kitchen_id = ?")->execute([$kId]); } catch (Exception $e) {}
+                            try { $pdo->prepare("DELETE FROM reviews WHERE kitchen_id = ?")->execute([$kId]); } catch (Exception $e) {}
+                            try { $pdo->prepare("DELETE FROM promotions WHERE kitchen_id = ?")->execute([$kId]); } catch (Exception $e) {}
+                            try { $pdo->prepare("DELETE FROM kitchens WHERE id = ?")->execute([$kId]); } catch (Exception $e) {}
+                        }
+                    }
+
+                    // 2. Delete user's personal cart items and addons
+                    try { $pdo->prepare("DELETE FROM cart_item_addons WHERE cart_item_id IN (SELECT id FROM cart_items WHERE user_id = ?)")->execute([$userId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM cart_items WHERE user_id = ?")->execute([$userId]); } catch (Exception $e) {}
+
+                    // 3. Delete user's personal orders and items
+                    try { $pdo->prepare("DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE user_id = ?)")->execute([$userId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM orders WHERE user_id = ?")->execute([$userId]); } catch (Exception $e) {}
+
+                    // 4. Delete user's chats / messages
+                    try { $pdo->prepare("DELETE FROM chat_messages WHERE sender_id = ? OR receiver_id = ?")->execute([$userId, $userId]); } catch (Exception $e) {}
+
+                    // 5. Delete favorites, notifications, reviews, addresses
+                    try { $pdo->prepare("DELETE FROM favorites WHERE user_id = ?")->execute([$userId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM notifications WHERE user_id = ?")->execute([$userId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM reviews WHERE user_id = ?")->execute([$userId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM addresses WHERE user_id = ?")->execute([$userId]); } catch (Exception $e) {}
+
+                    // 6. Delete user record
+                    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+                    $stmt->execute([$userId]);
+                } else if ($kitchenId) {
+                    try { $pdo->prepare("DELETE FROM menu_addons WHERE menu_item_id IN (SELECT id FROM menu_items WHERE kitchen_id = ?)")->execute([$kitchenId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM menu_addon_categories WHERE menu_item_id IN (SELECT id FROM menu_items WHERE kitchen_id = ?)")->execute([$kitchenId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM menu_items WHERE kitchen_id = ?")->execute([$kitchenId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE kitchen_id = ?)")->execute([$kitchenId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM orders WHERE kitchen_id = ?")->execute([$kitchenId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM reviews WHERE kitchen_id = ?")->execute([$kitchenId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM promotions WHERE kitchen_id = ?")->execute([$kitchenId]); } catch (Exception $e) {}
+                    try { $pdo->prepare("DELETE FROM kitchens WHERE id = ?")->execute([$kitchenId]); } catch (Exception $e) {}
+                }
+
+                $pdo->exec("SET FOREIGN_KEY_CHECKS = 1;");
+                echo json_encode(['success' => true, 'message' => 'Account / Kitchen permanently deleted']);
+            } catch (Exception $de) {
+                $pdo->exec("SET FOREIGN_KEY_CHECKS = 1;");
+                throw $de;
             }
-
-            echo json_encode(['success' => true, 'message' => 'Account / Kitchen permanently deleted']);
         } else {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'Invalid action']);
         }
-    } catch (PDOException $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
+    } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['success' => false, 'error' => 'Operation failed: ' . $e->getMessage()]);
     }
