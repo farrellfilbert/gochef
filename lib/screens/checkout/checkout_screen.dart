@@ -418,6 +418,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
+    if (!isDineIn && !isAsap && (selectedDate == null || selectedTime == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select Date and Time for your scheduled delivery'), backgroundColor: AppColors.error),
+      );
+      return;
+    }
+
     setState(() {
       isOrdering = true;
     });
@@ -655,7 +662,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => setState(() => isAsap = false),
+                        onTap: () {
+                          setState(() => isAsap = false);
+                          // Open time picker immediately if none selected
+                          if (selectedTime == null) {
+                            _pickDate().then((_) {
+                              if (selectedDate != null) _pickTime();
+                            });
+                          }
+                        },
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -677,7 +692,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              Text('Select time', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                              Text(
+                                (!isAsap && selectedDate != null && selectedTime != null) 
+                                ? "${selectedDate!.day}/${selectedDate!.month} ${selectedTime!.format(context)}" 
+                                : 'Select time', 
+                                style: AppTextStyles.labelSm(color: (!isAsap && selectedDate != null) ? AppColors.primary : AppColors.onSurfaceVariant),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ],
                           ),
                         ),

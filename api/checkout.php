@@ -89,7 +89,7 @@ if ($method === 'POST') {
         $kitchenName = $cartItems[0]['kitchen_name'];
         $kitchenAvatar = $cartItems[0]['kitchen_avatar'] ?? '';
 
-        $status = ($order_type === 'dine_in') ? 'Pending' : 'Active';
+        $status = ($order_type === 'dine_in' || !empty($dine_in_date)) ? 'Pending' : 'Active';
 
         // Insert order
         $stmt = $pdo->prepare("INSERT INTO orders (id, user_id, kitchen_id, kitchen_name, order_date, order_type, dine_in_date, dine_in_time, discount_amount, promo_code, status, total_amount, items_count, avatar, delivery_address, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");

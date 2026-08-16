@@ -39,10 +39,10 @@ class OrderTrackingScreen extends StatefulWidget {
 class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   bool isDetailsExpanded = false;
   late String _currentStatus;
-  Timer? _timer;
   List<OrderItemModel>? _orderItems;
   bool _isLoadingItems = true;
   String _orderType = 'delivery';
+  String _dineInDate = '';
   
 // Add these variables:
   final MapController _mapController = MapController();
@@ -66,6 +66,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         setState(() {
           _orderItems = order.items;
           _orderType = order.orderType;
+          _dineInDate = order.dineInDate;
           _isLoadingItems = false;
         });
       }
@@ -100,6 +101,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         setState(() {
           _currentStatus = currentOrder.status;
           _orderType = currentOrder.orderType;
+          _dineInDate = currentOrder.dineInDate;
         });
         
         if (_currentStatus == 'Completed' && !_isAutoArriveTriggered) {
@@ -477,12 +479,21 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                 status: _currentStatus == 'Completed' ? 'active' : 'upcoming',
                               ),
                             ] else ...[
+                              if (_dineInDate.isNotEmpty) ...[
+                                _buildTimelineLine(dim: !['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus)),
+                                _buildTimelineStep(
+                                  time: '',
+                                  title: 'Waiting for Schedule',
+                                  desc: 'Your delivery is scheduled and waiting for the time.',
+                                  status: ['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus) ? 'done' : (_currentStatus == 'Scheduled' ? 'active' : 'upcoming'),
+                                ),
+                              ],
                               _buildTimelineLine(dim: !['Preparing', 'Ready', 'Completed'].contains(_currentStatus)),
                               _buildTimelineStep(
                                 time: '',
                                 title: 'Chef is Preparing',
                                 desc: 'Artisan plating in progress at the kitchen.',
-                                status: ['Ready', 'Completed'].contains(_currentStatus) ? 'done' : (_currentStatus == 'Preparing' ? 'active' : 'upcoming'),
+                                status: ['Ready', 'Completed'].contains(_currentStatus) ? 'done' : ((['Preparing', 'Active'].contains(_currentStatus) && _currentStatus != 'Scheduled') ? 'active' : 'upcoming'),
                               ),
                               _buildTimelineLine(dim: !['Ready', 'Completed'].contains(_currentStatus)),
                               _buildTimelineStep(
