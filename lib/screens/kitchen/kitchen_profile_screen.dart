@@ -237,7 +237,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                     : (kitchen.description.contains('created by')
                                         ? 'CHEF ${kitchen.description.split('created by')[1].split(',')[0].trim().toUpperCase()}'
                                         : (kitchen.cuisineType.isNotEmpty ? kitchen.cuisineType.toUpperCase() : 'CHEF')),
-                                style: AppTextStyles.labelMono(color: const Color(0xFFFF80AB)).copyWith(letterSpacing: 1, fontSize: 11, fontWeight: FontWeight.bold),
+                                style: AppTextStyles.labelMono(color: AppColors.primary).copyWith(letterSpacing: 1, fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 2),
                               Text(kitchen.name, style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface).copyWith(height: 1.15), maxLines: 1, overflow: TextOverflow.ellipsis),
