@@ -252,14 +252,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFF0D111A).withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE42278).withValues(alpha: 0.3)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFE42278).withValues(alpha: 0.2),
-                              blurRadius: 20,
-                              spreadRadius: 2,
-                            )
-                          ],
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -267,7 +260,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('ESTIMATED ARRIVAL', style: AppTextStyles.labelMono(color: const Color(0xFFE42278))),
+                                Text('ESTIMATED ARRIVAL', style: AppTextStyles.labelMono(color: const Color(0xFFFF80AB))),
                                 Text('12 mins', style: AppTextStyles.displayLgMobile(color: Colors.white).copyWith(fontSize: 32)),
                               ],
                             ),
@@ -275,7 +268,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                               width: 48,
                               height: 48,
                               decoration: const BoxDecoration(
-                                color: Color(0xFFE42278),
+                                color: AppColors.primary,
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.delivery_dining, color: Colors.white),
@@ -288,243 +281,233 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
               ),
             ),
             
-            // Details & Status
-            Transform.translate(
-              offset: const Offset(0, -16), // pull up slightly
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+            // Driver & Order Status Details
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
                     // Driver Card
                     if (isOutForDelivery) ...[
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0D111A).withValues(alpha: 0.7),
+                          color: AppColors.surfaceContainerLowest,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE42278).withValues(alpha: 0.1)),
+                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
                         ),
                         child: Row(
                           children: [
                             Stack(
                               children: [
-                                Container(
-                                  width: 64,
-                                  height: 64,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: const Color(0xFFE42278), width: 2),
-                                    image: const DecorationImage(
-                                      image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuCciYPVFg6JXnUz02s4EcoZC2o288Wkc53SNNuymiIvdEDYU-vgdA0rU45g2DYKJqsbjlMygGJU6vJ_AfIcGsir1Vt_SVRXP5xUfaltPuv1m_jXA4Tp3CegVw2h0aRRNIJVh8psx7RkP-VRUCSRxLI7xSZnAM7tZomobJ9dJ7p8dVwZ7LdxFF8WLMFI6JqA_TMY2KsjF1Z0gSxmA2Ej2y2uNoHFB6sXVFVQipoeSqCRoe9b-5x0PpCoFg'),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                                const CircleAvatar(
+                                  radius: 28,
+                                  backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'),
                                 ),
                                 Positioned(
                                   bottom: 0,
                                   right: 0,
                                   child: Container(
-                                    width: 16,
-                                    height: 16,
+                                    width: 14,
+                                    height: 14,
                                     decoration: BoxDecoration(
                                       color: Colors.green,
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: AppColors.background, width: 2),
+                                      border: Border.all(color: AppColors.surface, width: 2),
                                     ),
                                   ),
                                 )
                               ],
                             ),
                             const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Marcus', style: AppTextStyles.headlineMd(color: Colors.white)),
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.electric_moped, color: AppColors.onSurfaceVariant, size: 16),
-                                      const SizedBox(width: 4),
-                                      Text('E-Bike • 4.9 ★', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                            Row(
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.surfaceContainerHigh,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.message, color: AppColors.primary),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.primary.withValues(alpha: 0.2),
-                                        blurRadius: 10,
-                                      )
-                                    ],
-                                  ),
-                                  child: const Icon(Icons.call, color: AppColors.onPrimary),
-                                ),
+                                Text('Marcus', style: AppTextStyles.headlineMd(color: Colors.white)),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.electric_moped, color: AppColors.onSurfaceVariant, size: 16),
+                                    const SizedBox(width: 4),
+                                    Text('E-Bike • 4.9 ★', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                  ],
+                                )
                               ],
-                            )
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _currentStatus == 'Completed' ? null : () async {
-                            // Mark as completed in backend
-                            await ApiService.updateOrderStatus(widget.orderId, 'Completed');
-                            if (mounted) {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => OrderReviewScreen(
-                                    orderId: widget.orderId,
-                                    kitchenId: widget.kitchenId,
-                                    kitchenName: widget.kitchenName,
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _currentStatus == 'Completed' ? AppColors.surfaceContainerHigh : Colors.green,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
                           ),
-                          child: Text(
-                            _currentStatus == 'Completed' ? 'ORDER COMPLETED - THANKS!' : 'MARK AS ARRIVED', 
-                            style: AppTextStyles.labelMono(
-                              color: _currentStatus == 'Completed' ? AppColors.onSurfaceVariant : Colors.white
-                            ).copyWith(fontSize: 16, fontWeight: FontWeight.bold)
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                    
-                    // Status Timeline
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLowest,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Order Status', style: AppTextStyles.headlineMd(color: Colors.white)),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                width: 48,
+                                height: 48,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.surfaceContainerHigh,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.message, color: AppColors.primary),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 48,
+                                height: 48,
                                 decoration: BoxDecoration(
-                                  color: _currentStatus == 'Cancelled' ? Colors.red.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.2),
+                                      blurRadius: 10,
+                                    )
+                                  ],
                                 ),
-                                child: Text(
-                                  _currentStatus.toUpperCase(),
-                                  style: AppTextStyles.labelMono(color: _currentStatus == 'Cancelled' ? Colors.red : AppColors.primary),
-                                ),
+                                child: const Icon(Icons.call, color: AppColors.onPrimary),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 32),
-                          // Custom timeline implementation
-                          // Custom timeline implementation
-                          _buildTimelineStep(
-                            time: '',
-                            title: 'Order Confirmed',
-                            desc: _orderType == 'dine_in' ? 'Booking received by kitchen.' : 'Your gourmet selection is in the queue.',
-                            status: _currentStatus == 'Cancelled' ? 'active' : (['Scheduled', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus) ? 'done' : 'active'),
-                          ),
-                          if (_currentStatus != 'Cancelled') ...[
-                            if (_orderType == 'dine_in') ...[
+                          )
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _currentStatus == 'Completed' ? null : () async {
+                          // Mark as completed in backend
+                          await ApiService.updateOrderStatus(widget.orderId, 'Completed');
+                          if (mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OrderReviewScreen(
+                                  orderId: widget.orderId,
+                                  kitchenId: widget.kitchenId,
+                                  kitchenName: widget.kitchenName,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _currentStatus == 'Completed' ? AppColors.surfaceContainerHigh : Colors.green,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        child: Text(
+                          _currentStatus == 'Completed' ? 'ORDER COMPLETED - THANKS!' : 'MARK AS ARRIVED', 
+                          style: AppTextStyles.labelMono(
+                            color: Colors.white,
+                          ).copyWith(fontSize: 16, fontWeight: FontWeight.bold)
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                  
+                  // Status Timeline
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Order Status', style: AppTextStyles.headlineMd(color: Colors.white)),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _currentStatus == 'Cancelled' ? Colors.red.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                _currentStatus.toUpperCase(),
+                                style: AppTextStyles.labelMono(color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+                        // Custom timeline implementation
+                        _buildTimelineStep(
+                          time: '',
+                          title: 'Order Confirmed',
+                          desc: _orderType == 'dine_in' ? 'Booking received by kitchen.' : 'Your gourmet selection is in the queue.',
+                          status: _currentStatus == 'Cancelled' ? 'active' : (['Scheduled', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus) ? 'done' : 'active'),
+                        ),
+                        if (_currentStatus != 'Cancelled') ...[
+                          if (_orderType == 'dine_in') ...[
+                            _buildTimelineLine(dim: !['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus)),
+                            _buildTimelineStep(
+                              time: '',
+                              title: 'Waiting for Schedule',
+                              desc: 'Your booking is scheduled and waiting for the time.',
+                              status: ['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus) ? 'done' : (_currentStatus == 'Scheduled' ? 'active' : 'upcoming'),
+                            ),
+                            _buildTimelineLine(dim: !['Ready', 'Completed'].contains(_currentStatus)),
+                            _buildTimelineStep(
+                              time: '',
+                              title: 'Chef is Preparing',
+                              desc: 'Chef is preparing your table and meal.',
+                              status: ['Ready', 'Completed'].contains(_currentStatus) ? 'done' : ((['Active', 'Preparing'].contains(_currentStatus)) ? 'active' : 'upcoming'),
+                            ),
+                            _buildTimelineLine(dim: _currentStatus != 'Completed'),
+                            _buildTimelineStep(
+                              time: '',
+                              title: 'Ready to Eat',
+                              desc: 'Your table and food are ready!',
+                              status: _currentStatus == 'Completed' ? 'active' : 'upcoming',
+                            ),
+                          ] else ...[
+                            if (_dineInDate.isNotEmpty) ...[
                               _buildTimelineLine(dim: !['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus)),
                               _buildTimelineStep(
                                 time: '',
                                 title: 'Waiting for Schedule',
-                                desc: 'Your booking is scheduled and waiting for the time.',
+                                desc: 'Your delivery is scheduled and waiting for the time.',
                                 status: ['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus) ? 'done' : (_currentStatus == 'Scheduled' ? 'active' : 'upcoming'),
                               ),
-                              _buildTimelineLine(dim: !['Ready', 'Completed'].contains(_currentStatus)),
-                              _buildTimelineStep(
-                                time: '',
-                                title: 'Chef is Preparing',
-                                desc: 'Chef is preparing your table and meal.',
-                                status: ['Ready', 'Completed'].contains(_currentStatus) ? 'done' : ((['Active', 'Preparing'].contains(_currentStatus)) ? 'active' : 'upcoming'),
-                              ),
-                              _buildTimelineLine(dim: _currentStatus != 'Completed'),
-                              _buildTimelineStep(
-                                time: '',
-                                title: 'Ready to Eat',
-                                desc: 'Your table and food are ready!',
-                                status: _currentStatus == 'Completed' ? 'active' : 'upcoming',
-                              ),
-                            ] else ...[
-                              if (_dineInDate.isNotEmpty) ...[
-                                _buildTimelineLine(dim: !['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus)),
-                                _buildTimelineStep(
-                                  time: '',
-                                  title: 'Waiting for Schedule',
-                                  desc: 'Your delivery is scheduled and waiting for the time.',
-                                  status: ['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus) ? 'done' : (_currentStatus == 'Scheduled' ? 'active' : 'upcoming'),
-                                ),
-                              ],
-                              _buildTimelineLine(dim: !['Preparing', 'Ready', 'Completed'].contains(_currentStatus)),
-                              _buildTimelineStep(
-                                time: '',
-                                title: 'Chef is Preparing',
-                                desc: 'Artisan plating in progress at the kitchen.',
-                                status: ['Ready', 'Completed'].contains(_currentStatus) ? 'done' : ((['Preparing', 'Active'].contains(_currentStatus) && _currentStatus != 'Scheduled') ? 'active' : 'upcoming'),
-                              ),
-                              _buildTimelineLine(dim: !['Ready', 'Completed'].contains(_currentStatus)),
-                              _buildTimelineStep(
-                                time: '',
-                                title: 'Waiting for Driver',
-                                desc: 'Order is ready and waiting to be picked up.',
-                                status: _currentStatus == 'Completed' ? 'done' : (_currentStatus == 'Ready' ? 'active' : 'upcoming'),
-                              ),
-                              _buildTimelineLine(dim: _currentStatus != 'Completed'),
-                              _buildTimelineStep(
-                                time: '',
-                                title: 'Out for Delivery',
-                                desc: 'Your food is on the way!',
-                                status: _currentStatus == 'Completed' ? 'active' : 'upcoming',
-                              ),
-                            ]
+                            ],
+                            _buildTimelineLine(dim: !['Preparing', 'Ready', 'Completed'].contains(_currentStatus)),
+                            _buildTimelineStep(
+                              time: '',
+                              title: 'Chef is Preparing',
+                              desc: 'Artisan plating in progress at the kitchen.',
+                              status: ['Ready', 'Completed'].contains(_currentStatus) ? 'done' : ((['Preparing', 'Active'].contains(_currentStatus) && _currentStatus != 'Scheduled') ? 'active' : 'upcoming'),
+                            ),
+                            _buildTimelineLine(dim: !['Ready', 'Completed'].contains(_currentStatus)),
+                            _buildTimelineStep(
+                              time: '',
+                              title: 'Waiting for Driver',
+                              desc: 'Order is ready and waiting to be picked up.',
+                              status: _currentStatus == 'Completed' ? 'done' : (_currentStatus == 'Ready' ? 'active' : 'upcoming'),
+                            ),
+                            _buildTimelineLine(dim: _currentStatus != 'Completed'),
+                            _buildTimelineStep(
+                              time: '',
+                              title: 'Out for Delivery',
+                              desc: 'Your food is on the way!',
+                              status: _currentStatus == 'Completed' ? 'active' : 'upcoming',
+                            ),
                           ],
                         ],
-                      ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                    
-                    // Order Details Summary
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainer,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-                      ),
-                      child: Theme(
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Order Details Summary
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainer,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+                    ),
+                    child: Theme(
                         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
                           onExpansionChanged: (expanded) {
@@ -672,7 +655,12 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 const SizedBox(height: 4),
                 Text(title, style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
                 const SizedBox(height: 4),
-                Text(desc, style: AppTextStyles.labelSm(color: isActive ? AppColors.primary : AppColors.onSurfaceVariant)),
+                Text(
+                  desc,
+                  style: AppTextStyles.labelSm(
+                    color: (isActive || desc.contains('on the way')) ? const Color(0xFFFF80AB) : AppColors.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),

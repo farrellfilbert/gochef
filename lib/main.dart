@@ -187,9 +187,9 @@ class _MainNavigationState extends State<MainNavigation> {
           child: BottomNavigationBar(
             backgroundColor: AppColors.surface.withValues(alpha: 0.95),
             selectedItemColor: Colors.white,
-            unselectedItemColor: AppColors.onSurfaceVariant,
+            unselectedItemColor: Colors.white70,
             selectedLabelStyle: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
-            unselectedLabelStyle: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+            unselectedLabelStyle: AppTextStyles.labelSm(color: Colors.white70),
             currentIndex: _currentIndex,
             onTap: (index) => setState(() => _currentIndex = index),
             type: BottomNavigationBarType.fixed,
@@ -201,7 +201,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   width: 24,
                   height: 24,
                   fit: BoxFit.contain,
-                  color: AppColors.onSurfaceVariant,
+                  color: Colors.white70,
                 ),
                 activeIcon: Image.asset(
                   'assets/images/home_nav.png',
@@ -213,22 +213,22 @@ class _MainNavigationState extends State<MainNavigation> {
                 label: 'Home',
               ),
               BottomNavigationBarItem(
-                icon: const Icon(Icons.local_offer_outlined),
+                icon: const Icon(Icons.local_offer_outlined, color: Colors.white70),
                 activeIcon: const Icon(Icons.local_offer, color: Colors.white),
                 label: 'Promo',
               ),
               BottomNavigationBarItem(
-                icon: const Icon(Icons.receipt_long_outlined),
+                icon: const Icon(Icons.receipt_long_outlined, color: Colors.white70),
                 activeIcon: const Icon(Icons.receipt_long, color: Colors.white),
                 label: 'Orders',
               ),
               BottomNavigationBarItem(
-                icon: const Icon(Icons.favorite_outline),
+                icon: const Icon(Icons.favorite_outline, color: Colors.white70),
                 activeIcon: const Icon(Icons.favorite, color: Colors.white),
                 label: 'Favorites',
               ),
               BottomNavigationBarItem(
-                icon: const Icon(Icons.person_outline),
+                icon: const Icon(Icons.person_outline, color: Colors.white70),
                 activeIcon: const Icon(Icons.person, color: Colors.white),
                 label: 'Profile',
               ),
