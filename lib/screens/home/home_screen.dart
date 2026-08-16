@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../kitchen/kitchen_profile_screen.dart';
@@ -294,101 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // ─── Promotions Carousel ───
                   if (promotions.isNotEmpty)
                     SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                        child: SizedBox(
-                          height: 200,
-                          child: PageView.builder(
-                            controller: PageController(viewportFraction: 0.9),
-                            itemCount: promotions.length,
-                            itemBuilder: (context, pIndex) {
-                              final promo = promotions[pIndex];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16),
-                                    image: DecorationImage(
-                                      image: NetworkImage(ApiService.formatImageUrl(promo.image)),
-                                      fit: BoxFit.cover,
-                                      onError: (_, __) {},
-                                    ),
-                                  ),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(16),
-                                      gradient: LinearGradient(
-                                        begin: Alignment.bottomCenter,
-                                        end: Alignment.topCenter,
-                                        colors: [
-                                          AppColors.surface.withValues(alpha: 0.95),
-                                          AppColors.surface.withValues(alpha: 0.5),
-                                          Colors.transparent,
-                                        ],
-                                      ),
-                                    ),
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.primaryContainer,
-                                                borderRadius: BorderRadius.circular(6),
-                                              ),
-                                              child: Text(
-                                                promo.discountPercent > 0 ? '${promo.discountPercent}% OFF' : 'LIMITED OFFER',
-                                                style: AppTextStyles.labelSm(color: Colors.white)
-                                                    .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
-                                              ),
-                                            ),
-                                            if (promo.code.isNotEmpty) ...[
-                                              const SizedBox(width: 8),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black87,
-                                                  borderRadius: BorderRadius.circular(6),
-                                                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.6)),
-                                                ),
-                                                child: Text(
-                                                  'CODE: ${promo.code}',
-                                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                                ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          promo.title,
-                                          style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface)
-                                              .copyWith(fontSize: 22, fontWeight: FontWeight.bold),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        if (promo.subtitle.isNotEmpty) ...[
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            promo.subtitle,
-                                            style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
+                      child: PromoBannerCarousel(promotions: promotions),
                     ),
 
                   // ─── Featured Kitchens ───
@@ -702,6 +610,224 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// PROMO BANNER CAROUSEL (5s Auto-Slide & Dots)
+// ─────────────────────────────────────────────
+class PromoBannerCarousel extends StatefulWidget {
+  final List<PromotionModel> promotions;
+  const PromoBannerCarousel({super.key, required this.promotions});
+
+  @override
+  State<PromoBannerCarousel> createState() => _PromoBannerCarouselState();
+}
+
+class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
+  late PageController _pageController;
+  Timer? _timer;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.92);
+    _startAutoSlide();
+  }
+
+  void _startAutoSlide() {
+    _timer?.cancel();
+    if (widget.promotions.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+        if (_pageController.hasClients) {
+          _currentPage = (_currentPage + 1) % widget.promotions.length;
+          _pageController.animateToPage(
+            _currentPage,
+            duration: const Duration(milliseconds: 650),
+            curve: Curves.easeInOutCubic,
+          );
+        }
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant PromoBannerCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.promotions.length != widget.promotions.length) {
+      _startAutoSlide();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.promotions.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 190,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: widget.promotions.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              itemBuilder: (context, pIndex) {
+                final promo = widget.promotions[pIndex];
+                return GestureDetector(
+                  onTap: () {
+                    if (promo.code.isNotEmpty) {
+                      Clipboard.setData(ClipboardData(text: promo.code));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const Icon(Icons.check_circle, color: Colors.greenAccent),
+                              const SizedBox(width: 8),
+                              Text('Voucher code "${promo.code}" copied!'),
+                            ],
+                          ),
+                          backgroundColor: AppColors.surface,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
+                        image: DecorationImage(
+                          image: NetworkImage(ApiService.formatImageUrl(promo.image)),
+                          fit: BoxFit.cover,
+                          onError: (_, __) {},
+                        ),
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.92),
+                              Colors.black.withValues(alpha: 0.45),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryContainer,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    promo.discountPercent > 0 ? '${promo.discountPercent}% OFF' : 'LIMITED OFFER',
+                                    style: AppTextStyles.labelSm(color: Colors.white)
+                                        .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                if (promo.code.isNotEmpty) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(alpha: 0.7),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.7)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.confirmation_number_outlined, color: AppColors.primary, size: 12),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'CODE: ${promo.code}',
+                                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              promo.title,
+                              style: AppTextStyles.headlineLgMobile(color: Colors.white)
+                                  .copyWith(fontSize: 20, fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (promo.subtitle.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                promo.subtitle,
+                                style: AppTextStyles.labelSm(color: Colors.white.withValues(alpha: 0.8)),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          if (widget.promotions.length > 1) ...[
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(widget.promotions.length, (index) {
+                final isSelected = _currentPage == index;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  height: 5,
+                  width: isSelected ? 20 : 6,
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                );
+              }),
+            ),
+          ],
+        ],
       ),
     );
   }
