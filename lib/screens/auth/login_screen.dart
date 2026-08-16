@@ -11,6 +11,7 @@ import 'login_phone_otp_screen.dart';
 import 'sign_up_screen.dart';
 import 'chef_login_screen.dart';
 import '../chef_dashboard/chef_main_navigation.dart';
+import '../admin/admin_dashboard_screen.dart';
 
 /// Login Main Screen — replicates Login Main.html exactly
 class LoginScreen extends StatefulWidget {
@@ -84,17 +85,30 @@ class _LoginScreenState extends State<LoginScreen>
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
           if (data['success']) {
-            // Always set role to 'user' for this session since we are logging in through the Foodie portal
+            final userRole = data['user']['role']?.toString() ?? 'user';
             await ApiService.saveUserId(
               data['user']['id'].toString(), 
-              role: 'user', 
+              role: userRole, 
               kitchenId: data['user']['kitchen_id']?.toString()
             );
             if (!mounted) return;
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const MainNavigation()),
-            );
+
+            if (userRole == 'admin') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+              );
+            } else if (userRole == 'chef') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const MainNavigation()),
+              );
+            }
           } else {
           _showError(data['error'] ?? 'Login failed');
         }
@@ -141,17 +155,29 @@ class _LoginScreenState extends State<LoginScreen>
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
             if (data['success']) {
-              // Always set role to 'user' for this session since we are logging in through the Foodie portal
+              final userRole = data['user']['role']?.toString() ?? 'user';
               await ApiService.saveUserId(
                 data['user']['id'].toString(), 
-                role: 'user', 
+                role: userRole, 
                 kitchenId: data['user']['kitchen_id']?.toString()
               );
               if (!mounted) return;
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const MainNavigation()),
-              );
+              if (userRole == 'admin') {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+                );
+              } else if (userRole == 'chef') {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
+                );
+              } else {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MainNavigation()),
+                );
+              }
             } else {
             _showError(data['error'] ?? 'Login failed');
           }

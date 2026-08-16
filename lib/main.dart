@@ -13,6 +13,7 @@ import 'screens/favorites/favorites_screen.dart';
 import 'screens/profile/user_profile_screen.dart';
 import 'services/api_service.dart';
 import 'screens/chef_dashboard/chef_main_navigation.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -129,6 +130,9 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
       );
     }
     if (_isLoggedIn) {
+      if (_userRole == 'admin') {
+        return const AdminDashboardScreen();
+      }
       if (_userRole == 'chef') {
         return const ChefMainNavigation();
       }

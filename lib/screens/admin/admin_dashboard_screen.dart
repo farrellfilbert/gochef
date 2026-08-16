@@ -3,6 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
+import '../../main.dart';
+import '../auth/login_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -390,31 +392,62 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              )
+            : Container(
+                margin: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade700.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.admin_panel_settings, color: Colors.amber.shade400, size: 20),
+              ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: Colors.amber.shade900.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.amber.shade600, width: 1),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.shield, color: Colors.amber.shade400, size: 16),
-                  const SizedBox(width: 6),
-                  Text('ADMIN PANEL', style: TextStyle(color: Colors.amber.shade300, fontSize: 12, fontWeight: FontWeight.bold)),
-                ],
-              ),
+              child: Text('ADMIN', style: TextStyle(color: Colors.amber.shade300, fontSize: 11, fontWeight: FontWeight.bold)),
             ),
-            const SizedBox(width: 10),
-            Text('GoChef Control', style: AppTextStyles.headlineMd(color: Colors.white)),
+            const SizedBox(width: 8),
+            Text('GoChef Control', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
           ],
         ),
+        actions: [
+          // Switch to Customer/Foodie View
+          TextButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MainNavigation()),
+              );
+            },
+            icon: const Icon(Icons.visibility_outlined, color: AppColors.primary, size: 16),
+            label: const Text('Foodie View', style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+          ),
+          // Logout
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.redAccent, size: 20),
+            tooltip: 'Logout Admin',
+            onPressed: () async {
+              await ApiService.logout();
+              if (mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
