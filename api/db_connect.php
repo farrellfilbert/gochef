@@ -43,10 +43,33 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
+}
+
+// Auto-rewrite image URLs to match the requesting origin
+$is_https = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] == 1))
+    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+    || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+$current_scheme = $is_https ? 'https' : 'http';
+$current_host = $_SERVER['HTTP_HOST'] ?? 'thegrubnextdoor.com';
+$current_origin = "$current_scheme://$current_host";
+
+if (!ob_get_level()) {
+    ob_start(function($output) use ($current_origin) {
+        if (empty($output)) return $output;
+        $domains = [
+            'https://thegrubnextdoor.com',
+            'http://thegrubnextdoor.com',
+            'https://www.thegrubnextdoor.com',
+            'http://www.thegrubnextdoor.com',
+            'https://astroboomin.co',
+            'http://astroboomin.co'
+        ];
+        return str_replace($domains, $current_origin, $output);
+    });
 }
 ?>

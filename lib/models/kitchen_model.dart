@@ -1,3 +1,4 @@
+import '../services/api_service.dart';
 import 'menu_item_model.dart';
 import 'review_model.dart';
 
@@ -46,8 +47,8 @@ class KitchenModel {
       userId: int.tryParse(json['user_id']?.toString() ?? '0') ?? 0,
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      avatar: json['avatar'] ?? '',
-      coverImage: json['cover_image'] ?? '',
+      avatar: ApiService.formatImageUrl(json['avatar']),
+      coverImage: ApiService.formatImageUrl(json['cover_image']),
       rating: double.tryParse(json['rating']?.toString() ?? '0') ?? 0.0,
       totalReviews: int.tryParse(json['total_reviews']?.toString() ?? '0') ?? 0,
       cuisineType: json['cuisine_type'] ?? '',
@@ -57,7 +58,7 @@ class KitchenModel {
       isFeatured: json['is_featured']?.toString() == '1',
       createdAt: json['created_at'] ?? '',
       atmosphereImages: json['atmosphere_images'] != null && json['atmosphere_images'] is List
-          ? (json['atmosphere_images'] as List).map((e) => e.toString()).toList()
+          ? (json['atmosphere_images'] as List).map((e) => ApiService.formatImageUrl(e.toString())).toList()
           : [],
       menuItems: json['menu_items'] != null
           ? (json['menu_items'] as List).map((e) => MenuItemModel.fromJson(e)).toList()

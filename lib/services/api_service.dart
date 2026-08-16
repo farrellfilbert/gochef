@@ -26,6 +26,24 @@ class ApiService {
     }
     return 'https://thegrubnextdoor.com/api';
   }
+
+  static String formatImageUrl(String? url) {
+    if (url == null || url.trim().isEmpty) return '';
+    var cleanUrl = url.trim();
+    if (kIsWeb) {
+      final origin = Uri.base.origin;
+      if (origin.isNotEmpty && !origin.contains('localhost') && !origin.contains('127.0.0.1')) {
+        cleanUrl = cleanUrl
+            .replaceAll('https://thegrubnextdoor.com', origin)
+            .replaceAll('http://thegrubnextdoor.com', origin)
+            .replaceAll('https://www.thegrubnextdoor.com', origin)
+            .replaceAll('http://www.thegrubnextdoor.com', origin)
+            .replaceAll('https://astroboomin.co', origin)
+            .replaceAll('http://astroboomin.co', origin);
+      }
+    }
+    return cleanUrl;
+  }
   
   static String? _cachedUserId;
   static String? _cachedRole;

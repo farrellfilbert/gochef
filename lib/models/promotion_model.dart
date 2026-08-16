@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class PromotionModel {
   final int id;
   final String title;
@@ -20,7 +22,7 @@ class PromotionModel {
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       title: json['title'] ?? '',
       subtitle: json['subtitle'] ?? '',
-      image: json['image'] ?? '',
+      image: ApiService.formatImageUrl(json['image'] ?? json['image_url']),
       discountPercent: int.tryParse(json['discount_percent']?.toString() ?? '0') ?? 0,
       code: json['code'] ?? '',
     );

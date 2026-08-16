@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class OrderItemModel {
   final String name;
   final String options;
@@ -10,7 +12,7 @@ class OrderItemModel {
     required this.options,
     required this.quantity,
     required this.price,
-    this.image = '',
+    required this.image,
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
@@ -19,7 +21,7 @@ class OrderItemModel {
       options: json['options'] ?? '',
       quantity: int.tryParse(json['quantity']?.toString() ?? '1') ?? 1,
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-      image: json['image'] ?? '',
+      image: ApiService.formatImageUrl(json['image'] ?? json['image_url']),
     );
   }
 }
@@ -93,7 +95,7 @@ class OrderModel {
       userId: json['user_id']?.toString() ?? '',
       customerName: json['customer_name'] ?? '',
       customerPhone: json['customer_phone'] ?? '',
-      customerAvatar: json['customer_avatar'] ?? '',
+      customerAvatar: ApiService.formatImageUrl(json['customer_avatar']),
       kitchenId: json['kitchen_id']?.toString() ?? '',
       kitchenUserId: json['kitchen_user_id']?.toString() ?? '',
       kitchenName: json['kitchen_name'] ?? '',
@@ -105,7 +107,7 @@ class OrderModel {
       itemsCount: json['items_count'] != null 
           ? int.tryParse(json['items_count'].toString()) ?? parsedItems.length
           : (json['itemsCount'] != null ? int.tryParse(json['itemsCount'].toString()) ?? parsedItems.length : parsedItems.length),
-      avatar: json['avatar'] ?? '',
+      avatar: ApiService.formatImageUrl(json['avatar']),
       notes: json['notes'],
       orderType: json['order_type'] ?? 'delivery',
       dineInDate: json['dine_in_date'],

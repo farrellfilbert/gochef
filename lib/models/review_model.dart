@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class ReviewModel {
   final int id;
   final int rating;
@@ -21,7 +23,7 @@ class ReviewModel {
       rating: int.tryParse(json['rating']?.toString() ?? '5') ?? 5,
       comment: json['comment'] ?? '',
       userName: json['user_name'] ?? '',
-      userAvatar: json['user_avatar'] ?? '',
+      userAvatar: ApiService.formatImageUrl(json['user_avatar'] ?? json['avatar']),
       createdAt: json['created_at'] ?? '',
     );
   }

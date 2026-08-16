@@ -1,3 +1,4 @@
+import '../services/api_service.dart';
 import 'review_model.dart';
 import 'menu_addon_model.dart';
 
@@ -51,14 +52,14 @@ class MenuItemModel {
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-      image: json['image'] ?? '',
+      image: ApiService.formatImageUrl(json['image'] ?? json['image_url']),
       rating: double.tryParse(json['rating']?.toString() ?? '0') ?? 0.0,
       totalReviews: int.tryParse(json['total_reviews']?.toString() ?? '0') ?? 0,
       prepTime: json['prep_time'] ?? '15-20 min',
       isAvailable: json['is_available']?.toString() != '0',
       isPopular: json['is_popular']?.toString() == '1',
       kitchenName: json['kitchen_name'] ?? '',
-      kitchenAvatar: json['kitchen_avatar'] ?? '',
+      kitchenAvatar: ApiService.formatImageUrl(json['kitchen_avatar']),
       categoryId: int.tryParse(json['category_id']?.toString() ?? '0') ?? 0,
       createdAt: json['created_at'] ?? '',
       categoryName: json['category_name'] ?? '',

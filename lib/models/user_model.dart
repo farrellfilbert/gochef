@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class UserModel {
   final String id;
   final String name;
@@ -25,7 +27,7 @@ class UserModel {
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'] ?? '',
-      avatar: json['avatar'] ?? '',
+      avatar: ApiService.formatImageUrl(json['avatar']),
       role: json['role']?.toString(),
       kitchenId: json['kitchen_id']?.toString(),
       kitchenName: json['kitchen_name']?.toString(),
