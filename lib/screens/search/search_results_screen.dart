@@ -421,7 +421,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     children: [
                       Text(
                         '\$${dish.price.toStringAsFixed(2)}',
-                        style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
+                        style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

@@ -194,7 +194,7 @@ class OrderCompleteScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          Text('\$${totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: AppColors.primary)),
+                          Text('\$${totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: Colors.white)),
                         ],
                       )
                     ],

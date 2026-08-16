@@ -1030,7 +1030,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Total', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                          Text('\$${_grandTotal.toStringAsFixed(2)}', style: AppTextStyles.headlineLgMobile(color: AppColors.primary)),
+                          Text('\$${_grandTotal.toStringAsFixed(2)}', style: AppTextStyles.headlineLgMobile(color: Colors.white)),
                         ],
                       ),
                     ],

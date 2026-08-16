@@ -267,7 +267,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(price, style: AppTextStyles.bodyLg(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
+                            Text(price, style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
                             Row(
                               children: [

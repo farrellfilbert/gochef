@@ -540,7 +540,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: AppColors.primary).copyWith(fontSize: 16)),
+                              Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
                               const SizedBox(width: 8),
                               const Icon(Icons.expand_more, color: AppColors.onSurfaceVariant),
                             ],
@@ -605,7 +605,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text('Total', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
-                                      Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: const Color(0xFFE42278)).copyWith(fontSize: 16)),
+                                      Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
                                     ],
                                   )
                                 ],

@@ -477,7 +477,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Expanded(child: Text(menuItem.name, style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis)),
               const SizedBox(width: 8),
-              Text('\$' + menuItem.price.toStringAsFixed(2), style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
+              Text('\$' + menuItem.price.toStringAsFixed(2), style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
             ]),
             const SizedBox(height: 4),
             Text(menuItem.description, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant), maxLines: 2, overflow: TextOverflow.ellipsis),

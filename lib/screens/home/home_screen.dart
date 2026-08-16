@@ -570,7 +570,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text('\$${meal.price.toStringAsFixed(2)}',
-                          style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
+                          style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 4),
