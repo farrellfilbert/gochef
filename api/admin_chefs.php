@@ -9,8 +9,10 @@ if ($method === 'GET') {
     
     $sql = "SELECT k.id as kitchen_id, k.name as kitchen_name, k.description as kitchen_description, 
                    k.avatar as kitchen_avatar, k.cover_image as kitchen_cover, k.is_verified, 
+                   COALESCE(k.status, 'active') as kitchen_status,
                    k.created_at, u.id as user_id, u.name as user_name, u.email as user_email, 
-                   u.phone as user_phone, u.avatar as user_avatar, u.role as user_role
+                   u.phone as user_phone, u.avatar as user_avatar, u.role as user_role,
+                   COALESCE(u.status, 'active') as user_status
             FROM kitchens k
             JOIN users u ON k.user_id = u.id";
             

@@ -849,8 +849,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                                   ),
                                 ] else ...[
                                   const SizedBox(height: 12),
+                                  const Divider(color: AppColors.outlineVariant, height: 1),
+                                  const SizedBox(height: 10),
                                   Row(
                                     children: [
+                                      // 💬 Chat Button
                                       ElevatedButton.icon(
                                         onPressed: () {
                                           if (userId != null) {
@@ -862,13 +865,82 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                                             });
                                           }
                                         },
-                                        icon: const Icon(Icons.chat_bubble_outline, size: 16, color: Colors.white),
-                                        label: const Text('Chat Kitchen', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                        icon: const Icon(Icons.chat_bubble_outline, size: 15, color: Colors.white),
+                                        label: const Text('Chat', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: AppColors.primary,
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                         ),
+                                      ),
+                                      const SizedBox(width: 8),
+
+                                      // ⏸️ / ▶️ Suspend / Unsuspend Button
+                                      Builder(
+                                        builder: (context) {
+                                          final isChefSuspended = chef['kitchen_status'] == 'suspended' || chef['user_status'] == 'suspended';
+                                          return OutlinedButton.icon(
+                                            onPressed: () {
+                                              final chefUser = {
+                                                'id': userId,
+                                                'name': chef['user_name'] ?? chef['kitchen_name'] ?? 'Chef',
+                                                'kitchen_id': kitchenId.toString(),
+                                                'role': 'chef',
+                                                'status': isChefSuspended ? 'suspended' : 'active',
+                                              };
+                                              if (isChefSuspended) {
+                                                _unsuspendUser(chefUser);
+                                              } else {
+                                                _confirmSuspendUser(chefUser);
+                                              }
+                                            },
+                                            icon: Icon(
+                                              (chef['kitchen_status'] == 'suspended' || chef['user_status'] == 'suspended')
+                                                  ? Icons.play_arrow_rounded
+                                                  : Icons.pause_rounded,
+                                              size: 16,
+                                              color: (chef['kitchen_status'] == 'suspended' || chef['user_status'] == 'suspended')
+                                                  ? Colors.greenAccent
+                                                  : Colors.orange,
+                                            ),
+                                            label: Text(
+                                              (chef['kitchen_status'] == 'suspended' || chef['user_status'] == 'suspended') ? 'Unsuspend' : 'Suspend',
+                                              style: TextStyle(
+                                                color: (chef['kitchen_status'] == 'suspended' || chef['user_status'] == 'suspended')
+                                                    ? Colors.greenAccent
+                                                    : Colors.orange,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            style: OutlinedButton.styleFrom(
+                                              side: BorderSide(
+                                                color: (chef['kitchen_status'] == 'suspended' || chef['user_status'] == 'suspended')
+                                                    ? Colors.greenAccent
+                                                    : Colors.orange,
+                                              ),
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            ),
+                                          );
+                                        },
+                                      ),
+
+                                      const Spacer(),
+
+                                      // 🗑️ Permanent Delete Button
+                                      IconButton(
+                                        onPressed: () {
+                                          final chefUser = {
+                                            'id': userId,
+                                            'name': chef['kitchen_name'] ?? chef['user_name'] ?? 'Chef',
+                                            'kitchen_id': kitchenId.toString(),
+                                            'role': 'chef',
+                                          };
+                                          _confirmDeleteUser(chefUser);
+                                        },
+                                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                        tooltip: 'Delete Kitchen',
                                       ),
                                     ],
                                   ),
