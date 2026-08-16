@@ -106,9 +106,44 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
           );
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid email or password')),
-        );
+        String errMsg = 'Invalid email or password';
+        try {
+          final errData = jsonDecode(response.body);
+          if (errData['error'] != null) {
+            errMsg = errData['error'];
+          }
+        } catch (_) {}
+
+        if (response.statusCode == 403 || errMsg.toLowerCase().contains('suspended')) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppColors.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(
+                children: [
+                  Icon(Icons.block, color: Colors.redAccent),
+                  SizedBox(width: 10),
+                  Text('Account Suspended', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: Text(
+                errMsg,
+                style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('OK', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errMsg), backgroundColor: Colors.redAccent),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;

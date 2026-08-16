@@ -108,7 +108,7 @@ if ($method === 'POST') {
                 // Send notification
                 try {
                     $notif = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES (?, 'Account Suspended', ?, 'warning', 0, NOW())");
-                    $notif->execute([$userId, "Your account has been temporarily suspended by Admin. Reason: $reason. Contact support for help."]);
+                    $notif->execute([$userId, "Your account has been suspended. Please contact admin at support@gochef.com"]);
                 } catch (Exception $ne) {}
             } else if ($kitchenId) {
                 // Suspend only kitchen

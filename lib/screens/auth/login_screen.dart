@@ -110,17 +110,52 @@ class _LoginScreenState extends State<LoginScreen>
               );
             }
           } else {
-          _showError(data['error'] ?? 'Login failed');
+            _showError(data['error'] ?? 'Login failed');
+          }
+        } else {
+          String errMsg = 'Invalid email or password';
+          try {
+            final errData = jsonDecode(response.body);
+            if (errData['error'] != null) {
+              errMsg = errData['error'];
+            }
+          } catch (_) {}
+
+          if (response.statusCode == 403 || errMsg.toLowerCase().contains('suspended')) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                backgroundColor: AppColors.surface,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                title: const Row(
+                  children: [
+                    Icon(Icons.block, color: Colors.redAccent),
+                    SizedBox(width: 10),
+                    Text('Account Suspended', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                content: Text(
+                  errMsg,
+                  style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('OK', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            _showError(errMsg);
+          }
         }
-      } else {
-        _showError('Invalid email or password');
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        _showError('Error: $e');
       }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      _showError('Error: $e');
     }
-  }
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(

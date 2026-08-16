@@ -47,7 +47,7 @@ try {
             http_response_code(403);
             echo json_encode([
                 'success' => false,
-                'error' => 'Your account has been suspended by Admin. Please contact support.'
+                'error' => 'Your account has been suspended. Please contact admin at support@gochef.com'
             ]);
             exit();
         }
@@ -60,6 +60,14 @@ try {
         $kStmt->execute([$user['id']]);
         $kitchen = $kStmt->fetch(PDO::FETCH_ASSOC);
         if ($kitchen) {
+            if (isset($kitchen['status']) && $kitchen['status'] === 'suspended') {
+                http_response_code(403);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Your account has been suspended. Please contact admin at support@gochef.com'
+                ]);
+                exit();
+            }
             $user['kitchen_id'] = $kitchen['id'];
             $user['is_verified'] = (int)$kitchen['is_verified'];
             $user['kitchen_status'] = $kitchen['status'] ?? 'active';
