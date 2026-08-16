@@ -145,7 +145,7 @@ class _CartScreenState extends State<CartScreen> {
                 : SingleChildScrollView(
                     padding: const EdgeInsets.only(
                       top: 80, // Space for fixed header
-                      bottom: 140, // Space for fixed footer
+                      bottom: 220, // Space for fixed footer
                       left: 20,
                       right: 20,
                     ),
@@ -331,7 +331,7 @@ class _CartScreenState extends State<CartScreen> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.loyalty, color: AppColors.primary),
+                                const Icon(Icons.loyalty, color: Colors.white),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: TextField(
@@ -426,7 +426,7 @@ class _CartScreenState extends State<CartScreen> {
                       Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+                            icon: const Icon(Icons.arrow_back, color: Colors.white),
                             onPressed: () {
                               if (Navigator.canPop(context)) Navigator.pop(context);
                             },
@@ -446,7 +446,7 @@ class _CartScreenState extends State<CartScreen> {
                           },
                           child: Text(
                             'CLEAR ALL',
-                            style: AppTextStyles.labelMono(color: AppColors.primary)
+                            style: AppTextStyles.labelMono(color: Colors.white)
                                 .copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -620,7 +620,7 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                     Text(
                       '\$${item.totalPrice.toStringAsFixed(2)}',
-                      style: AppTextStyles.bodyMd(color: AppColors.primary)
+                      style: AppTextStyles.bodyMd(color: Colors.white)
                           .copyWith(fontWeight: FontWeight.bold),
                     ),
                   ],
