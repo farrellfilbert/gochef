@@ -61,18 +61,38 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['success'] == true) {
-        // Update stored role and kitchenId
-        await ApiService.saveUserId(
-          widget.userId, 
-          role: 'chef', 
-          kitchenId: data['kitchen_id'].toString()
-        );
-        
         if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
-            (route) => false,
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppColors.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  const Icon(Icons.hourglass_top_rounded, color: Colors.amber, size: 28),
+                  const SizedBox(width: 10),
+                  Text('Application Submitted', style: AppTextStyles.headlineMd(color: Colors.white)),
+                ],
+              ),
+              content: Text(
+                'Pendaftaran Chef dan Dapur Anda berhasil dikirim! Admin akan meninjau kelengkapan profil Anda terlebih dahulu. Anda akan menerima notifikasi setelah disetujui.',
+                style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Mengerti', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
           );
         }
       } else {

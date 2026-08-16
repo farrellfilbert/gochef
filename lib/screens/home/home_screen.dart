@@ -295,59 +295,97 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (promotions.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                        child: Container(
-                          height: 192,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            image: DecorationImage(
-                              image: NetworkImage(promotions.first.image),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [
-                                  AppColors.surface,
-                                  AppColors.surface.withValues(alpha: 0.4),
-                                  Colors.transparent,
-                                ],
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: SizedBox(
+                          height: 200,
+                          child: PageView.builder(
+                            controller: PageController(viewportFraction: 0.9),
+                            itemCount: promotions.length,
+                            itemBuilder: (context, pIndex) {
+                              final promo = promotions[pIndex];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                child: Container(
                                   decoration: BoxDecoration(
-                                    color: AppColors.primaryContainer,
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(16),
+                                    image: DecorationImage(
+                                      image: NetworkImage(ApiService.formatImageUrl(promo.image)),
+                                      fit: BoxFit.cover,
+                                      onError: (_, __) {},
+                                    ),
                                   ),
-                                  child: Text(
-                                    'LIMITED OFFER',
-                                    style: AppTextStyles.labelSm(color: Colors.white)
-                                        .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.bottomCenter,
+                                        end: Alignment.topCenter,
+                                        colors: [
+                                          AppColors.surface.withValues(alpha: 0.95),
+                                          AppColors.surface.withValues(alpha: 0.5),
+                                          Colors.transparent,
+                                        ],
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primaryContainer,
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                promo.discountPercent > 0 ? '${promo.discountPercent}% OFF' : 'LIMITED OFFER',
+                                                style: AppTextStyles.labelSm(color: Colors.white)
+                                                    .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                            if (promo.code.isNotEmpty) ...[
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black87,
+                                                  borderRadius: BorderRadius.circular(6),
+                                                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.6)),
+                                                ),
+                                                child: Text(
+                                                  'CODE: ${promo.code}',
+                                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          promo.title,
+                                          style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface)
+                                              .copyWith(fontSize: 22, fontWeight: FontWeight.bold),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        if (promo.subtitle.isNotEmpty) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            promo.subtitle,
+                                            style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  promotions.first.title,
-                                  style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface)
-                                      .copyWith(fontSize: 24),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  promotions.first.subtitle,
-                                  style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
-                                ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
                         ),
                       ),

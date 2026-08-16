@@ -48,19 +48,20 @@ try {
         exit();
     }
     
-    // Update role to chef
-    $update = $pdo->prepare("UPDATE users SET role = 'chef' WHERE id = ?");
-    $update->execute([$user_id]);
-    
-    // Create kitchen
-    $insert_kitchen = $pdo->prepare("INSERT INTO kitchens (user_id, name, description, avatar, cover_image) VALUES (?, ?, ?, ?, ?)");
+    // Create kitchen with is_verified = 0 (Pending admin approval)
+    $insert_kitchen = $pdo->prepare("INSERT INTO kitchens (user_id, name, description, avatar, cover_image, is_verified) VALUES (?, ?, ?, ?, ?, 0)");
     $insert_kitchen->execute([$user_id, $kitchen_name, $kitchen_description, $kitchen_avatar, $kitchen_cover]);
     $kitchen_id = $pdo->lastInsertId();
     
+    // Notify admin
+    $notifAdmin = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read) SELECT id, 'New Chef Application', ?, 'admin_alert', 0 FROM users WHERE role = 'admin'");
+    $notifAdmin->execute(["New chef application from $kitchen_name (User ID: $user_id). Please review and approve."]);
+
     echo json_encode([
         'success' => true,
-        'message' => 'Successfully upgraded to Chef',
-        'kitchen_id' => $kitchen_id
+        'message' => 'Your Chef application has been submitted and is currently pending Admin approval.',
+        'kitchen_id' => $kitchen_id,
+        'is_pending' => true
     ]);
 
 } catch (PDOException $e) {

@@ -8,7 +8,7 @@ if ($method === 'GET') {
     $search = isset($_GET['q']) ? trim($_GET['q']) : '';
     $cuisine = isset($_GET['cuisine']) ? trim($_GET['cuisine']) : '';
 
-    $sql = "SELECT * FROM kitchens WHERE 1=1";
+    $sql = "SELECT * FROM kitchens WHERE is_verified = 1";
     $params = [];
 
     if ($featured) {

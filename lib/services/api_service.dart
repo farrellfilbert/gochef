@@ -1019,4 +1019,168 @@ class ApiService {
       return [];
     }
   }
+
+  // =============================================
+  // ADMIN CONTROL PANEL
+  // =============================================
+
+  static Future<List<Map<String, dynamic>>> getAdminChefs({String filter = 'all'}) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_chefs.php?filter=$filter');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] is List) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getting admin chefs: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> approveChef(int kitchenId, {String? userId}) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_chefs.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'approve',
+          'kitchen_id': kitchenId,
+          if (userId != null) 'user_id': userId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error approving chef: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> rejectChef(int kitchenId, {String? userId, String reason = 'Requirements not met'}) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_chefs.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'reject',
+          'kitchen_id': kitchenId,
+          if (userId != null) 'user_id': userId,
+          'reason': reason,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error rejecting chef: $e');
+      return false;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getAdminPromotions() async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_promotions.php');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] is List) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getting admin promotions: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> createPromotion({
+    required String title,
+    String subtitle = '',
+    String image = '',
+    int discountPercent = 0,
+    String code = '',
+    bool isActive = true,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_promotions.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'create',
+          'title': title,
+          'subtitle': subtitle,
+          'image': image,
+          'discount_percent': discountPercent,
+          'code': code,
+          'is_active': isActive ? 1 : 0,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error creating promotion: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> togglePromotion(int promoId, bool isActive) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_promotions.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'toggle',
+          'id': promoId,
+          'is_active': isActive ? 1 : 0,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error toggling promotion: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> deletePromotion(int promoId) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_promotions.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'delete',
+          'id': promoId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error deleting promotion: $e');
+      return false;
+    }
+  }
 }

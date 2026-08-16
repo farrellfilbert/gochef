@@ -21,6 +21,7 @@ import 'contact_support_screen.dart';
 import 'about_screen.dart';
 import 'become_chef_screen.dart';
 import '../chef_dashboard/chef_main_navigation.dart';
+import '../admin/admin_dashboard_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -1094,8 +1095,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Switch to Chef Dashboard / Become a Chef
-                  if (user.role == 'chef')
+                  // Switch to Admin Dashboard / Switch to Chef Dashboard / Become a Chef
+                  if (user.role == 'admin')
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber.shade700,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.shield, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Text('Open Admin Control Panel', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    )
+                  else if (user.role == 'chef')
                     SizedBox(
                       width: double.infinity,
                       height: 56,
