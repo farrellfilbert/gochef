@@ -1203,7 +1203,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.card_giftcard, color: AppColors.primary, size: 28),
+                                  const Icon(Icons.card_giftcard, color: Colors.white, size: 28),
                                   const SizedBox(width: 12),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1255,29 +1255,26 @@ class _SearchScreenState extends State<SearchScreen> {
                                           decoration: BoxDecoration(
                                             color: isPast
                                                 ? AppColors.surfaceContainerHigh
-                                                : (isToday ? AppColors.primary.withValues(alpha: 0.2) : AppColors.surfaceContainerLow),
+                                                : AppColors.surfaceContainerLow,
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                              color: isToday ? AppColors.primary : Colors.transparent,
-                                              width: isToday ? 2 : 1,
+                                              color: (isToday && !_isTodayClaimed) ? Colors.white70 : Colors.transparent,
+                                              width: (isToday && !_isTodayClaimed) ? 1.5 : 1,
                                             ),
-                                            boxShadow: isToday && !_isTodayClaimed
-                                                ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 8)]
-                                                : null,
                                           ),
                                           child: Icon(
                                             isPast ? Icons.check : Icons.monetization_on,
                                             size: 20,
                                             color: isPast
                                                 ? Colors.greenAccent
-                                                : (isToday ? AppColors.primary : Colors.white30),
+                                                : Colors.white,
                                           ),
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
                                           coins.toString(),
                                           style: AppTextStyles.labelSm(
-                                            color: isPast ? Colors.white70 : AppColors.primary,
+                                            color: Colors.white,
                                           ).copyWith(fontWeight: FontWeight.bold, fontSize: 11),
                                         ),
                                         Text(
@@ -1299,7 +1296,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   ),
                                   GestureDetector(
                                     onTap: _showTermsModal,
-                                    child: Text('T&C Apply', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
+                                    child: Text('T&C Apply', style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontWeight: FontWeight.bold)),
                                   ),
                                 ],
                               )
@@ -1432,12 +1429,12 @@ class _SearchScreenState extends State<SearchScreen> {
                                 decoration: BoxDecoration(
                                   color: isClaimed
                                       ? Colors.green.withValues(alpha: 0.15)
-                                      : AppColors.primary.withValues(alpha: 0.15),
+                                      : Colors.white.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
                                   isClaimed ? Icons.check_circle : Icons.confirmation_number,
-                                  color: isClaimed ? Colors.greenAccent : AppColors.primary,
+                                  color: isClaimed ? Colors.greenAccent : Colors.white,
                                   size: 22,
                                 ),
                               ),
@@ -1483,85 +1480,84 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         );
                       }),
-                      // Additional API promotions if available
-                      if (_promotions.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        ..._promotions.map((p) {
-                          final apiId = 'api_promo_${p.id}';
-                          final isClaimed = _claimedOfferIds.contains(apiId);
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isClaimed
-                                    ? Colors.green.withValues(alpha: 0.3)
-                                    : AppColors.primary.withValues(alpha: 0.2),
+                      // Additional API promotions if available (de-duplicated)
+                      ..._promotions
+                          .where((p) => !_exclusiveOffers.any((e) => e['title'] == p.title || e['code'] == p.code))
+                          .map((p) {
+                        final apiId = 'api_promo_${p.id}';
+                        final isClaimed = _claimedOfferIds.contains(apiId);
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isClaimed
+                                  ? Colors.green.withValues(alpha: 0.3)
+                                  : AppColors.outlineVariant.withValues(alpha: 0.15),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: isClaimed ? Colors.green.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  isClaimed ? Icons.check_circle : Icons.confirmation_number,
+                                  color: isClaimed ? Colors.greenAccent : Colors.white,
+                                  size: 22,
+                                ),
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  decoration: BoxDecoration(
-                                    color: isClaimed ? Colors.green.withValues(alpha: 0.15) : AppColors.primary.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    isClaimed ? Icons.check_circle : Icons.confirmation_number,
-                                    color: isClaimed ? Colors.greenAccent : AppColors.primary,
-                                    size: 22,
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(p.title, style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
+                                    if (p.subtitle.isNotEmpty)
+                                      Text(p.subtitle, style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontSize: 11)),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton(
+                                onPressed: () {
+                                  final offerMap = {
+                                    'id': apiId,
+                                    'title': p.title,
+                                    'subtitle': p.subtitle,
+                                    'code': p.code.isNotEmpty ? p.code : 'PROMO${p.id}',
+                                    'discount': p.discountPercent > 0 ? '${p.discountPercent}% OFF' : 'SPECIAL',
+                                    'discountType': 'percent',
+                                    'discountValue': p.discountPercent > 0 ? p.discountPercent.toDouble() : 15.0,
+                                    'minSpend': 0.0,
+                                  };
+                                  _claimExclusiveOffer(offerMap);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isClaimed ? Colors.white.withValues(alpha: 0.15) : AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                ),
+                                child: Text(
+                                  isClaimed ? 'Claimed ✓' : 'Claim',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: isClaimed ? Colors.white70 : Colors.white,
                                   ),
                                 ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(p.title, style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
-                                      if (p.subtitle.isNotEmpty)
-                                        Text(p.subtitle, style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontSize: 11)),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    final offerMap = {
-                                      'id': apiId,
-                                      'title': p.title,
-                                      'subtitle': p.subtitle,
-                                      'code': p.code.isNotEmpty ? p.code : 'PROMO${p.id}',
-                                      'discount': p.discountPercent > 0 ? '${p.discountPercent}% OFF' : 'SPECIAL',
-                                      'discountType': 'percent',
-                                      'discountValue': p.discountPercent > 0 ? p.discountPercent.toDouble() : 15.0,
-                                      'minSpend': 0.0,
-                                    };
-                                    _claimExclusiveOffer(offerMap);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: isClaimed ? Colors.white.withValues(alpha: 0.15) : AppColors.primary,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                  ),
-                                  child: Text(
-                                    isClaimed ? 'Claimed ✓' : 'Claim',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      color: isClaimed ? Colors.white70 : Colors.white,
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                          );
-                        }),
-                      ],
+                              )
+                            ],
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
