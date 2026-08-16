@@ -148,7 +148,20 @@ class _SearchScreenState extends State<SearchScreen> {
       _isTodayClaimed = (lastClaimDate == todayStr);
       _userCoins = prefs.getInt('user_coins_$userId') ?? prefs.getInt('user_coins') ?? 1250;
       _voucherCount = prefs.getInt('user_vouchers_$userId') ?? prefs.getInt('user_vouchers') ?? 25;
-      _currentDayIndex = prefs.getInt('user_streak_day_$userId') ?? prefs.getInt('user_streak_day') ?? 3;
+      _currentDayIndex = prefs.getInt('user_streak_day_$userId') ?? prefs.getInt('user_streak_day') ?? 0;
+      
+      if (lastClaimDate != null && lastClaimDate != todayStr) {
+        final lastDate = DateTime.tryParse(lastClaimDate);
+        final now = DateTime.now();
+        if (lastDate != null) {
+          final diffDays = DateTime(now.year, now.month, now.day).difference(DateTime(lastDate.year, lastDate.month, lastDate.day)).inDays;
+          if (diffDays >= 1) {
+            _currentDayIndex = (_currentDayIndex + 1) % 7;
+            await prefs.setInt('user_streak_day_$userId', _currentDayIndex);
+            await prefs.setInt('user_streak_day', _currentDayIndex);
+          }
+        }
+      }
       _isChefPlus = prefs.getBool('user_chef_plus_$userId') ?? prefs.getBool('user_chef_plus') ?? true;
 
       // Load claimed offers (combining user-scoped and global keys)
@@ -1036,18 +1049,18 @@ class _SearchScreenState extends State<SearchScreen> {
                         children: [
                           Text(
                             'Promo & Rewards',
-                            style: AppTextStyles.headlineLgMobile(color: AppColors.primary)
-                                .copyWith(fontSize: 24),
+                            style: AppTextStyles.headlineLgMobile(color: Colors.white)
+                                .copyWith(fontSize: 24, fontWeight: FontWeight.bold),
                           ),
                           if (_user != null)
                             Text(
                               'Hello, ${_user!.name} • $_userCoins Coins',
-                              style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                              style: AppTextStyles.labelSm(color: Colors.white70),
                             )
                           else if (_isLoading)
                             Text(
                               'Loading your rewards...',
-                              style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                              style: AppTextStyles.labelSm(color: Colors.white70),
                             ),
                         ],
                       ),
@@ -1095,8 +1108,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('$_voucherCount Vouchers', style: AppTextStyles.bodyLg(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
-                                            Text('Use now!', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                                            Text('$_voucherCount Vouchers', style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                                            Text('Use now!', style: AppTextStyles.labelSm(color: Colors.white70)),
                                           ],
                                         ),
                                       ],
@@ -1129,7 +1142,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                         Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('GoChef PLUS', style: AppTextStyles.bodyLg(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                                            Text('GoChef PLUS', style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                                             Text(_isChefPlus ? 'Subscribed' : 'Join Now', style: AppTextStyles.labelSm(color: Colors.green)),
                                           ],
                                         ),
@@ -1153,12 +1166,12 @@ class _SearchScreenState extends State<SearchScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.percent, color: AppColors.onSurfaceVariant, size: 16),
+                                  const Icon(Icons.percent, color: Colors.white70, size: 16),
                                   const SizedBox(width: 8),
                                   Expanded(
-                                    child: Text('Enter promo code', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                                    child: Text('Enter promo code', style: AppTextStyles.bodyMd(color: Colors.white70)),
                                   ),
-                                  const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant, size: 20),
+                                  const Icon(Icons.chevron_right, color: Colors.white70, size: 20),
                                 ],
                               ),
                             ),
@@ -1176,12 +1189,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.only(top: 16, left: 20, right: 20),
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFFD81B60), Color(0xFFC2185B)],
-                      ),
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1193,13 +1203,13 @@ class _SearchScreenState extends State<SearchScreen> {
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.card_giftcard, color: Colors.white, size: 28),
+                                  const Icon(Icons.card_giftcard, color: AppColors.primary, size: 28),
                                   const SizedBox(width: 12),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('A gift for you!', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
-                                      Text('Claim your daily coins.', style: AppTextStyles.labelSm(color: Colors.white.withValues(alpha: 0.9))),
+                                      Text('A gift for you!', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
+                                      Text('Claim your daily coins.', style: AppTextStyles.labelSm(color: Colors.white70)),
                                     ],
                                   ),
                                 ],
@@ -1207,25 +1217,26 @@ class _SearchScreenState extends State<SearchScreen> {
                               ElevatedButton(
                                 onPressed: _claimDailyReward,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: _isTodayClaimed ? Colors.white.withValues(alpha: 0.3) : Colors.white,
-                                  foregroundColor: _isTodayClaimed ? Colors.white : const Color(0xFFD81B60),
+                                  backgroundColor: _isTodayClaimed ? Colors.white.withValues(alpha: 0.15) : AppColors.primary,
+                                  foregroundColor: Colors.white,
                                   elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                 ),
                                 child: Text(
                                   _isTodayClaimed ? 'Claimed ✓' : 'Claim',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: _isTodayClaimed ? Colors.white70 : Colors.white,
+                                  ),
                                 ),
                               )
                             ],
                           ),
                         ),
+                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                         Container(
                           padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
-                          decoration: const BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-                          ),
                           child: Column(
                             children: [
                               Row(
@@ -1244,10 +1255,13 @@ class _SearchScreenState extends State<SearchScreen> {
                                           decoration: BoxDecoration(
                                             color: isPast
                                                 ? AppColors.surfaceContainerHigh
-                                                : (isToday ? AppColors.primary : AppColors.surfaceContainerLow),
+                                                : (isToday ? AppColors.primary.withValues(alpha: 0.2) : AppColors.surfaceContainerLow),
                                             shape: BoxShape.circle,
-                                            border: Border.all(color: isToday ? AppColors.primary : Colors.transparent),
-                                            boxShadow: isToday
+                                            border: Border.all(
+                                              color: isToday ? AppColors.primary : Colors.transparent,
+                                              width: isToday ? 2 : 1,
+                                            ),
+                                            boxShadow: isToday && !_isTodayClaimed
                                                 ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 8)]
                                                 : null,
                                           ),
@@ -1256,19 +1270,19 @@ class _SearchScreenState extends State<SearchScreen> {
                                             size: 20,
                                             color: isPast
                                                 ? Colors.greenAccent
-                                                : (isToday ? Colors.white : AppColors.primary.withValues(alpha: 0.5)),
+                                                : (isToday ? AppColors.primary : Colors.white30),
                                           ),
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
                                           coins.toString(),
                                           style: AppTextStyles.labelSm(
-                                            color: isToday ? AppColors.onSurface : AppColors.onSurfaceVariant,
-                                          ).copyWith(fontWeight: FontWeight.bold, fontSize: 10),
+                                            color: isPast ? Colors.white70 : AppColors.primary,
+                                          ).copyWith(fontWeight: FontWeight.bold, fontSize: 11),
                                         ),
                                         Text(
                                           'Day ${index + 1}',
-                                          style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 9),
+                                          style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontSize: 9),
                                         ),
                                       ],
                                     ),
@@ -1281,11 +1295,11 @@ class _SearchScreenState extends State<SearchScreen> {
                                 children: [
                                   GestureDetector(
                                     onTap: _showTermsModal,
-                                    child: Text('Expires in 7 Days', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                    child: Text('Expires in 7 Days', style: AppTextStyles.labelSm(color: Colors.white70)),
                                   ),
                                   GestureDetector(
                                     onTap: _showTermsModal,
-                                    child: Text('T&C Apply', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                                    child: Text('T&C Apply', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
                                   ),
                                 ],
                               )
@@ -1394,7 +1408,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Exclusive Offers', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                      Text('Exclusive Offers', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 16),
                       ..._exclusiveOffers.map((offer) {
                         final isClaimed = _claimedOfferIds.contains(offer['id']);
@@ -1422,9 +1436,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
-                                  isClaimed ? Icons.check_circle : Icons.local_activity,
+                                  isClaimed ? Icons.check_circle : Icons.confirmation_number,
                                   color: isClaimed ? Colors.greenAccent : AppColors.primary,
-                                  size: 24,
+                                  size: 22,
                                 ),
                               ),
                               const SizedBox(width: 14),
@@ -1439,7 +1453,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     const SizedBox(height: 3),
                                     Text(
                                       offer['subtitle'] ?? '',
-                                      style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                                      style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontSize: 11),
                                     ),
                                   ],
                                 ),
@@ -1450,15 +1464,19 @@ class _SearchScreenState extends State<SearchScreen> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: isClaimed
                                       ? Colors.white.withValues(alpha: 0.15)
-                                      : const Color(0xFFE899AE),
-                                  foregroundColor: isClaimed ? Colors.white70 : const Color(0xFF4A1024),
+                                      : AppColors.primary,
+                                  foregroundColor: Colors.white,
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                 ),
                                 child: Text(
                                   isClaimed ? 'Claimed ✓' : 'Claim',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: isClaimed ? Colors.white70 : Colors.white,
+                                  ),
                                 ),
                               )
                             ],
@@ -1493,9 +1511,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
-                                    isClaimed ? Icons.check_circle : Icons.local_activity,
+                                    isClaimed ? Icons.check_circle : Icons.confirmation_number,
                                     color: isClaimed ? Colors.greenAccent : AppColors.primary,
-                                    size: 24,
+                                    size: 22,
                                   ),
                                 ),
                                 const SizedBox(width: 14),
@@ -1505,7 +1523,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     children: [
                                       Text(p.title, style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
                                       if (p.subtitle.isNotEmpty)
-                                        Text(p.subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11)),
+                                        Text(p.subtitle, style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontSize: 11)),
                                     ],
                                   ),
                                 ),
@@ -1525,13 +1543,18 @@ class _SearchScreenState extends State<SearchScreen> {
                                     _claimExclusiveOffer(offerMap);
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: isClaimed ? Colors.white.withValues(alpha: 0.15) : const Color(0xFFE899AE),
-                                    foregroundColor: isClaimed ? Colors.white70 : const Color(0xFF4A1024),
+                                    backgroundColor: isClaimed ? Colors.white.withValues(alpha: 0.15) : AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                   ),
                                   child: Text(
                                     isClaimed ? 'Claimed ✓' : 'Claim',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: isClaimed ? Colors.white70 : Colors.white,
+                                    ),
                                   ),
                                 )
                               ],
