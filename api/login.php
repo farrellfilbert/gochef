@@ -83,19 +83,30 @@ try {
                 $user['kitchen_status'] = 'active';
             }
         
-        echo json_encode([
-            'success' => true,
-            'message' => 'Login successful',
-            'user' => $user,
-            'token' => 'dummy_token_' . time() // You can implement JWT later
-        ]);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Login successful',
+                'user' => $user,
+                'token' => 'dummy_token_' . time()
+            ]);
+            exit();
+        } else {
+            // Password mismatch
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Invalid email or password'
+            ]);
+            exit();
+        }
     } else {
-        // Login failed
+        // User not found
         http_response_code(401);
         echo json_encode([
             'success' => false,
             'error' => 'Invalid email or password'
         ]);
+        exit();
     }
 } catch (PDOException $e) {
     http_response_code(500);
