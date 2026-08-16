@@ -67,28 +67,44 @@ try {
     // Hash password
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     
+    // If chef registration, initial role is 'user' until approved by admin
+    $initial_role = ($role === 'chef') ? 'user' : $role;
+
     // Insert new user
     $insert = $pdo->prepare("INSERT INTO users (name, email, password, phone, role, avatar) VALUES (?, ?, ?, ?, ?, ?)");
-    $insert->execute([$name, $email, $hashed_password, $phone, $role, $avatar]);
+    $insert->execute([$name, $email, $hashed_password, $phone, $initial_role, $avatar]);
     
     $user_id = $pdo->lastInsertId();
     $kitchen_id = null;
 
     if ($role === 'chef') {
-        $insert_kitchen = $pdo->prepare("INSERT INTO kitchens (user_id, name, description, avatar, cover_image) VALUES (?, ?, ?, ?, ?)");
+        // Kitchen is created with is_verified = 0 (Pending Admin Approval)
+        $insert_kitchen = $pdo->prepare("INSERT INTO kitchens (user_id, name, description, avatar, cover_image, is_verified) VALUES (?, ?, ?, ?, ?, 0)");
         $insert_kitchen->execute([$user_id, $kitchen_name, $kitchen_description, $kitchen_avatar, $kitchen_cover]);
         $kitchen_id = $pdo->lastInsertId();
+
+        // Notify admins about new chef application
+        try {
+            $adminStmt = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read, created_at) SELECT id, 'New Chef Application', ?, 'chef_application', 0, NOW() FROM users WHERE role = 'admin'");
+            $adminStmt->execute(["Applicant: $name ($kitchen_name) has registered and is waiting for your verification."]);
+        } catch (Exception $ne) {
+            // Ignore notification failure
+        }
     }
     
     echo json_encode([
         'success' => true,
-        'message' => 'Registration successful',
+        'pending_approval' => ($role === 'chef'),
+        'message' => ($role === 'chef') 
+            ? 'Chef application submitted! Your kitchen is under review by admin.' 
+            : 'Registration successful',
         'user' => [
             'id' => $user_id,
             'name' => $name,
             'email' => $email,
-            'role' => $role,
-            'kitchen_id' => $kitchen_id
+            'role' => $initial_role,
+            'kitchen_id' => $kitchen_id,
+            'is_verified' => 0
         ]
     ]);
 

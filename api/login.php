@@ -45,14 +45,15 @@ try {
         // Login successful
         unset($user['password']); // Don't send password hash back
         
-        // Fetch kitchen_id if they are a chef
-        if (true) {
-            $kStmt = $pdo->prepare("SELECT id FROM kitchens WHERE user_id = ? LIMIT 1");
-            $kStmt->execute([$user['id']]);
-            $kitchen = $kStmt->fetch(PDO::FETCH_ASSOC);
-            if ($kitchen) {
-                $user['kitchen_id'] = $kitchen['id'];
-            }
+        // Fetch kitchen_id and is_verified if they have a kitchen
+        $kStmt = $pdo->prepare("SELECT id, is_verified FROM kitchens WHERE user_id = ? LIMIT 1");
+        $kStmt->execute([$user['id']]);
+        $kitchen = $kStmt->fetch(PDO::FETCH_ASSOC);
+        if ($kitchen) {
+            $user['kitchen_id'] = $kitchen['id'];
+            $user['is_verified'] = (int)$kitchen['is_verified'];
+        } else {
+            $user['is_verified'] = 1;
         }
         
         echo json_encode([

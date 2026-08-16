@@ -51,7 +51,38 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
           final user = data['user'];
-          if (user['role'] != 'chef') {
+          final isVerified = user['is_verified'] == 1;
+          final isChef = user['role'] == 'chef' || (user['kitchen_id'] != null && isVerified);
+
+          if (user['kitchen_id'] != null && !isVerified) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                backgroundColor: AppColors.surface,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                title: const Row(
+                  children: [
+                    Icon(Icons.hourglass_top_rounded, color: Colors.amber),
+                    SizedBox(width: 10),
+                    Text('Pending Approval', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                content: const Text(
+                  'Your chef application is currently under review by our Admin team. You will be able to access the Chef Dashboard once your kitchen has been verified and approved.',
+                  style: TextStyle(color: AppColors.onSurfaceVariant),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('OK', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            );
+            return;
+          }
+
+          if (!isChef) {
              ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('This account is not registered as a chef')),
              );

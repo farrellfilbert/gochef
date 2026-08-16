@@ -10,6 +10,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../chef_dashboard/chef_main_navigation.dart';
+import 'login_screen.dart';
 
 class ChefRegisterScreen extends StatefulWidget {
   const ChefRegisterScreen({super.key});
@@ -142,18 +143,54 @@ class _ChefRegisterScreenState extends State<ChefRegisterScreen> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          final user = data['user'];
-          await ApiService.saveUserId(
-            user['id'].toString(), 
-            role: user['role'], 
-            kitchenId: user['kitchen_id']?.toString()
-          );
-          
           if (!mounted) return;
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
-            (route) => false,
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppColors.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.hourglass_top_rounded, color: Colors.amber, size: 48),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Application Submitted!', style: AppTextStyles.headlineMd(color: Colors.white), textAlign: TextAlign.center),
+                ],
+              ),
+              content: Text(
+                'Thank you for registering as a Chef Partner!\n\nYour application has been received and is currently under review by the Admin team. You will be able to log in to the Chef Dashboard once your kitchen is approved.',
+                style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                textAlign: TextAlign.center,
+              ),
+              actions: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        (route) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('Back to Login', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+              ],
+            ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
