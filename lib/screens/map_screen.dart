@@ -162,13 +162,13 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  double _getDistanceKm(LatLng kitchenLoc) {
-    return _distanceCalculator.as(LengthUnit.Kilometer, _baseLocation, kitchenLoc);
+  double _getDistanceMiles(LatLng kitchenLoc) {
+    return _distanceCalculator.as(LengthUnit.Mile, _baseLocation, kitchenLoc);
   }
 
   void _showKitchenDetails(KitchenModel kitchen) {
     final loc = _kitchenLocations[kitchen.id] ?? _baseLocation;
-    final distanceKm = _getDistanceKm(loc);
+    final distanceMiles = _getDistanceMiles(loc);
 
     showModalBottomSheet(
       context: context,
@@ -218,7 +218,7 @@ class _MapScreenState extends State<MapScreen> {
                                   const Icon(Icons.near_me, color: AppColors.primary, size: 12),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${distanceKm.toStringAsFixed(1)} km away',
+                                    '${distanceMiles.toStringAsFixed(1)} mi away',
                                     style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
                                   ),
                                 ],
@@ -412,7 +412,7 @@ class _MapScreenState extends State<MapScreen> {
                         // Kitchen markers
                         ..._kitchens.map((k) {
                           final loc = _kitchenLocations[k.id] ?? _baseLocation;
-                          final distanceKm = _getDistanceKm(loc);
+                          final distanceMiles = _getDistanceMiles(loc);
 
                           return Marker(
                             point: loc,
@@ -456,7 +456,7 @@ class _MapScreenState extends State<MapScreen> {
                                       ],
                                     ),
                                     child: Text(
-                                      '${distanceKm.toStringAsFixed(1)}km',
+                                      '${distanceMiles.toStringAsFixed(1)} mi',
                                       style: const TextStyle(
                                         fontSize: 9,
                                         fontWeight: FontWeight.bold,

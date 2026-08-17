@@ -87,8 +87,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Distance (km)', style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
-                      Text('${currentDistance.toStringAsFixed(1)} km', style: AppTextStyles.bodyMd(color: AppColors.primary)),
+                      Text('Distance (miles)', style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
+                      Text('${currentDistance.toStringAsFixed(1)} miles', style: AppTextStyles.bodyMd(color: AppColors.primary)),
                     ],
                   ),
                   Slider(

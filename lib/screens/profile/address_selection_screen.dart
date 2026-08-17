@@ -370,7 +370,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '${(2.5 + index * 1.5).toStringAsFixed(1)}km', 
+                                            '${(1.5 + index * 0.9).toStringAsFixed(1)} mi', 
                                             style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)
                                           ),
                                         ],
