@@ -350,6 +350,11 @@ class _MapScreenState extends State<MapScreen> {
                   options: MapOptions(
                     initialCenter: _baseLocation,
                     initialZoom: 14.0,
+                    minZoom: 3.0,
+                    maxZoom: 19.0,
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.all,
+                    ),
                     onTap: (tapPosition, point) {
                       setState(() {
                         _baseLocation = point;
@@ -632,6 +637,68 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                     ),
                   ),
+
+                // 4. Floating Zoom In / Zoom Out Controls
+                Positioned(
+                  right: 16,
+                  bottom: 140,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surface.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.glassBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                            onTap: () {
+                              final currentZoom = _mapController.camera.zoom;
+                              if (currentZoom < 19.0) {
+                                _mapController.move(_mapController.camera.center, (currentZoom + 1).clamp(3.0, 19.0));
+                              }
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: Icon(Icons.add, color: Colors.white, size: 22),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 32,
+                          height: 1,
+                          color: AppColors.ghostBorder,
+                        ),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                            onTap: () {
+                              final currentZoom = _mapController.camera.zoom;
+                              if (currentZoom > 3.0) {
+                                _mapController.move(_mapController.camera.center, (currentZoom - 1).clamp(3.0, 19.0));
+                              }
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: Icon(Icons.remove, color: Colors.white, size: 22),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
       floatingActionButton: FloatingActionButton.extended(

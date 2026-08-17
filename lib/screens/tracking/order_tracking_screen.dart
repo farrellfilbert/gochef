@@ -200,8 +200,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       options: MapOptions(
                         initialCenter: _kitchenLocation,
                         initialZoom: 15.0,
+                        minZoom: 3.0,
+                        maxZoom: 19.0,
                         interactionOptions: const InteractionOptions(
-                          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                          flags: InteractiveFlag.all,
                         ),
                       ),
                       children: [
@@ -241,6 +243,63 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           ],
                         ),
                       ],
+                    ),
+                  ),
+
+                  // Floating Zoom In / Zoom Out Controls
+                  Positioned(
+                    right: 16,
+                    top: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0D111A).withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                              onTap: () {
+                                final currentZoom = _mapController.camera.zoom;
+                                if (currentZoom < 19.0) {
+                                  _mapController.move(_mapController.camera.center, (currentZoom + 1).clamp(3.0, 19.0));
+                                }
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Icon(Icons.add, color: Colors.white, size: 20),
+                              ),
+                            ),
+                          ),
+                          Container(width: 28, height: 1, color: Colors.white12),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                              onTap: () {
+                                final currentZoom = _mapController.camera.zoom;
+                                if (currentZoom > 3.0) {
+                                  _mapController.move(_mapController.camera.center, (currentZoom - 1).clamp(3.0, 19.0));
+                                }
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Icon(Icons.remove, color: Colors.white, size: 20),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   if (isOutForDelivery)
