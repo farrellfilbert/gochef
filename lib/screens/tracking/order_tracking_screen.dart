@@ -206,8 +206,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       ),
                       children: [
                         TileLayer(
-                          urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                          subdomains: const ['a', 'b', 'c', 'd'],
+                          urlTemplate: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                          subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                          userAgentPackageName: 'com.astroboomin.gochef',
                         ),
                         MarkerLayer(
                           markers: [

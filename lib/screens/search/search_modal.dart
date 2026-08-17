@@ -226,7 +226,8 @@ class _SearchModalState extends State<SearchModal> {
                               ),
                               children: [
                                 TileLayer(
-                                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  urlTemplate: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                                  subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
                                   userAgentPackageName: 'com.astroboomin.gochef',
                                 ),
                                 MarkerLayer(
