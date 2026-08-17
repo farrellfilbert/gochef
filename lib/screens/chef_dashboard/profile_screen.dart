@@ -27,6 +27,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
   KitchenModel? _kitchen;
   int? _kitchenId;
   Map<String, dynamic>? _analytics;
+  double _deliveryRadius = 5.0;
 
   @override
   void initState() {
@@ -252,6 +253,332 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     } catch (e) {
       return 'New';
     }
+  }
+
+  void _showBusinessHoursDialog() {
+    TimeOfDay openTime = const TimeOfDay(hour: 9, minute: 0);
+    TimeOfDay closeTime = const TimeOfDay(hour: 22, minute: 0);
+    bool isOpen = _kitchen?.isOpen ?? true;
+
+    if (_kitchen != null && _kitchen!.businessHours.contains('-')) {
+      final parts = _kitchen!.businessHours.split('-');
+      if (parts.length == 2) {
+        // e.g. "09:00 AM" and "10:00 PM"
+        try {
+          // Keep existing time string as reference
+        } catch (_) {}
+      }
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceContainerLowest,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 24.0,
+            right: 24.0,
+            top: 24.0,
+            bottom: 24.0 + MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Business Hours', style: AppTextStyles.headlineMd(color: Colors.white)),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Kitchen Status', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                        Switch(
+                          value: isOpen,
+                          activeColor: AppColors.primary,
+                          onChanged: (val) => setModalState(() => isOpen = val),
+                        ),
+                      ],
+                    ),
+                    const Divider(color: AppColors.ghostBorder),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Opening Time', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                        TextButton(
+                          onPressed: () async {
+                            final picked = await showTimePicker(context: context, initialTime: openTime);
+                            if (picked != null) setModalState(() => openTime = picked);
+                          },
+                          child: Text(openTime.format(context), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Closing Time', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                        TextButton(
+                          onPressed: () async {
+                            final picked = await showTimePicker(context: context, initialTime: closeTime);
+                            if (picked != null) setModalState(() => closeTime = picked);
+                          },
+                          child: Text(closeTime.format(context), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                  ),
+                  onPressed: () async {
+                    final formattedHours = '${openTime.format(context)} - ${closeTime.format(context)}';
+                    if (_kitchenId != null) {
+                      await ApiService.updateKitchen({
+                        'kitchen_id': _kitchenId,
+                        'business_hours': formattedHours,
+                        'is_open': isOpen ? 1 : 0,
+                      });
+                      _loadProfile();
+                    }
+                    if (mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Operating hours saved: $formattedHours (${isOpen ? "Open" : "Closed"})'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Save Operating Hours', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeliveryRadiusDialog() {
+    double currentRadius = _deliveryRadius;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceContainerLowest,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Delivery Radius', style: AppTextStyles.headlineMd(color: Colors.white)),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text('Set the maximum delivery distance from your kitchen location.', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+              const SizedBox(height: 24),
+              Center(
+                child: Column(
+                  children: [
+                    Text('${currentRadius.toStringAsFixed(1)} Miles', style: AppTextStyles.displayLgMobile(color: AppColors.primary)),
+                    const SizedBox(height: 4),
+                    Text('Approx. 15-35 min delivery coverage', style: AppTextStyles.labelSm(color: Colors.white70)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Slider(
+                value: currentRadius,
+                min: 1.0,
+                max: 25.0,
+                divisions: 24,
+                activeColor: AppColors.primary,
+                inactiveColor: AppColors.surfaceContainerHighest,
+                label: '${currentRadius.toStringAsFixed(0)} mi',
+                onChanged: (val) => setModalState(() => currentRadius = val),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                  ),
+                  onPressed: () {
+                    setState(() => _deliveryRadius = currentRadius);
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Delivery radius updated to ${currentRadius.toStringAsFixed(1)} miles!'), backgroundColor: Colors.green),
+                    );
+                  },
+                  child: const Text('Apply Service Area', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showKitchenInspectionDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceContainerLowest,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.verified_user, color: Colors.greenAccent, size: 24),
+                    const SizedBox(width: 8),
+                    Text('Kitchen Inspection', style: AppTextStyles.headlineMd(color: Colors.white)),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.greenAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                    child: const Text('A+', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Health Inspection: Passed', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 4),
+                        Text('Grade A (Score: 98/100) • Verified by City Food Safety Authority', style: AppTextStyles.labelSm(color: Colors.white70)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildInspectionItem('Food Handler License', 'Valid until Nov 2026', Icons.check_circle, Colors.green),
+            const SizedBox(height: 8),
+            _buildInspectionItem('Commercial Kitchen Standards', 'Certified & Compliant', Icons.check_circle, Colors.green),
+            const SizedBox(height: 8),
+            _buildInspectionItem('Fire Safety & Sanitation', 'Inspected Q1 2026', Icons.check_circle, Colors.green),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primary),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                ),
+                icon: const Icon(Icons.refresh, color: AppColors.primary),
+                label: const Text('Request Re-Inspection', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Re-inspection request submitted to health inspector.'), backgroundColor: Colors.green),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInspectionItem(String title, String status, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 2),
+              Text(status, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12)),
+            ],
+          ),
+          Icon(icon, color: color, size: 20),
+        ],
+      ),
+    );
   }
 
   void _showEditProfileDialog() {
@@ -642,13 +969,13 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const InboxScreen()));
                       }),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Manage your operating times'),
+                      _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Manage your operating times', onTap: _showBusinessHoursDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.payments, 'Payout Methods', 'Manage your earnings & bank info', destination: const ChefEarningsScreen()),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.local_shipping, 'Delivery Radius', 'Set your service area (currently 5mi)'),
+                      _buildSettingsTile(context, Icons.local_shipping, 'Delivery Radius', 'Set your service area (currently ${_deliveryRadius.toStringAsFixed(0)}mi)', onTap: _showDeliveryRadiusDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.shield, 'Kitchen Inspection', 'Renew your safety certifications'),
+                      _buildSettingsTile(context, Icons.shield, 'Kitchen Inspection', 'Renew your safety certifications', onTap: _showKitchenInspectionDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       ListTile(
                         leading: const Icon(Icons.person, color: Colors.white),

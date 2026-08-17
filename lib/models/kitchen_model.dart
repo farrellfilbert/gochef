@@ -14,6 +14,8 @@ class KitchenModel {
   final int totalReviews;
   final String cuisineType;
   final String deliveryTime;
+  final String businessHours;
+  final bool isOpen;
   final String location;
   final bool isVerified;
   final bool isFeatured;
@@ -34,6 +36,8 @@ class KitchenModel {
     this.totalReviews = 0,
     this.cuisineType = '',
     this.deliveryTime = '20-30 min',
+    this.businessHours = '09:00 AM - 10:00 PM',
+    this.isOpen = true,
     this.location = '',
     this.isVerified = false,
     this.isFeatured = false,
@@ -56,6 +60,10 @@ class KitchenModel {
       totalReviews: int.tryParse(json['total_reviews']?.toString() ?? '0') ?? 0,
       cuisineType: json['cuisine_type'] ?? '',
       deliveryTime: json['delivery_time'] ?? '20-30 min',
+      businessHours: json['business_hours'] != null && json['business_hours'].toString().isNotEmpty
+          ? json['business_hours'].toString()
+          : '09:00 AM - 10:00 PM',
+      isOpen: json['is_open'] == null ? true : (json['is_open'].toString() == '1' || json['is_open'] == true),
       location: json['location'] ?? '',
       isVerified: json['is_verified']?.toString() == '1',
       isFeatured: json['is_featured']?.toString() == '1',

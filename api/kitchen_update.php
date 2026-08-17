@@ -68,6 +68,16 @@ if (isset($data->delivery_time)) {
     $params[] = $data->delivery_time;
     $types .= "s";
 }
+if (isset($data->business_hours)) {
+    $updateFields[] = "business_hours = ?";
+    $params[] = $data->business_hours;
+    $types .= "s";
+}
+if (isset($data->is_open)) {
+    $updateFields[] = "is_open = ?";
+    $params[] = intval($data->is_open);
+    $types .= "i";
+}
 
 if (empty($updateFields)) {
     http_response_code(400);

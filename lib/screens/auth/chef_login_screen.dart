@@ -182,11 +182,13 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'GoChef',
-                    style: AppTextStyles.displayLgMobile(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.contain,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 440),
                     child: ClipRRect(

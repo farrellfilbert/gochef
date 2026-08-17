@@ -17,6 +17,8 @@ try {
         "ALTER TABLE users ADD COLUMN avatar VARCHAR(500) DEFAULT ''",
         "ALTER TABLE kitchens ADD COLUMN avatar VARCHAR(500) DEFAULT ''",
         "ALTER TABLE kitchens ADD COLUMN cover_image VARCHAR(500) DEFAULT ''",
+        "ALTER TABLE kitchens ADD COLUMN business_hours VARCHAR(255) DEFAULT '09:00 AM - 10:00 PM'",
+        "ALTER TABLE kitchens ADD COLUMN is_open TINYINT(1) DEFAULT 1",
     ];
 
     $results = [];

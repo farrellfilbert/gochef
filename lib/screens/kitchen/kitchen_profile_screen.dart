@@ -319,6 +319,62 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                       kitchen.description,
                       style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(height: 1.6, fontSize: 15),
                     ),
+                    const SizedBox(height: 16),
+                    // Real Business Hours & Live Status Card
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.glassBorder),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: kitchen.isOpen ? Colors.greenAccent : Colors.redAccent,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (kitchen.isOpen ? Colors.greenAccent : Colors.redAccent).withValues(alpha: 0.6),
+                                      blurRadius: 6,
+                                    )
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                kitchen.isOpen ? 'Open Now' : 'Closed',
+                                style: TextStyle(
+                                  color: kitchen.isOpen ? Colors.greenAccent : Colors.redAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              const Icon(Icons.schedule, color: AppColors.primary, size: 16),
+                              const SizedBox(width: 6),
+                              Text(
+                                kitchen.businessHours,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ]),
                 ),
                 const SizedBox(height: 32),
