@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:math';
+import 'dart:async';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -19,6 +20,11 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
+  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isSearching = false;
+  Timer? _debounceTimer;
+
   List<KitchenModel> _kitchens = [];
   bool _isLoading = true;
   bool _isLocating = false;
@@ -262,160 +268,370 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  void dispose() {
+    _searchController.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    _debounceTimer?.cancel();
+    if (query.trim().isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearching = true);
+    _debounceTimer = Timer(const Duration(milliseconds: 400), () async {
+      final results = await LocationService.searchLocations(query);
+      if (mounted) {
+        setState(() {
+          _searchResults = results;
+          _isSearching = false;
+        });
+      }
+    });
+  }
+
+  void _selectLocation(Map<String, dynamic> item) {
+    final lat = item['lat'] as double;
+    final lon = item['lon'] as double;
+    final name = item['display_name'] as String;
+
+    setState(() {
+      _baseLocation = LatLng(lat, lon);
+      _userAddress = name;
+      _searchController.text = name;
+      _searchResults.clear();
+      _hasRealLocation = true;
+    });
+
+    _updateKitchenPositions();
+    _mapController.move(_baseLocation, 14.5);
+    FocusScope.of(context).unfocus();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
           children: [
-            Text('Nearby Kitchens', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-            if (_userAddress != null)
-              Text(
-                _userAddress!,
-                style: AppTextStyles.labelSm(color: AppColors.primary),
-                maxLines: 1,
+            const Icon(Icons.location_on, color: AppColors.primary, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '📍 Location set to: $name',
+                style: const TextStyle(color: Colors.white),
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
+            ),
           ],
         ),
         backgroundColor: AppColors.surface,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.onSurface),
-        actions: [
-          IconButton(
-            icon: _isLocating
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-                  )
-                : const Icon(Icons.refresh, color: AppColors.onSurface),
-            tooltip: 'Refresh GPS Location',
-            onPressed: _isLocating ? null : () => _requestRealGPS(flyToLocation: true, showFeedback: true),
-          ),
-        ],
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _baseLocation,
-                initialZoom: 14.0,
-                onTap: (tapPosition, point) {
-                  setState(() {
-                    _baseLocation = point;
-                  });
-                },
-              ),
+          : Stack(
               children: [
-                TileLayer(
-                  urlTemplate: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-                  subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
-                  userAgentPackageName: 'com.astroboomin.gochef',
-                ),
-                MarkerLayer(
-                  markers: [
-                    // User's own real GPS location marker (pulsating glow circle)
-                    Marker(
-                      point: _baseLocation,
-                      width: 70,
-                      height: 70,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Outer pulse wave
-                          Container(
-                            width: 55,
-                            height: 55,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.primary.withValues(alpha: 0.25),
-                            ),
-                          ),
-                          // Inner circle
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.primary,
-                              border: Border.all(color: Colors.white, width: 3),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.6),
-                                  blurRadius: 10,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                // 1. Map Layer
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: _baseLocation,
+                    initialZoom: 14.0,
+                    onTap: (tapPosition, point) {
+                      setState(() {
+                        _baseLocation = point;
+                        _searchResults.clear();
+                      });
+                      FocusScope.of(context).unfocus();
+                    },
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                      subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                      userAgentPackageName: 'com.astroboomin.gochef',
                     ),
-
-                    // Kitchen markers
-                    ..._kitchens.map((k) {
-                      final loc = _kitchenLocations[k.id] ?? _baseLocation;
-                      final distanceKm = _getDistanceKm(loc);
-
-                      return Marker(
-                        point: loc,
-                        width: 70,
-                        height: 70,
-                        child: GestureDetector(
-                          onTap: () => _showKitchenDetails(k),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                    MarkerLayer(
+                      markers: [
+                        // User's own real GPS location marker (pulsating glow circle)
+                        Marker(
+                          point: _baseLocation,
+                          width: 70,
+                          height: 70,
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
+                              // Outer pulse wave
                               Container(
+                                width: 55,
+                                height: 55,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.primary, width: 2.5),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.4),
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: CircleAvatar(
-                                  radius: 18,
-                                  backgroundImage: NetworkImage(k.avatar),
-                                  backgroundColor: AppColors.surface,
+                                  color: AppColors.primary.withValues(alpha: 0.25),
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              // Inner circle
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                width: 24,
+                                height: 24,
                                 decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                                  shape: BoxShape.circle,
+                                  color: AppColors.primary,
+                                  border: Border.all(color: Colors.white, width: 3),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.3),
-                                      blurRadius: 4,
+                                      color: AppColors.primary.withValues(alpha: 0.6),
+                                      blurRadius: 10,
+                                      spreadRadius: 2,
                                     ),
                                   ],
-                                ),
-                                child: Text(
-                                  '${distanceKm.toStringAsFixed(1)}km',
-                                  style: const TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      );
-                    }).toList(),
+
+                        // Kitchen markers
+                        ..._kitchens.map((k) {
+                          final loc = _kitchenLocations[k.id] ?? _baseLocation;
+                          final distanceKm = _getDistanceKm(loc);
+
+                          return Marker(
+                            point: loc,
+                            width: 70,
+                            height: 70,
+                            child: GestureDetector(
+                              onTap: () => _showKitchenDetails(k),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: AppColors.primary, width: 2.5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.4),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 18,
+                                      backgroundImage: NetworkImage(k.avatar),
+                                      backgroundColor: AppColors.surface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surface,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.3),
+                                          blurRadius: 4,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      '${distanceKm.toStringAsFixed(1)}km',
+                                      style: const TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    ),
                   ],
                 ),
+
+                // 2. Top Floating Search Bar & Autocomplete
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Search Bar Card
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.surface.withValues(alpha: 0.94),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(color: AppColors.glassBorder),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.4),
+                                blurRadius: 16,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                                onPressed: () {
+                                  if (Navigator.canPop(context)) {
+                                    Navigator.pop(context);
+                                  }
+                                },
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: _searchController,
+                                  onChanged: _onSearchChanged,
+                                  style: AppTextStyles.bodyMd(color: Colors.white),
+                                  decoration: InputDecoration(
+                                    hintText: 'Search city, area, or address...',
+                                    hintStyle: AppTextStyles.bodyMd(
+                                      color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
+                                    ),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                ),
+                              ),
+                              if (_isSearching)
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12.0),
+                                  child: SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                                  ),
+                                )
+                              else if (_searchController.text.isNotEmpty)
+                                IconButton(
+                                  icon: const Icon(Icons.close, color: AppColors.onSurfaceVariant, size: 20),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _searchResults = []);
+                                  },
+                                ),
+                              IconButton(
+                                icon: _isLocating
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                                      )
+                                    : const Icon(Icons.my_location, color: AppColors.primary),
+                                tooltip: 'My GPS Location',
+                                onPressed: _isLocating ? null : () => _requestRealGPS(flyToLocation: true, showFeedback: true),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Autocomplete Search Results Dropdown
+                        if (_searchResults.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.only(top: 8),
+                            constraints: const BoxConstraints(maxHeight: 240),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface.withValues(alpha: 0.96),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.glassBorder),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: ListView.separated(
+                                shrinkWrap: true,
+                                padding: EdgeInsets.zero,
+                                itemCount: _searchResults.length,
+                                separatorBuilder: (context, index) => Divider(
+                                  color: AppColors.outlineVariant.withValues(alpha: 0.1),
+                                  height: 1,
+                                ),
+                                itemBuilder: (context, index) {
+                                  final item = _searchResults[index];
+                                  final displayName = item['display_name']?.toString() ?? '';
+                                  return ListTile(
+                                    leading: const Icon(Icons.location_on, color: AppColors.primary, size: 20),
+                                    title: Text(
+                                      displayName,
+                                      style: AppTextStyles.bodyMd(color: Colors.white),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    onTap: () => _selectLocation(item),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 3. Bottom Location Info Pill
+                if (_userAddress != null)
+                  Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: 80,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.glassBorder),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.near_me, color: AppColors.primary, size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Area: $_userAddress',
+                              style: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
       floatingActionButton: FloatingActionButton.extended(

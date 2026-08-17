@@ -133,4 +133,32 @@ class LocationService {
     } catch (_) {}
     return null;
   }
+
+  /// Forward geocode query to search for places/cities/neighborhoods
+  static Future<List<Map<String, dynamic>>> searchLocations(String query) async {
+    if (query.trim().isEmpty) return [];
+    try {
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/search?format=json&q=' +
+            Uri.encodeComponent(query.trim()) +
+            '&limit=5&addressdetails=1',
+      );
+      final response = await http.get(uri, headers: {
+        'User-Agent': 'GoChef-App-Web/1.0',
+        'Accept-Language': 'id,en',
+      }).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final List list = json.decode(response.body);
+        return list.map((item) {
+          return {
+            'display_name': item['display_name']?.toString() ?? '',
+            'lat': double.tryParse(item['lat']?.toString() ?? '0') ?? 0.0,
+            'lon': double.tryParse(item['lon']?.toString() ?? '0') ?? 0.0,
+          };
+        }).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
 }
