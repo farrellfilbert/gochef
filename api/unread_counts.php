@@ -18,9 +18,18 @@ try {
     $stmt1->execute([$user_id]);
     $unread_notifications = intval($stmt1->fetchColumn());
 
-    // Unread chats
-    $stmt2 = $pdo->prepare("SELECT COUNT(*) FROM chat_messages WHERE receiver_id = ? AND is_read = 0");
-    $stmt2->execute([$user_id]);
+    // Check if user is a chef / kitchen owner
+    $kStmt = $pdo->prepare("SELECT id FROM kitchens WHERE user_id = ? LIMIT 1");
+    $kStmt->execute([$user_id]);
+    $kitchen = $kStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($kitchen) {
+        $stmt2 = $pdo->prepare("SELECT COUNT(*) FROM chat_messages WHERE (receiver_id = ? OR kitchen_id = ?) AND is_read = 0");
+        $stmt2->execute([$user_id, $kitchen['id']]);
+    } else {
+        $stmt2 = $pdo->prepare("SELECT COUNT(*) FROM chat_messages WHERE receiver_id = ? AND is_read = 0");
+        $stmt2->execute([$user_id]);
+    }
     $unread_chats = intval($stmt2->fetchColumn());
 
     echo json_encode([

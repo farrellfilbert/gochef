@@ -42,7 +42,7 @@ class _NotificationBellState extends State<NotificationBell> {
     try {
       final counts = await ApiService.getUnreadCounts();
       if (mounted) {
-        final newCount = (counts['total_unread'] as int?) ?? 0;
+        final newCount = (counts['unread_notifications'] as int?) ?? 0;
         // Play sound if count increased
         if (newCount > _prevUnreadCount && _prevUnreadCount >= 0 && kIsWeb) {
           try { js.context.callMethod('goChefPlayNotification', []); } catch (_) {}

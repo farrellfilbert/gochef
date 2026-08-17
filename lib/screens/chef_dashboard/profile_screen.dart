@@ -29,6 +29,8 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
   Map<String, dynamic>? _analytics;
   double _deliveryRadius = 5.0;
 
+  int _unreadChats = 0;
+
   @override
   void initState() {
     super.initState();
@@ -69,10 +71,17 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
         analyticsData = await ApiService.getKitchenAnalytics(_kitchenId!);
       }
 
+      int unreadChats = 0;
+      try {
+        final counts = await ApiService.getUnreadCounts();
+        unreadChats = (counts['unread_chats'] as int?) ?? 0;
+      } catch (_) {}
+
       if (mounted) {
         setState(() {
           _kitchen = kitchenData;
           _analytics = analyticsData;
+          _unreadChats = unreadChats;
         });
       }
     } catch (e) {
@@ -952,9 +961,18 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewsScreen(kitchenId: _kitchen!.id)));
                       }),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.inbox, 'Messages / Inbox', 'Chat with your customers', onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const InboxScreen()));
-                      }),
+                      _buildSettingsTile(
+                        context,
+                        Icons.inbox,
+                        'Messages / Inbox',
+                        'Chat with your customers',
+                        badgeCount: _unreadChats,
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const InboxScreen())).then((_) {
+                            _loadProfile();
+                          });
+                        },
+                      ),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Manage your operating times', onTap: _showBusinessHoursDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
@@ -1026,10 +1044,46 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     );
   }
 
-  Widget _buildSettingsTile(BuildContext context, IconData icon, String title, String subtitle, {Widget? destination, VoidCallback? onTap}) {
+  Widget _buildSettingsTile(BuildContext context, IconData icon, String title, String subtitle, {Widget? destination, VoidCallback? onTap, int badgeCount = 0}) {
     return ListTile(
-      leading: Icon(icon, color: Colors.white),
-      title: Text(title, style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+      leading: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Icon(icon, color: Colors.white),
+          if (badgeCount > 0)
+            Positioned(
+              right: -4,
+              top: -4,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: const BoxDecoration(
+                  color: Colors.redAccent,
+                  shape: BoxShape.circle,
+                ),
+                constraints: const BoxConstraints(minWidth: 10, minHeight: 10),
+              ),
+            ),
+        ],
+      ),
+      title: Row(
+        children: [
+          Text(title, style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+          if (badgeCount > 0) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$badgeCount NEW',
+                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ],
+      ),
       subtitle: Text(subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
       trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
       onTap: onTap ?? () {
