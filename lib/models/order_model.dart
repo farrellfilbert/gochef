@@ -46,6 +46,7 @@ class OrderModel {
   final String? dineInTime;
   final double discountAmount;
   final String? promoCode;
+  final String deliveryAddress;
   final List<OrderItemModel> items;
 
   OrderModel({
@@ -68,6 +69,7 @@ class OrderModel {
     this.dineInTime,
     this.discountAmount = 0.0,
     this.promoCode,
+    this.deliveryAddress = '',
     required this.items,
   });
 
@@ -114,6 +116,7 @@ class OrderModel {
       dineInTime: json['dine_in_time'],
       discountAmount: json['discount_amount'] != null ? double.tryParse(json['discount_amount'].toString()) ?? 0.0 : 0.0,
       promoCode: json['promo_code'],
+      deliveryAddress: json['delivery_address']?.toString() ?? '',
       items: parsedItems,
     );
   }

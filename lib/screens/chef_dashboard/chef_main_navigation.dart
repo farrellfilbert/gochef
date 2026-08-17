@@ -30,31 +30,55 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface.withOpacity(0.9),
+          color: AppColors.surface,
           border: Border(
             top: BorderSide(
-              color: AppColors.outlineVariant.withOpacity(0.1),
+              color: AppColors.outlineVariant.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
         ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          backgroundColor: Colors.transparent,
-          indicatorColor: Colors.transparent,
-          elevation: 0,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: [
-            _buildNavItem(0, Icons.restaurant_outlined, Icons.restaurant, 'Kitchen'),
-            _buildNavItem(1, Icons.menu_book_outlined, Icons.menu_book, 'Menu'),
-            _buildNavItem(2, Icons.receipt_long_outlined, Icons.receipt_long, 'Orders'),
-            _buildNavItem(3, Icons.analytics_outlined, Icons.analytics, 'Stats'),
-          ],
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            canvasColor: AppColors.surface,
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            backgroundColor: AppColors.surface,
+            selectedItemColor: AppColors.primary,
+            unselectedItemColor: Colors.white70,
+            selectedLabelStyle: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
+            unselectedLabelStyle: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontWeight: FontWeight.w500),
+            type: BottomNavigationBarType.fixed,
+            elevation: 0,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.restaurant_outlined),
+                activeIcon: Icon(Icons.restaurant),
+                label: 'Kitchen',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.menu_book_outlined),
+                activeIcon: Icon(Icons.menu_book),
+                label: 'Menu',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.receipt_long_outlined),
+                activeIcon: Icon(Icons.receipt_long),
+                label: 'Orders',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.analytics_outlined),
+                activeIcon: Icon(Icons.analytics),
+                label: 'Stats',
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -67,18 +91,6 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
         foregroundColor: Colors.white,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-    );
-  }
-
-  NavigationDestination _buildNavItem(
-      int index, IconData unselectedIcon, IconData selectedIcon, String label) {
-    final isSelected = _currentIndex == index;
-    return NavigationDestination(
-      icon: Icon(
-        isSelected ? selectedIcon : unselectedIcon,
-        color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant.withOpacity(0.6),
-      ),
-      label: label,
     );
   }
 }

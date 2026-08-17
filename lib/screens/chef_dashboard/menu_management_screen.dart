@@ -744,7 +744,12 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
                     ),
-                    child: Text(price, style: AppTextStyles.labelMono(color: AppColors.primary)),
+                    child: Text(
+                      price,
+                      style: AppTextStyles.labelMono(color: Colors.white).copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],

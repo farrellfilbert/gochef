@@ -67,13 +67,60 @@ try {
         }
     }
 
+    // Calculate real 7-day daily performance
+    $daily_performance = [];
+    $seven_day_sales = 0;
+    $seven_day_orders = 0;
+
+    for ($i = 6; $i >= 0; $i--) {
+        $day_ts = strtotime("-$i days");
+        $day_start = strtotime("midnight", $day_ts);
+        $day_end = strtotime("tomorrow", $day_start) - 1;
+        $day_label = strtoupper(date('D', $day_ts));
+        $date_formatted = date('M d', $day_ts);
+        $is_today = ($i === 0);
+
+        $day_revenue = 0.0;
+        $day_orders_count = 0;
+
+        foreach ($all_completed as $order) {
+            $dateStr = $order['order_date'];
+            $ts = strpos($dateStr, 'T') !== false ? strtotime($dateStr) : strtotime(str_replace(' - ', ' ', $dateStr));
+            if ($ts !== false && $ts >= $day_start && $ts <= $day_end) {
+                $day_revenue += (float)$order['total_amount'];
+            }
+        }
+
+        foreach ($all_orders as $order) {
+            $dateStr = $order['order_date'];
+            $ts = strpos($dateStr, 'T') !== false ? strtotime($dateStr) : strtotime(str_replace(' - ', ' ', $dateStr));
+            if ($ts !== false && $ts >= $day_start && $ts <= $day_end) {
+                $day_orders_count++;
+            }
+        }
+
+        $seven_day_sales += $day_revenue;
+        $seven_day_orders += $day_orders_count;
+
+        $daily_performance[] = [
+            'day' => $day_label,
+            'date' => $date_formatted,
+            'sales' => (float)$day_revenue,
+            'orders' => $day_orders_count,
+            'is_today' => $is_today
+        ];
+    }
+
     echo json_encode([
         'success' => true,
         'data' => [
             'todays_orders' => $todays_orders,
             'revenue' => (float)$revenue,
             'monthly' => (float)$monthly,
-            'total_orders' => $total_orders
+            'total_orders' => $total_orders,
+            'seven_day_sales' => (float)$seven_day_sales,
+            'seven_day_orders' => (int)$seven_day_orders,
+            'daily_performance' => $daily_performance
         ]
     ]);
 } catch (Exception $e) {

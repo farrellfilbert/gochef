@@ -402,6 +402,116 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
               ),
             ),
           ],
+
+          // ─── Resi & Keterangan Pengantaran Card ───
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLowest.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Resi / Tracking Code & Order Method
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.qr_code, color: AppColors.primary, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Resi: GC-${order.id.padLeft(6, "0")}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        order.orderType == 'dine_in' ? 'Dine-In Booking' : 'ASAP Delivery',
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(color: AppColors.ghostBorder, height: 1),
+                ),
+                // Customer Name & Phone
+                Row(
+                  children: [
+                    const Icon(Icons.person_outline, color: AppColors.onSurfaceVariant, size: 15),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        order.customerName.isNotEmpty ? order.customerName : 'Customer',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
+                    ),
+                    if (order.customerPhone.isNotEmpty) ...[
+                      const Icon(Icons.phone_outlined, color: AppColors.onSurfaceVariant, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        order.customerPhone,
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ],
+                  ],
+                ),
+                // Destination Address
+                if (order.deliveryAddress.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.location_on_outlined, color: AppColors.primary, size: 15),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          order.deliveryAddress,
+                          style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.2),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                // Voucher / Promo Info
+                if (order.promoCode != null && order.promoCode!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.loyalty, color: Colors.greenAccent, size: 14),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Voucher: ${order.promoCode} (- \$${order.discountAmount.toStringAsFixed(2)})',
+                        style: const TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
           
           const SizedBox(height: 16),
           Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1)),

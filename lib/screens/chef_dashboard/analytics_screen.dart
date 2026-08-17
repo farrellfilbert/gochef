@@ -67,7 +67,7 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
             ),
             const SizedBox(height: 24),
             
-            // Stats Grid
+            // Stats Grid & Real 7-Day Performance
             FutureBuilder<Map<String, dynamic>?>(
               future: _analyticsFuture,
               builder: (context, snapshot) {
@@ -81,7 +81,20 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
                 final monthly = data?['monthly'] != null ? '\$${(data!['monthly'] as num).toStringAsFixed(2)}' : '\$0.00';
                 final totalOrders = data?['total_orders']?.toString() ?? '0';
 
+                final sevenDaySales = data?['seven_day_sales'] != null ? '\$${(data!['seven_day_sales'] as num).toStringAsFixed(2)}' : '\$0.00';
+                final sevenDayOrders = data?['seven_day_orders']?.toString() ?? '0';
+
+                final List rawDaily = data?['daily_performance'] as List? ?? [];
+                final List<Map<String, dynamic>> dailyList = rawDaily.map((e) => Map<String, dynamic>.from(e)).toList();
+
+                double maxSale = 1.0;
+                for (var d in dailyList) {
+                  final sale = (d['sales'] as num?)?.toDouble() ?? 0.0;
+                  if (sale > maxSale) maxSale = sale;
+                }
+
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
@@ -92,59 +105,55 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
                     ),
                     const SizedBox(height: 16),
                     _buildStatCard('Monthly Earnings', monthly, 'Total $totalOrders orders lifetime', Icons.account_balance_wallet, isWide: true),
+                    const SizedBox(height: 32),
+                    Text(
+                      '7-Day Performance',
+                      style: AppTextStyles.headlineMd(color: Colors.white),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 220,
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainer,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('7-Day Revenue', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                              Text('$sevenDayOrders orders past 7 days', style: AppTextStyles.labelSm(color: Colors.white70)),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(sevenDaySales, style: AppTextStyles.displayLgMobile(color: Colors.white)),
+                          const Spacer(),
+                          if (dailyList.isEmpty)
+                            Center(child: Text('No order data for past 7 days', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)))
+                          else
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: dailyList.map((dayData) {
+                                final label = dayData['day']?.toString() ?? '';
+                                final sales = (dayData['sales'] as num?)?.toDouble() ?? 0.0;
+                                final isToday = dayData['is_today'] == true;
+                                final heightPct = (sales / maxSale) * 65.0 + 10.0;
+
+                                return _buildChartBar(heightPct, label, isHighlight: isToday, salesAmount: sales);
+                              }).toList(),
+                            ),
+                        ],
+                      ),
+                    ),
                   ],
                 );
               },
-            ),
-            
-            const SizedBox(height: 32),
-            Text(
-              '7-Day Performance',
-              style: AppTextStyles.headlineMd(color: Colors.white),
-            ),
-            const SizedBox(height: 16),
-            
-            // Placeholder for Chart
-            Container(
-              height: 200,
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceContainer,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.outlineVariant.withOpacity(0.2)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Sales', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                  const SizedBox(height: 8),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text('248', style: AppTextStyles.displayLgMobile(color: Colors.white)),
-                      const SizedBox(width: 8),
-                      Text('+18.4%', style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const Spacer(),
-                  // Fake chart bars
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _buildChartBar(40, 'MON'),
-                      _buildChartBar(60, 'TUE'),
-                      _buildChartBar(55, 'WED'),
-                      _buildChartBar(85, 'THU'),
-                      _buildChartBar(75, 'FRI'),
-                      _buildChartBar(100, 'SAT', isHighlight: true),
-                      _buildChartBar(40, 'SUN'),
-                    ],
-                  ),
-                ],
-              ),
             ),
             const SizedBox(height: 80), // Space for bottom nav
           ],
@@ -159,7 +168,7 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainer,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.2)),
+        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,7 +179,7 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: AppColors.primary, size: 24),
@@ -194,21 +203,41 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
     );
   }
 
-  Widget _buildChartBar(double heightPercentage, String label, {bool isHighlight = false}) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Container(
-          width: 32,
-          height: heightPercentage,
-          decoration: BoxDecoration(
-            color: isHighlight ? AppColors.primary : AppColors.primary.withOpacity(0.4),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+  Widget _buildChartBar(double heightPercentage, String label, {bool isHighlight = false, double salesAmount = 0.0}) {
+    return Tooltip(
+      message: '$label: \$${salesAmount.toStringAsFixed(2)}',
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          if (salesAmount > 0)
+            Text(
+              '\$${salesAmount.toStringAsFixed(0)}',
+              style: TextStyle(
+                fontSize: 9,
+                color: isHighlight ? AppColors.primary : Colors.white70,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          const SizedBox(height: 4),
+          Container(
+            width: 32,
+            height: heightPercentage.clamp(10.0, 80.0),
+            decoration: BoxDecoration(
+              color: isHighlight ? AppColors.primary : AppColors.primary.withValues(alpha: salesAmount > 0 ? 0.6 : 0.25),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: TextStyle(fontSize: 10, color: isHighlight ? AppColors.primary : AppColors.onSurfaceVariant, fontWeight: FontWeight.bold)),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: isHighlight ? AppColors.primary : AppColors.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
