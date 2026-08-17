@@ -203,12 +203,20 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         minZoom: 3.0,
                         maxZoom: 19.0,
                         interactionOptions: const InteractionOptions(
-                          flags: InteractiveFlag.all,
+                          flags: InteractiveFlag.drag |
+                              InteractiveFlag.pinchZoom |
+                              InteractiveFlag.scrollWheelZoom |
+                              InteractiveFlag.doubleTapZoom,
                         ),
                       ),
                       children: [
                         TileLayer(
-                          urlTemplate: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                          urlTemplate: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+                          subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                          userAgentPackageName: 'com.astroboomin.gochef',
+                        ),
+                        TileLayer(
+                          urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',
                           subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
                           userAgentPackageName: 'com.astroboomin.gochef',
                         ),

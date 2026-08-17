@@ -87,9 +87,27 @@ if ($method === 'POST') {
 
         // Get kitchen name (from first item)
         $kitchenName = $cartItems[0]['kitchen_name'];
-        $kitchenAvatar = $cartItems[0]['kitchen_avatar'] ?? '';
-
         $status = ($order_type === 'dine_in' || !empty($dine_in_date)) ? 'Pending' : 'Active';
+
+        // Ensure orders table has all columns
+        try {
+            $pdo->exec("ALTER TABLE orders ADD COLUMN order_type VARCHAR(50) DEFAULT 'delivery'");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE orders ADD COLUMN dine_in_date VARCHAR(50) DEFAULT NULL");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE orders ADD COLUMN dine_in_time VARCHAR(50) DEFAULT NULL");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE orders ADD COLUMN discount_amount DECIMAL(10,2) DEFAULT 0.00");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE orders ADD COLUMN promo_code VARCHAR(50) DEFAULT NULL");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE orders ADD COLUMN delivery_address TEXT DEFAULT NULL");
+        } catch (Exception $e) {}
 
         // Insert order
         $stmt = $pdo->prepare("INSERT INTO orders (id, user_id, kitchen_id, kitchen_name, order_date, order_type, dine_in_date, dine_in_time, discount_amount, promo_code, status, total_amount, items_count, avatar, delivery_address, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");

@@ -19,6 +19,12 @@ try {
         "ALTER TABLE kitchens ADD COLUMN cover_image VARCHAR(500) DEFAULT ''",
         "ALTER TABLE kitchens ADD COLUMN business_hours VARCHAR(255) DEFAULT '09:00 AM - 10:00 PM'",
         "ALTER TABLE kitchens ADD COLUMN is_open TINYINT(1) DEFAULT 1",
+        "ALTER TABLE orders ADD COLUMN order_type VARCHAR(50) DEFAULT 'delivery'",
+        "ALTER TABLE orders ADD COLUMN dine_in_date VARCHAR(50) DEFAULT NULL",
+        "ALTER TABLE orders ADD COLUMN dine_in_time VARCHAR(50) DEFAULT NULL",
+        "ALTER TABLE orders ADD COLUMN discount_amount DECIMAL(10,2) DEFAULT 0.00",
+        "ALTER TABLE orders ADD COLUMN promo_code VARCHAR(50) DEFAULT NULL",
+        "ALTER TABLE orders ADD COLUMN delivery_address TEXT DEFAULT NULL",
     ];
 
     $results = [];

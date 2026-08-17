@@ -143,21 +143,25 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _updateKitchenPositions() {
-    // Generate organic relative distances around real user location
-    final random = Random(42); // Deterministic seed per kitchen id
+    // Generate organic 360-degree relative distances within a 5-mile radius around user location
+    final random = Random(42);
+    int idx = 0;
     for (var k in _kitchens) {
       if (!_kitchenLocations.containsKey(k.id)) {
-        // Spread kitchens within a realistic 1.5 - 6 km radius around the user
-        final angle = (k.id * 73.0) * (pi / 180);
-        final distanceKm = 1.0 + (random.nextDouble() * 4.5);
-        // ~111km per degree
-        final latOffset = (distanceKm / 111.0) * cos(angle);
-        final lngOffset = (distanceKm / (111.0 * cos(_baseLocation.latitude * pi / 180))) * sin(angle);
+        // Distribute angles evenly around full 360 circle + minor jitter so no overlapping
+        final goldenAngle = 137.5 * (pi / 180);
+        final angle = (idx * goldenAngle) + (random.nextDouble() * 0.2 - 0.1);
+        // Distance between 0.8 miles and 4.6 miles (strictly within 5 mile radius)
+        final distanceMiles = 0.8 + ((idx % 5 + 1) * 0.7) + (random.nextDouble() * 0.3);
+        // 1 degree latitude ~= 69.0 miles
+        final latOffset = (distanceMiles / 69.0) * cos(angle);
+        final lngOffset = (distanceMiles / (69.0 * cos(_baseLocation.latitude * pi / 180))) * sin(angle);
 
         _kitchenLocations[k.id] = LatLng(
           _baseLocation.latitude + latOffset,
           _baseLocation.longitude + lngOffset,
         );
+        idx++;
       }
     }
   }
@@ -353,7 +357,10 @@ class _MapScreenState extends State<MapScreen> {
                     minZoom: 3.0,
                     maxZoom: 19.0,
                     interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.all,
+                      flags: InteractiveFlag.drag |
+                          InteractiveFlag.pinchZoom |
+                          InteractiveFlag.scrollWheelZoom |
+                          InteractiveFlag.doubleTapZoom,
                     ),
                     onTap: (tapPosition, point) {
                       setState(() {
@@ -364,8 +371,15 @@ class _MapScreenState extends State<MapScreen> {
                     },
                   ),
                   children: [
+                    // Clean Satellite Layer
                     TileLayer(
-                      urlTemplate: 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+                      urlTemplate: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+                      subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                      userAgentPackageName: 'com.astroboomin.gochef',
+                    ),
+                    // Clean Roads, Streets & City Labels Layer (WITHOUT competitor business POIs)
+                    TileLayer(
+                      urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',
                       subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
                       userAgentPackageName: 'com.astroboomin.gochef',
                     ),
