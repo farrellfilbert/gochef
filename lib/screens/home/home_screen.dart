@@ -421,16 +421,17 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryContainer : AppColors.surface.withValues(alpha: 0.7),
+          color: isSelected ? Colors.white : AppColors.surfaceContainer,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: isSelected ? Colors.transparent : AppColors.outlineVariant.withValues(alpha: 0.1),
+            color: isSelected ? Colors.white : AppColors.outlineVariant.withValues(alpha: 0.15),
           ),
         ),
         child: Text(
           label,
           style: AppTextStyles.labelMono(
-              color: isSelected ? Colors.white : Colors.white70),
+            color: isSelected ? Colors.black : Colors.white,
+          ).copyWith(fontWeight: isSelected ? FontWeight.bold : FontWeight.w500),
         ),
       ),
     );

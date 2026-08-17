@@ -103,13 +103,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary : AppColors.surfaceContainer,
+                        color: isSelected ? Colors.white : AppColors.surfaceContainer,
                         borderRadius: BorderRadius.circular(32),
+                        border: Border.all(
+                          color: isSelected ? Colors.white : AppColors.outlineVariant.withValues(alpha: 0.15),
+                        ),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         _filters[index],
-                        style: AppTextStyles.labelSm(color: isSelected ? const Color(0xFF650030) : AppColors.onSurfaceVariant).copyWith(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+                        style: AppTextStyles.labelSm(
+                          color: isSelected ? Colors.black : Colors.white,
+                        ).copyWith(fontWeight: isSelected ? FontWeight.bold : FontWeight.w500),
                       ),
                     ),
                   );

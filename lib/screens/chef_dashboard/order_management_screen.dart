@@ -158,15 +158,17 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primaryContainer : Colors.transparent,
+                      color: isSelected ? Colors.white : AppColors.surfaceContainer,
                       borderRadius: BorderRadius.circular(24),
-                      border: isSelected ? Border.all(color: AppColors.primary.withValues(alpha: 0.2)) : null,
+                      border: Border.all(
+                        color: isSelected ? Colors.white : AppColors.outlineVariant.withValues(alpha: 0.15),
+                      ),
                     ),
                     child: Text(
                       _tabs[index],
                       style: AppTextStyles.labelMono(
-                        color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
-                      ),
+                        color: isSelected ? Colors.black : Colors.white,
+                      ).copyWith(fontWeight: isSelected ? FontWeight.bold : FontWeight.w500),
                     ),
                   ),
                 );
