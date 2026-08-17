@@ -838,19 +838,6 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
               ),
             ),
             actions: [
-              TextButton.icon(
-                onPressed: () async {
-                  final userIdStr = await ApiService.getUserId();
-                  if (userIdStr != null) {
-                    await ApiService.saveUserId(userIdStr, role: 'user', kitchenId: _kitchen?.id.toString());
-                  }
-                  if (mounted) {
-                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainNavigation()), (route) => false);
-                  }
-                },
-                icon: const Icon(Icons.visibility_outlined, color: AppColors.primary, size: 16),
-                label: const Text('Foodie View', style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold)),
-              ),
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.white),
                 onPressed: _showEditProfileDialog,
