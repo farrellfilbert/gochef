@@ -73,18 +73,29 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                       SizedBox(
                         width: double.infinity,
                         height: 56,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: AppColors.magentaGloss,
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('💸 Payout request submitted to your linked bank account!'),
+                                backgroundColor: AppColors.surface,
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            side: const BorderSide(color: Colors.black, width: 1.2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
                             ),
-                            child: const Text('Cash Out Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          ),
+                          child: const Text(
+                            'Cash Out Now',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       )
