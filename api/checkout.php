@@ -86,7 +86,8 @@ if ($method === 'POST') {
         $orderId = 'ORD-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
         // Get kitchen name (from first item)
-        $kitchenName = $cartItems[0]['kitchen_name'];
+        $kitchenName = $cartItems[0]['kitchen_name'] ?? 'Kitchen';
+        $kitchenAvatar = $cartItems[0]['kitchen_avatar'] ?? $cartItems[0]['image'] ?? 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500';
         $status = ($order_type === 'dine_in' || !empty($dine_in_date)) ? 'Pending' : 'Active';
 
         // Ensure orders table has all columns
