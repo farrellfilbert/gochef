@@ -27,7 +27,7 @@ class _OrderReviewScreenState extends State<OrderReviewScreen> {
   Future<void> _submitReview() async {
     setState(() => _isSubmitting = true);
     final success = await ApiService.submitReview(
-      kitchenId: widget.kitchenId,
+      kitchenId: int.tryParse(widget.kitchenId),
       rating: _rating,
       comment: _commentController.text,
     );

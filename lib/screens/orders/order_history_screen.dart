@@ -8,6 +8,7 @@ import '../../widgets/custom_app_bar_title.dart';
 import '../chat/chat_screen.dart';
 import '../tracking/order_tracking_screen.dart';
 import '../cart/cart_screen.dart';
+import '../../widgets/rate_order_dialog.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -177,6 +178,16 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               ),
                             );
                           } : null,
+                          onRate: (order.status == 'Completed' || order.status == 'Delivered') ? () {
+                            RateOrderDialog.show(
+                              context,
+                              orderId: order.id,
+                              kitchenId: int.tryParse(order.kitchenId),
+                              kitchenName: order.kitchenName,
+                              kitchenAvatar: order.avatar,
+                              onSubmitted: () => _refreshOrders(),
+                            );
+                          } : null,
                           onDetails: () {
                             Navigator.push(
                               context,
@@ -242,6 +253,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     String? orderType,
     String? dineInDate,
     String? dineInTime,
+    VoidCallback? onRate,
     required VoidCallback onDetails,
     required VoidCallback onReorder,
     VoidCallback? onChat,
@@ -344,6 +356,24 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       icon: const Icon(Icons.chat_bubble_outline),
                       color: AppColors.primary,
                       onPressed: onChat,
+                    ),
+                  if (onRate != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: ElevatedButton(
+                        onPressed: onRate,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber.withValues(alpha: 0.15),
+                          foregroundColor: Colors.amber,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32),
+                            side: const BorderSide(color: Colors.amber, width: 1),
+                          ),
+                        ),
+                        child: const Text('⭐ Rate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      ),
                     ),
                   ElevatedButton(
                     onPressed: onDetails,

@@ -9,6 +9,9 @@ import 'dart:async';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
 
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
+
 class ChatScreen extends StatefulWidget {
   final String otherParticipantId;
   final String otherParticipantName;
@@ -34,9 +37,11 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ImagePicker _picker = ImagePicker();
   
   List<MessageModel> _messages = [];
   bool _isLoading = true;
+  bool _isUploadingImage = false;
   Timer? _timer;
   String? _myUserId;
   int _lastMessageCount = 0;
@@ -51,8 +56,8 @@ class _ChatScreenState extends State<ChatScreen> {
     _myUserId = await ApiService.getUserId();
     await _loadMessages();
     
-    // Polling every 5 seconds for new messages
-    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    // Polling every 4 seconds for new messages
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
       _loadMessages(isPolling: true);
     });
   }
@@ -71,7 +76,8 @@ class _ChatScreenState extends State<ChatScreen> {
       final newMessages = messagesRaw.map((m) {
         return MessageModel(
           id: m['id'].toString(),
-          text: m['message'],
+          text: m['message'] ?? '',
+          imageUrl: m['image_url'],
           isMe: m['sender_id'].toString() == _myUserId,
           timestamp: DateTime.parse(m['created_at'].toString().replaceAll(' ', 'T') + 'Z').toLocal(),
         );
@@ -116,6 +122,70 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _pickAndSendImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      if (image == null) return;
+
+      setState(() => _isUploadingImage = true);
+
+      final bytes = await image.readAsBytes();
+      final base64Image = 'data:image/jpeg;base64,' + base64Encode(bytes);
+
+      final uploadedUrl = await ApiService.uploadImageBase64(base64Image);
+      if (uploadedUrl == null || uploadedUrl.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to upload image. Please try again.')),
+          );
+        }
+        return;
+      }
+
+      // Optimistically add message
+      setState(() {
+        _messages.add(
+          MessageModel(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            text: '',
+            imageUrl: uploadedUrl,
+            isMe: true,
+            timestamp: DateTime.now(),
+          ),
+        );
+      });
+
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+
+      final success = await ApiService.sendChatMessage(
+        widget.otherParticipantId,
+        '',
+        kitchenId: widget.kitchenId,
+        orderId: widget.orderId,
+        imageUrl: uploadedUrl,
+      );
+
+      if (success) {
+        _loadMessages(isPolling: true);
+      }
+    } catch (e) {
+      debugPrint('Error picking/sending image: $e');
+    } finally {
+      if (mounted) setState(() => _isUploadingImage = false);
+    }
+  }
+
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
     
@@ -157,7 +227,6 @@ class _ChatScreenState extends State<ChatScreen> {
           const SnackBar(content: Text('Failed to send message')),
         );
       }
-      // Ideally remove the optimistic message here or mark as failed
     } else {
       _loadMessages(isPolling: true); // fetch real ID and timestamp
     }
@@ -260,8 +329,54 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void _showImagePreview(String url) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.9),
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(12),
+          child: Stack(
+            alignment: Alignment.topRight,
+            children: [
+              InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      url,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(child: CircularProgressIndicator(color: Colors.white));
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 10,
+                right: 10,
+                child: IconButton(
+                  style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                  icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildMessageBubble(MessageModel message) {
     final isMe = message.isMe;
+    final hasImage = message.imageUrl != null && message.imageUrl!.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -283,7 +398,10 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                horizontal: hasImage ? 8 : 16,
+                vertical: hasImage ? 8 : 12,
+              ),
               decoration: BoxDecoration(
                 color: isMe ? AppColors.primary : AppColors.surfaceContainerHigh,
                 borderRadius: BorderRadius.circular(20).copyWith(
@@ -294,18 +412,60 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Column(
                 crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.text,
-                    style: AppTextStyles.bodyMd(
-                      color: isMe ? AppColors.onPrimary : AppColors.onSurface,
+                  if (hasImage) ...[
+                    GestureDetector(
+                      onTap: () => _showImagePreview(message.imageUrl!),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 240, maxHeight: 240),
+                          child: Image.network(
+                            message.imageUrl!,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return Container(
+                                width: 200,
+                                height: 160,
+                                color: Colors.black26,
+                                child: const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: 200,
+                                height: 120,
+                                color: Colors.black26,
+                                child: const Center(
+                                  child: Icon(Icons.broken_image, color: Colors.white70, size: 36),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    if (message.text.isNotEmpty) const SizedBox(height: 6),
+                  ],
+                  if (message.text.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: hasImage ? 8 : 0),
+                      child: Text(
+                        message.text,
+                        style: AppTextStyles.bodyMd(
+                          color: isMe ? AppColors.onPrimary : AppColors.onSurface,
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 4),
-                  Text(
-                    DateFormat('HH:mm').format(message.timestamp),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isMe ? AppColors.onPrimary.withValues(alpha: 0.7) : AppColors.onSurfaceVariant,
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: hasImage ? 8 : 0),
+                    child: Text(
+                      DateFormat('HH:mm').format(message.timestamp),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isMe ? AppColors.onPrimary.withValues(alpha: 0.7) : AppColors.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
@@ -325,38 +485,59 @@ class _ChatScreenState extends State<ChatScreen> {
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.2))),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Icons.attach_file, color: AppColors.onSurfaceVariant),
-            onPressed: () {},
-          ),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(24),
+          if (_isUploadingImage)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: const [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
+                  ),
+                  SizedBox(width: 10),
+                  Text('Uploading photo...', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                ],
               ),
-              child: TextField(
-                controller: _messageController,
-                style: AppTextStyles.bodyMd(color: AppColors.onSurface),
-                decoration: InputDecoration(
-                  hintText: 'Type a message...',
-                  hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
-                  border: InputBorder.none,
+            ),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.camera_alt_outlined, color: Colors.white),
+                tooltip: 'Send Photo',
+                onPressed: _isUploadingImage ? null : _pickAndSendImage,
+              ),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: TextField(
+                    controller: _messageController,
+                    style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+                    decoration: InputDecoration(
+                      hintText: 'Type a message...',
+                      hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                      border: InputBorder.none,
+                    ),
+                    onSubmitted: (_) => _sendMessage(),
+                  ),
                 ),
-                onSubmitted: (_) => _sendMessage(),
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          CircleAvatar(
-            backgroundColor: AppColors.primary,
-            child: IconButton(
-              icon: const Icon(Icons.send, color: AppColors.onPrimary, size: 20),
-              onPressed: _sendMessage,
-            ),
+              const SizedBox(width: 8),
+              CircleAvatar(
+                backgroundColor: AppColors.primary,
+                child: IconButton(
+                  icon: const Icon(Icons.send, color: AppColors.onPrimary, size: 20),
+                  onPressed: _sendMessage,
+                ),
+              ),
+            ],
           ),
         ],
       ),

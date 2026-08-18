@@ -1,12 +1,14 @@
 class MessageModel {
   final String id;
   final String text;
+  final String? imageUrl;
   final bool isMe;
   final DateTime timestamp;
 
   MessageModel({
     required this.id,
     required this.text,
+    this.imageUrl,
     required this.isMe,
     required this.timestamp,
   });

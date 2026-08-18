@@ -884,35 +884,7 @@ class ApiService {
   // REVIEWS
   // =============================================
   
-  static Future<bool> submitReview({
-    required String kitchenId,
-    required int rating,
-    required String comment,
-  }) async {
-    final userId = await getUserId();
-    if (userId == null) return false;
 
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/reviews.php'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'user_id': int.parse(userId),
-          'kitchen_id': int.parse(kitchenId),
-          'rating': rating,
-          'comment': comment,
-        }),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['success'] == true;
-      }
-    } catch (e) {
-      print('Error submitting review: $e');
-    }
-    return false;
-  }
   // =============================================
   static Future<Map<String, dynamic>> getUnreadCounts({String? lastOpenTime}) async {
     final userId = await getUserId();
@@ -942,7 +914,7 @@ class ApiService {
   // CHAT
   // =============================================
   
-  static Future<bool> sendChatMessage(String receiverId, String message, {String? kitchenId, String? orderId}) async {
+  static Future<bool> sendChatMessage(String receiverId, String message, {String? kitchenId, String? orderId, String? imageUrl}) async {
     final senderId = await getUserId();
     if (senderId == null) return false;
 
@@ -955,6 +927,7 @@ class ApiService {
       };
       if (kitchenId != null) body['kitchen_id'] = kitchenId;
       if (orderId != null) body['order_id'] = orderId;
+      if (imageUrl != null) body['image_url'] = imageUrl;
 
       final response = await http.post(
         url,
@@ -969,6 +942,65 @@ class ApiService {
       return false;
     } catch (e) {
       debugPrint('Error sending message: $e');
+      return false;
+    }
+  }
+
+  static Future<String?> uploadImageBase64(String base64Str) async {
+    try {
+      final url = Uri.parse('$baseUrl/upload.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'image': base64Str}),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['url'] != null) {
+          return data['url'] as String;
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error uploading image: $e');
+      return null;
+    }
+  }
+
+  static Future<bool> submitReview({
+    required int rating,
+    String? comment,
+    int? kitchenId,
+    int? menuItemId,
+    String? orderId,
+  }) async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) return false;
+
+      final url = Uri.parse('$baseUrl/reviews.php');
+      final body = {
+        'user_id': int.tryParse(userId) ?? 0,
+        'rating': rating,
+        'comment': comment ?? '',
+      };
+      if (kitchenId != null) body['kitchen_id'] = kitchenId;
+      if (menuItemId != null) body['menu_item_id'] = menuItemId;
+      if (orderId != null) body['order_id'] = orderId;
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error submitting review: $e');
       return false;
     }
   }

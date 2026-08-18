@@ -22,9 +22,14 @@ try {
           AND o.updated_at < (NOW() - INTERVAL 10 MINUTE)
     ");
 
+    // Ensure image_url column exists
+    try {
+        $pdo->exec("ALTER TABLE chat_messages ADD COLUMN image_url VARCHAR(500) DEFAULT NULL");
+    } catch (Exception $e) {}
+
     // Fetch messages between user1 and user2
     $q = "
-        SELECT id, sender_id, receiver_id, message, is_read, created_at
+        SELECT id, sender_id, receiver_id, message, image_url, is_read, created_at
         FROM chat_messages
         WHERE ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?))
     ";
