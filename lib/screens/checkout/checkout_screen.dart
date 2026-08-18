@@ -520,11 +520,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             decoration: BoxDecoration(
-                              color: !isDineIn ? AppColors.primary : Colors.transparent,
+                              color: !isDineIn ? Colors.white : Colors.transparent,
                               borderRadius: BorderRadius.circular(16),
                             ),
                             alignment: Alignment.center,
-                            child: Text('Delivery', style: TextStyle(color: !isDineIn ? Colors.white : AppColors.onSurfaceVariant, fontWeight: FontWeight.bold)),
+                            child: Text(
+                              'Delivery',
+                              style: TextStyle(
+                                color: !isDineIn ? Colors.black : Colors.white70,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -539,11 +545,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             decoration: BoxDecoration(
-                              color: isDineIn ? AppColors.primary : Colors.transparent,
+                              color: isDineIn ? Colors.white : Colors.transparent,
                               borderRadius: BorderRadius.circular(16),
                             ),
                             alignment: Alignment.center,
-                            child: Text('Dine-In Booking', style: TextStyle(color: isDineIn ? Colors.white : AppColors.onSurfaceVariant, fontWeight: FontWeight.bold)),
+                            child: Text(
+                              'Dine-In Booking',
+                              style: TextStyle(
+                                color: isDineIn ? Colors.black : Colors.white70,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                       ),
