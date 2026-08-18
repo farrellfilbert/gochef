@@ -17,6 +17,8 @@ class KitchenModel {
   final String businessHours;
   final bool isOpen;
   final String location;
+  final double? latitude;
+  final double? longitude;
   final bool isVerified;
   final bool isFeatured;
   final String createdAt;
@@ -39,6 +41,8 @@ class KitchenModel {
     this.businessHours = '09:00 AM - 10:00 PM',
     this.isOpen = true,
     this.location = '',
+    this.latitude,
+    this.longitude,
     this.isVerified = false,
     this.isFeatured = false,
     this.createdAt = '',
@@ -65,6 +69,8 @@ class KitchenModel {
           : '09:00 AM - 10:00 PM',
       isOpen: json['is_open'] == null ? true : (json['is_open'].toString() == '1' || json['is_open'] == true),
       location: json['location'] ?? '',
+      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
       isVerified: json['is_verified']?.toString() == '1',
       isFeatured: json['is_featured']?.toString() == '1',
       createdAt: json['created_at'] ?? '',

@@ -29,12 +29,31 @@ class _MapScreenState extends State<MapScreen> {
   bool _isLoading = true;
   bool _isLocating = false;
 
-  // Base location (defaults to Jakarta if GPS is loading/denied, updated by real GPS)
-  LatLng _baseLocation = const LatLng(-6.2088, 106.8456);
+  // Base location (defaults to North Hollywood / Los Angeles area matching screenshot)
+  LatLng _baseLocation = const LatLng(34.1722, -118.3765);
   bool _hasRealLocation = false;
   String? _userAddress;
 
-  // Store coordinates so they remain consistent once mapped
+  // Fixed static coordinates table across North Hollywood / San Fernando Valley (5-8 mi range)
+  static const List<LatLng> _defaultFixedCoords = [
+    LatLng(34.1722, -118.3765), // North Hollywood (1.0 mi)
+    LatLng(34.1610, -118.3920), // Valley Village (2.0 mi)
+    LatLng(34.1480, -118.3890), // Studio City (3.0 mi)
+    LatLng(34.1810, -118.4280), // Valley Glen (4.0 mi)
+    LatLng(34.1520, -118.4480), // Sherman Oaks (5.0 mi)
+    LatLng(34.2050, -118.3980), // Sun Valley (3.0 mi)
+    LatLng(34.2270, -118.4480), // Panorama City (5.0 mi)
+    LatLng(34.1380, -118.3550), // Toluca Lake/Burbank (4.0 mi)
+    LatLng(34.1350, -118.4120), // Coldwater Canyon (5.0 mi)
+    LatLng(34.1660, -118.4550), // Los Angeles Valley College (5.0 mi)
+    LatLng(34.1560, -118.4650), // Sherman Oaks (6.0 mi)
+    LatLng(34.1470, -118.4720), // Sherman Oaks South (6.0 mi)
+    LatLng(34.1200, -118.4800), // Beverly Glen (7.0 mi)
+    LatLng(34.0950, -118.4120), // Greystone Mansion (7.0 mi)
+    LatLng(34.0880, -118.4050), // Beverly Hills (8.0 mi)
+  ];
+
+  // Store coordinates so they remain permanently fixed
   final Map<int, LatLng> _kitchenLocations = {};
   final Distance _distanceCalculator = const Distance();
 
@@ -57,7 +76,7 @@ class _MapScreenState extends State<MapScreen> {
     await _fetchKitchens();
 
     // 3. Request fresh Real GPS location in parallel
-    _requestRealGPS(flyToLocation: true);
+    _requestRealGPS(flyToLocation: false);
   }
 
   Future<void> _requestRealGPS({bool flyToLocation = false, bool showFeedback = false}) async {
@@ -74,11 +93,8 @@ class _MapScreenState extends State<MapScreen> {
           _isLocating = false;
         });
 
-        // Re-anchor kitchen relative positions if needed
-        _updateKitchenPositions();
-
         if (flyToLocation) {
-          _mapController.move(_baseLocation, 14.5);
+          _mapController.move(_baseLocation, 12.8);
         }
 
         if (showFeedback && mounted) {
@@ -143,25 +159,15 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _updateKitchenPositions() {
-    // Generate organic 360-degree relative distances within a 5-mile radius around user location
-    final random = Random(42);
-    int idx = 0;
-    for (var k in _kitchens) {
-      if (!_kitchenLocations.containsKey(k.id)) {
-        // Distribute angles evenly around full 360 circle + minor jitter so no overlapping
-        final goldenAngle = 137.5 * (pi / 180);
-        final angle = (idx * goldenAngle) + (random.nextDouble() * 0.2 - 0.1);
-        // Distance between 0.8 miles and 4.6 miles (strictly within 5 mile radius)
-        final distanceMiles = 0.8 + ((idx % 5 + 1) * 0.7) + (random.nextDouble() * 0.3);
-        // 1 degree latitude ~= 69.0 miles
-        final latOffset = (distanceMiles / 69.0) * cos(angle);
-        final lngOffset = (distanceMiles / (69.0 * cos(_baseLocation.latitude * pi / 180))) * sin(angle);
-
-        _kitchenLocations[k.id] = LatLng(
-          _baseLocation.latitude + latOffset,
-          _baseLocation.longitude + lngOffset,
-        );
-        idx++;
+    // Ensure all kitchens have permanent, fixed coordinates that NEVER move
+    for (int i = 0; i < _kitchens.length; i++) {
+      final k = _kitchens[i];
+      if (k.latitude != null && k.longitude != null && k.latitude != 0 && k.longitude != 0) {
+        _kitchenLocations[k.id] = LatLng(k.latitude!, k.longitude!);
+      } else {
+        // Deterministic fixed coordinate assignment by kitchen ID
+        final fixedIndex = (k.id - 1).abs() % _defaultFixedCoords.length;
+        _kitchenLocations[k.id] = _defaultFixedCoords[fixedIndex];
       }
     }
   }
@@ -313,8 +319,7 @@ class _MapScreenState extends State<MapScreen> {
       _hasRealLocation = true;
     });
 
-    _updateKitchenPositions();
-    _mapController.move(_baseLocation, 14.5);
+    _mapController.move(_baseLocation, 12.8);
     FocusScope.of(context).unfocus();
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -353,7 +358,7 @@ class _MapScreenState extends State<MapScreen> {
                   mapController: _mapController,
                   options: MapOptions(
                     initialCenter: _baseLocation,
-                    initialZoom: 14.0,
+                    initialZoom: 12.5,
                     minZoom: 3.0,
                     maxZoom: 19.0,
                     interactionOptions: const InteractionOptions(
