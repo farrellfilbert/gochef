@@ -28,8 +28,19 @@ $fixedCoords = [
     15 => [34.0880, -118.4050], // Beverly Hills (8.0 mi)
 ];
 
+// 1. Assign explicit IDs
 foreach ($fixedCoords as $kid => $coord) {
     $pdo->prepare("UPDATE kitchens SET latitude = ?, longitude = ? WHERE id = ? AND (latitude IS NULL OR latitude = 0)")->execute([$coord[0], $coord[1], $kid]);
+}
+
+// 2. Assign any remaining kitchens with missing coordinates
+$unassigned = $pdo->query("SELECT id FROM kitchens WHERE latitude IS NULL OR latitude = 0")->fetchAll(PDO::FETCH_COLUMN);
+if ($unassigned) {
+    $coordList = array_values($fixedCoords);
+    foreach ($unassigned as $kid) {
+        $pick = $coordList[$kid % count($coordList)];
+        $pdo->prepare("UPDATE kitchens SET latitude = ?, longitude = ? WHERE id = ?")->execute([$pick[0], $pick[1], $kid]);
+    }
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
