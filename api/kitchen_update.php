@@ -78,6 +78,16 @@ if (isset($data->is_open)) {
     $params[] = intval($data->is_open);
     $types .= "i";
 }
+if (isset($data->latitude)) {
+    $updateFields[] = "latitude = ?";
+    $params[] = floatval($data->latitude);
+    $types .= "d";
+}
+if (isset($data->longitude)) {
+    $updateFields[] = "longitude = ?";
+    $params[] = floatval($data->longitude);
+    $types .= "d";
+}
 
 if (empty($updateFields)) {
     http_response_code(400);

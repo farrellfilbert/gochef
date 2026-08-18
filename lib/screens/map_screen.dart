@@ -64,19 +64,29 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _initLocationAndFetch() async {
-    // 1. Check if we have cached last known location
-    final cachedLoc = await LocationService.getLastKnownLocation();
-    if (cachedLoc != null && mounted) {
-      _baseLocation = cachedLoc;
-      _hasRealLocation = true;
-    }
-    _userAddress = await LocationService.getLastKnownAddress();
-
-    // 2. Fetch kitchens from API
+    // 1. Fetch kitchens from API first
     await _fetchKitchens();
+
+    // 2. Center map over the chefs cluster initially
+    _focusOnChefs();
 
     // 3. Request fresh Real GPS location in parallel
     _requestRealGPS(flyToLocation: false);
+  }
+
+  void _focusOnChefs() {
+    if (_kitchenLocations.isNotEmpty) {
+      double totalLat = 0;
+      double totalLng = 0;
+      _kitchenLocations.forEach((_, loc) {
+        totalLat += loc.latitude;
+        totalLng += loc.longitude;
+      });
+      final center = LatLng(totalLat / _kitchenLocations.length, totalLng / _kitchenLocations.length);
+      _mapController.move(center, 12.5);
+    } else {
+      _mapController.move(const LatLng(34.1722, -118.3765), 12.5);
+    }
   }
 
   Future<void> _requestRealGPS({bool flyToLocation = false, bool showFeedback = false}) async {
@@ -94,7 +104,7 @@ class _MapScreenState extends State<MapScreen> {
         });
 
         if (flyToLocation) {
-          _mapController.move(_baseLocation, 12.8);
+          _mapController.move(_baseLocation, 14.0);
         }
 
         if (showFeedback && mounted) {
@@ -720,20 +730,45 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               ],
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        onPressed: _isLocating ? null : () => _requestRealGPS(flyToLocation: true, showFeedback: true),
-        icon: _isLocating
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
-              )
-            : const Icon(Icons.my_location, color: AppColors.onPrimary),
-        label: Text(
-          _hasRealLocation ? 'My GPS Location' : 'Locate Me',
-          style: AppTextStyles.labelSm(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold),
-        ),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // 1. Focus on All Chefs button
+          FloatingActionButton.extended(
+            heroTag: 'focus_chefs_btn',
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+              side: const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            onPressed: _focusOnChefs,
+            icon: const Icon(Icons.restaurant_menu, color: AppColors.primary, size: 20),
+            label: const Text(
+              '👨‍🍳 View All Chefs',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // 2. Locate Me GPS button
+          FloatingActionButton.extended(
+            heroTag: 'locate_me_btn',
+            backgroundColor: AppColors.primary,
+            onPressed: _isLocating ? null : () => _requestRealGPS(flyToLocation: true, showFeedback: true),
+            icon: _isLocating
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.onPrimary),
+                  )
+                : const Icon(Icons.my_location, color: AppColors.onPrimary, size: 20),
+            label: Text(
+              _hasRealLocation ? 'My GPS Location' : 'Locate Me',
+              style: AppTextStyles.labelSm(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
     );
   }

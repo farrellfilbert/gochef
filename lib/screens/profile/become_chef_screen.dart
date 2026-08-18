@@ -22,6 +22,9 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
   final _formKey = GlobalKey<FormState>();
   final _kitchenNameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _locationController = TextEditingController(text: 'North Hollywood, CA');
+  double _latitude = 34.1722;
+  double _longitude = -118.3765;
   bool _isLoading = false;
   XFile? _kitchenImage;
 
@@ -52,10 +55,13 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'user_id': widget.userId,
-          'kitchen_name': _kitchenNameController.text,
-          'kitchen_description': _descriptionController.text,
+          'kitchen_name': _kitchenNameController.text.trim(),
+          'kitchen_description': _descriptionController.text.trim(),
           'kitchen_avatar': kitchenImageUrl,
           'kitchen_cover': kitchenImageUrl,
+          'location': _locationController.text.trim(),
+          'latitude': _latitude,
+          'longitude': _longitude,
         }),
       );
 
@@ -205,6 +211,26 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                   ),
                 ),
                 validator: (v) => v!.isEmpty ? 'Description is required' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _locationController,
+                style: const TextStyle(color: AppColors.onSurface),
+                decoration: InputDecoration(
+                  labelText: 'Kitchen Location / Address',
+                  hintText: 'e.g. North Hollywood, CA',
+                  labelStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+                  prefixIcon: const Icon(Icons.location_on, color: AppColors.primary),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                ),
+                validator: (v) => v!.isEmpty ? 'Location address is required' : null,
               ),
               const SizedBox(height: 40),
               SizedBox(

@@ -14,6 +14,7 @@ import '../../main.dart';
 import '../auth/login_screen.dart';
 import 'reviews_screen.dart';
 import '../chat/inbox_screen.dart';
+import '../../widgets/kitchen_location_picker_dialog.dart';
 
 class ChefProfileScreen extends StatefulWidget {
   const ChefProfileScreen({super.key});
@@ -590,6 +591,23 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     );
   }
 
+  void _openLocationPicker() async {
+    if (_kitchen == null || _kitchenId == null) return;
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => KitchenLocationPickerDialog(
+        kitchenId: _kitchenId!,
+        initialLat: _kitchen!.latitude ?? 34.1722,
+        initialLng: _kitchen!.longitude ?? -118.3765,
+        initialAddress: _kitchen!.location,
+      ),
+    );
+
+    if (result != null) {
+      _loadProfile();
+    }
+  }
+
   void _showEditProfileDialog() {
     final nameController = TextEditingController(text: _kitchen!.name);
     final aboutController = TextEditingController(text: _kitchen!.description);
@@ -899,6 +917,73 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                           const SizedBox(width: 8),
                           _buildTag('Farm-to-Table'),
                         ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Kitchen Map Location Pin Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.pin_drop, color: AppColors.primary, size: 20),
+                        const SizedBox(width: 8),
+                        Text('Kitchen Map Pin & Location', style: AppTextStyles.headlineMd(color: Colors.white)),
+                      ],
+                    ),
+                    TextButton.icon(
+                      onPressed: _openLocationPicker,
+                      icon: const Icon(Icons.edit_location_alt, color: AppColors.primary, size: 16),
+                      label: const Text('Edit Pin', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on, color: AppColors.primary, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _kitchen!.location.isNotEmpty ? _kitchen!.location : 'North Hollywood, CA',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_kitchen!.latitude != null && _kitchen!.longitude != null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          '📍 Coordinates: ${_kitchen!.latitude!.toStringAsFixed(4)}, ${_kitchen!.longitude!.toStringAsFixed(4)} (Permanent Pin on Map)',
+                          style: const TextStyle(color: Colors.white60, fontSize: 11),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 42,
+                        child: OutlinedButton.icon(
+                          onPressed: _openLocationPicker,
+                          icon: const Icon(Icons.map_outlined, color: AppColors.primary, size: 16),
+                          label: const Text('Set / Adjust Map Pin Location', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.primary),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
                       ),
                     ],
                   ),

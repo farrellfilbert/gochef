@@ -19,6 +19,9 @@ $kitchen_name = $input['kitchen_name'] ?? '';
 $kitchen_description = $input['kitchen_description'] ?? 'A new kitchen on GoChef';
 $kitchen_avatar = $input['kitchen_avatar'] ?? '';
 $kitchen_cover = $input['kitchen_cover'] ?? '';
+$location = $input['location'] ?? 'North Hollywood, CA';
+$latitude = isset($input['latitude']) ? floatval($input['latitude']) : 34.1722;
+$longitude = isset($input['longitude']) ? floatval($input['longitude']) : -118.3765;
 
 if (!$user_id || empty($kitchen_name)) {
     http_response_code(400);
@@ -49,8 +52,8 @@ try {
     }
     
     // Create kitchen with is_verified = 0 (Pending admin approval)
-    $insert_kitchen = $pdo->prepare("INSERT INTO kitchens (user_id, name, description, avatar, cover_image, is_verified) VALUES (?, ?, ?, ?, ?, 0)");
-    $insert_kitchen->execute([$user_id, $kitchen_name, $kitchen_description, $kitchen_avatar, $kitchen_cover]);
+    $insert_kitchen = $pdo->prepare("INSERT INTO kitchens (user_id, name, description, avatar, cover_image, location, latitude, longitude, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)");
+    $insert_kitchen->execute([$user_id, $kitchen_name, $kitchen_description, $kitchen_avatar, $kitchen_cover, $location, $latitude, $longitude]);
     $kitchen_id = $pdo->lastInsertId();
     
     // Notify admin
