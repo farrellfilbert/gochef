@@ -15,7 +15,7 @@ $data = json_decode(file_get_contents("php://input"));
 if (
     !isset($data->sender_id) ||
     !isset($data->receiver_id) ||
-    !isset($data->message)
+    (!isset($data->message) && !isset($data->image_url))
 ) {
     echo json_encode(['success' => false, 'error' => 'Missing required fields']);
     exit;

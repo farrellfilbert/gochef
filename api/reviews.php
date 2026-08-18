@@ -1,4 +1,13 @@
 <?php
+header('Access-Control-Allow-Origin: *');
+header('Content-Type: application/json');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
 require_once 'db_connect.php';
 
 // Ensure order_id exists in reviews table
@@ -51,28 +60,32 @@ if ($method === 'GET') {
         exit;
     }
 
-    // Check if kitchen_id missing but order_id provided
-    if (!$kitchen_id && $order_id) {
-        $kStmt = $pdo->prepare("SELECT kitchen_id FROM orders WHERE id = ?");
-        $kStmt->execute([$order_id]);
-        $kitchen_id = $kStmt->fetchColumn() ?: null;
-    }
+    try {
+        // Check if kitchen_id missing but order_id provided
+        if (!$kitchen_id && $order_id) {
+            $kStmt = $pdo->prepare("SELECT kitchen_id FROM orders WHERE id = ?");
+            $kStmt->execute([$order_id]);
+            $kitchen_id = $kStmt->fetchColumn() ?: null;
+        }
 
-    $stmt = $pdo->prepare("INSERT INTO reviews (user_id, kitchen_id, menu_item_id, order_id, rating, comment) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$user_id, $kitchen_id, $menu_item_id, $order_id, $rating, $comment]);
+        $stmt = $pdo->prepare("INSERT INTO reviews (user_id, kitchen_id, menu_item_id, order_id, rating, comment) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$user_id, $kitchen_id, $menu_item_id, $order_id, $rating, $comment]);
 
-    // Update kitchen average rating
-    if ($kitchen_id) {
-        $pdo->prepare("UPDATE kitchens SET rating = (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE kitchen_id = ?), total_reviews = (SELECT COUNT(*) FROM reviews WHERE kitchen_id = ?) WHERE id = ?")->execute([$kitchen_id, $kitchen_id, $kitchen_id]);
-    }
-    if ($menu_item_id) {
-        $pdo->prepare("UPDATE menu_items SET rating = (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE menu_item_id = ?), total_reviews = (SELECT COUNT(*) FROM reviews WHERE menu_item_id = ?) WHERE id = ?")->execute([$menu_item_id, $menu_item_id, $menu_item_id]);
-    }
+        // Update kitchen average rating
+        if ($kitchen_id) {
+            $pdo->prepare("UPDATE kitchens SET rating = (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE kitchen_id = ?), total_reviews = (SELECT COUNT(*) FROM reviews WHERE kitchen_id = ?) WHERE id = ?")->execute([$kitchen_id, $kitchen_id, $kitchen_id]);
+        }
+        if ($menu_item_id) {
+            $pdo->prepare("UPDATE menu_items SET rating = (SELECT ROUND(AVG(rating), 1) FROM reviews WHERE menu_item_id = ?), total_reviews = (SELECT COUNT(*) FROM reviews WHERE menu_item_id = ?) WHERE id = ?")->execute([$menu_item_id, $menu_item_id, $menu_item_id]);
+        }
 
-    echo json_encode([
-        'success' => true, 
-        'id' => $pdo->lastInsertId(),
-        'message' => 'Review submitted successfully'
-    ]);
+        echo json_encode([
+            'success' => true, 
+            'id' => $pdo->lastInsertId(),
+            'message' => 'Review submitted successfully'
+        ]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
 }
 ?>
