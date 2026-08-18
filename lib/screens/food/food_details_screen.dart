@@ -8,6 +8,7 @@ import '../../models/menu_addon_model.dart';
 import '../../models/review_model.dart';
 import '../cart/cart_screen.dart';
 import '../kitchen/kitchen_profile_screen.dart';
+import '../../widgets/cart_icon_button.dart';
 
 class FoodDetailsScreen extends StatefulWidget {
   final int menuItemId;
@@ -471,23 +472,8 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                     ),
                                   ),
                                 ),
-                              const SizedBox(width: 12),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const CartScreen()),
-                                  );
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.surface.withValues(alpha: 0.5),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.shopping_cart_outlined, color: AppColors.onSurface),
-                                ),
-                              ),
+                              const SizedBox(width: 8),
+                              const CartIconButton(iconColor: AppColors.onSurface),
                             ],
                           )
                         ],

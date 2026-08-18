@@ -162,8 +162,8 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Center(
               child: Text(
-                'GoChef Gourmet v2.4.0 build 4829',
-                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.4)),
+                'GoChef x The GRUB Next Door!',
+                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6)).copyWith(fontWeight: FontWeight.bold),
               ),
             ),
           ],

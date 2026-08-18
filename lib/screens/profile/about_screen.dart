@@ -23,27 +23,39 @@ class AboutScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 120,
-                height: 120,
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
+                  color: AppColors.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.restaurant, size: 64, color: AppColors.primary),
+                child: Image.asset(
+                  'assets/images/GoCheflogo.png',
+                  height: 90,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.restaurant, size: 64, color: AppColors.primary),
+                ),
               ),
               const SizedBox(height: 24),
               Text(
-                'GoChef',
-                style: AppTextStyles.headlineLg(color: AppColors.onSurface),
+                'The GRUB Next Door!',
+                style: AppTextStyles.headlineLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                'Version 1.0.0',
-                style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                'GoChef • Version 1.0.0',
+                style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Text(
-                'GoChef connects you with the best private chefs and catering services in your area. Enjoy premium culinary experiences from the comfort of your home.',
+                'The GRUB Next Door connects you with the best private chefs, artisan home cooks, and boutique catering services right in your neighborhood. Enjoy authentic gourmet culinary experiences delivered fresh to your doorstep or booked for private dine-in.',
                 style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
@@ -53,7 +65,7 @@ class AboutScreen extends StatelessWidget {
               _buildLink('Privacy Policy'),
               const SizedBox(height: 32),
               Text(
-                '© 2026 GoChef Inc. All rights reserved.',
+                '© 2026 GoChef x The GRUB Next Door! All rights reserved.',
                 style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5)),
               ),
               const SizedBox(height: 24),

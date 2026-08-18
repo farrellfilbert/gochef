@@ -5,6 +5,8 @@ import '../notifications/notifications_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/order_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
+import '../../widgets/notification_bell.dart';
+import '../../widgets/cart_icon_button.dart';
 import '../chat/chat_screen.dart';
 import '../tracking/order_tracking_screen.dart';
 import '../cart/cart_screen.dart';
@@ -44,12 +46,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         backgroundColor: AppColors.surface.withValues(alpha: 0.8),
         elevation: 0,
         title: const CustomAppBarTitle(),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsScreen()));
-            },
+        actions: const [
+          CartIconButton(iconColor: Colors.white),
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: NotificationBell(iconColor: Colors.white),
           ),
         ],
         bottom: PreferredSize(

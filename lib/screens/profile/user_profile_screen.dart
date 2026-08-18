@@ -22,6 +22,8 @@ import 'about_screen.dart';
 import 'become_chef_screen.dart';
 import '../chef_dashboard/chef_main_navigation.dart';
 import '../admin/admin_dashboard_screen.dart';
+import '../../widgets/cart_icon_button.dart';
+import '../../widgets/notification_bell.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -709,12 +711,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
-            },
+        actions: const [
+          CartIconButton(iconColor: Colors.white),
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: NotificationBell(iconColor: Colors.white),
           ),
         ],
         bottom: PreferredSize(
@@ -1202,6 +1203,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 24),
+                  Center(
+                    child: Text(
+                      'GoChef x The GRUB Next Door!',
+                      style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6)).copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),

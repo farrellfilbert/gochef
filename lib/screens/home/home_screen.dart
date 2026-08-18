@@ -17,6 +17,7 @@ import '../../models/promotion_model.dart';
 import '../../models/user_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
 import '../../widgets/notification_bell.dart';
+import '../../widgets/cart_icon_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -207,44 +208,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           const Expanded(child: CustomAppBarTitle()),
                           Row(
-                            children: [
-                              FutureBuilder<List<dynamic>>(
-                                future: _cartFuture,
-                                builder: (context, snapshot) {
-                                  int cartCount = 0;
-                                  if (snapshot.hasData && snapshot.data != null) {
-                                    cartCount = snapshot.data!.length;
-                                  }
-                                  return Stack(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-                                        onPressed: () {
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()))
-                                              .then((_) => setState(() => _cartFuture = ApiService.getCart()));
-                                        },
-                                      ),
-                                      if (cartCount > 0)
-                                        Positioned(
-                                          right: 8,
-                                          top: 8,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: AppColors.primary,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Text(
-                                              '$cartCount',
-                                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  );
-                                },
-                              ),
-                              const NotificationBell(iconColor: Colors.white),
+                            children: const [
+                              CartIconButton(iconColor: Colors.white),
+                              NotificationBell(iconColor: Colors.white),
                             ],
                           )
                         ],

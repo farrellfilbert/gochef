@@ -19,7 +19,7 @@ class ChefMainNavigation extends StatefulWidget {
 }
 
 class _ChefMainNavigationState extends State<ChefMainNavigation> {
-  int _currentIndex = 3; // Default to Stats based on HTML
+  int _currentIndex = 0; // Default to Kitchen Profile page
   int _unreadChats = 0;
   int _prevUnreadChats = 0;
   Timer? _pollingTimer;

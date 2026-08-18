@@ -8,6 +8,7 @@ import '../food/food_details_screen.dart';
 import '../../models/kitchen_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
 import '../../widgets/notification_bell.dart';
+import '../../widgets/cart_icon_button.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -77,9 +78,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
         backgroundColor: AppColors.surface.withValues(alpha: 0.8),
         elevation: 0,
         title: const CustomAppBarTitle(subtitle: 'Favorites'),
-        actions: [
+        actions: const [
+          CartIconButton(iconColor: Colors.white),
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: EdgeInsets.only(right: 12),
             child: NotificationBell(iconColor: Colors.white),
           ),
         ],
