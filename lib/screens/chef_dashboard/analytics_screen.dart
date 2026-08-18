@@ -3,6 +3,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../models/user_model.dart';
+import '../../widgets/notification_bell.dart';
 
 class ChefAnalyticsScreen extends StatefulWidget {
   const ChefAnalyticsScreen({super.key});
@@ -23,14 +24,16 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
 
   Future<Map<String, dynamic>?> _loadData() async {
     final user = await ApiService.getProfile();
-    if (user != null) {
-      if (mounted) {
-        setState(() {
-          _kitchenName = user.kitchenName ?? 'your kitchen';
-        });
-      }
-      if (user.kitchenId != null) {
-        return await ApiService.getKitchenAnalytics(int.parse(user.kitchenId!));
+    if (user != null && user.kitchenId != null) {
+      final parsedId = int.tryParse(user.kitchenId!) ?? 0;
+      if (parsedId > 0) {
+        final kitchen = await ApiService.getKitchenDetail(parsedId);
+        if (kitchen != null && mounted) {
+          setState(() {
+            _kitchenName = kitchen.name;
+          });
+        }
+        return await ApiService.getKitchenAnalytics(parsedId);
       }
     }
     return null;
@@ -45,9 +48,9 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
         elevation: 0,
         title: const Text('Kitchen Analytics', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: AppColors.primary),
-            onPressed: () {},
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: NotificationBell(iconColor: Colors.white),
           ),
         ],
       ),

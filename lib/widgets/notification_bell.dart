@@ -11,7 +11,7 @@ import 'dart:js' as js;
 class NotificationBell extends StatefulWidget {
   final Color iconColor;
   
-  const NotificationBell({super.key, this.iconColor = AppColors.onSurfaceVariant});
+  const NotificationBell({super.key, this.iconColor = const Color(0xFFC4C6D0)});
 
   @override
   State<NotificationBell> createState() => _NotificationBellState();

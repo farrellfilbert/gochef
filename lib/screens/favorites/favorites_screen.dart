@@ -7,6 +7,7 @@ import '../kitchen/kitchen_profile_screen.dart';
 import '../food/food_details_screen.dart';
 import '../../models/kitchen_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
+import '../../widgets/notification_bell.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -77,11 +78,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
         elevation: 0,
         title: const CustomAppBarTitle(subtitle: 'Favorites'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, color: AppColors.primary),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsScreen()));
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: NotificationBell(iconColor: Colors.white),
           ),
         ],
         bottom: PreferredSize(
@@ -127,11 +126,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
                     ),
                     child: TabBar(
                       controller: _tabController,
-                      indicatorColor: AppColors.primary,
+                      indicatorColor: Colors.white,
                       indicatorWeight: 3,
-                      labelColor: AppColors.primary,
-                      unselectedLabelColor: AppColors.secondary,
-                      labelStyle: AppTextStyles.headlineMd(color: AppColors.primary),
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.white60,
+                      labelStyle: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+                      unselectedLabelStyle: AppTextStyles.headlineMd(color: Colors.white60).copyWith(fontWeight: FontWeight.w500),
                       tabs: const [
                         Tab(text: 'Meals'),
                         Tab(text: 'Kitchens'),
