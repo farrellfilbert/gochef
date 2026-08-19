@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:js' as js;
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
+import '../../services/audio_service.dart';
 import 'analytics_screen.dart';
 import 'menu_management_screen.dart';
 import 'order_management_screen.dart';
@@ -21,7 +20,10 @@ class ChefMainNavigation extends StatefulWidget {
 class _ChefMainNavigationState extends State<ChefMainNavigation> {
   int _currentIndex = 0; // Default to Kitchen Profile page
   int _unreadChats = 0;
-  int _prevUnreadChats = 0;
+  int _prevUnreadChats = -1;
+  int _pendingOrders = 0;
+  int _prevPendingOrders = -1;
+  String? _lastNotifiedOrderId;
   Timer? _pollingTimer;
 
   final List<Widget> _screens = [
@@ -34,6 +36,7 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
   @override
   void initState() {
     super.initState();
+    AudioService.unlock();
     _fetchUnreadCounts();
     _pollingTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       _fetchUnreadCounts();
@@ -52,12 +55,68 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
       final counts = await ApiService.getUnreadCounts();
       if (mounted) {
         final newChats = (counts['unread_chats'] as int?) ?? 0;
+        final newPendingOrders = (counts['pending_orders'] as int?) ?? 0;
+        final latestOrderId = counts['latest_order_id']?.toString();
+        final latestCustomer = counts['latest_customer_name']?.toString() ?? 'Pelanggan';
+        final latestTotal = counts['latest_order_total'] != null ? '\$${counts['latest_order_total']}' : '';
 
-        // Play chime sound and show snackbar if new chat received
-        if (newChats > _prevUnreadChats && _prevUnreadChats >= 0 && kIsWeb) {
-          try {
-            js.context.callMethod('goChefPlayMessage', []);
-          } catch (_) {}
+        // 1. Check for incoming orders -> Play Order Chime & Alert
+        if (_prevPendingOrders >= 0 && (newPendingOrders > _prevPendingOrders || (latestOrderId != null && latestOrderId != _lastNotifiedOrderId))) {
+          _lastNotifiedOrderId = latestOrderId;
+          AudioService.playOrder();
+
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Colors.white24,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.restaurant, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('🛎️ PESANAN BARU MASUK!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                        Text(
+                          latestOrderId != null ? '$latestCustomer ($latestOrderId) $latestTotal' : 'Ada pesanan baru yang harus dipersiapkan',
+                          style: const TextStyle(fontSize: 12, color: Colors.white70),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              action: SnackBarAction(
+                label: 'LIHAT ORDER',
+                textColor: Colors.amberAccent,
+                onPressed: () {
+                  setState(() {
+                    _currentIndex = 2; // Switch to Orders screen
+                  });
+                },
+              ),
+              backgroundColor: const Color(0xFFD81B60),
+              duration: const Duration(seconds: 7),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+          );
+        } else if (_prevPendingOrders == -1) {
+          _lastNotifiedOrderId = latestOrderId;
+        }
+
+        // 2. Check for incoming chats -> Play Message Sound
+        if (newChats > _prevUnreadChats && _prevUnreadChats >= 0) {
+          AudioService.playMessage();
           
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -78,6 +137,8 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
         setState(() {
           _prevUnreadChats = newChats;
           _unreadChats = newChats;
+          _prevPendingOrders = newPendingOrders;
+          _pendingOrders = newPendingOrders;
         });
       }
     } catch (_) {}
@@ -141,9 +202,23 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
                 activeIcon: Icon(Icons.menu_book),
                 label: 'Menu',
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.receipt_long_outlined),
-                activeIcon: Icon(Icons.receipt_long),
+              BottomNavigationBarItem(
+                icon: _pendingOrders > 0
+                    ? Badge.count(
+                        count: _pendingOrders,
+                        backgroundColor: Colors.amberAccent,
+                        textColor: Colors.black,
+                        child: const Icon(Icons.receipt_long_outlined),
+                      )
+                    : const Icon(Icons.receipt_long_outlined),
+                activeIcon: _pendingOrders > 0
+                    ? Badge.count(
+                        count: _pendingOrders,
+                        backgroundColor: Colors.amberAccent,
+                        textColor: Colors.black,
+                        child: const Icon(Icons.receipt_long),
+                      )
+                    : const Icon(Icons.receipt_long),
                 label: 'Orders',
               ),
               const BottomNavigationBarItem(

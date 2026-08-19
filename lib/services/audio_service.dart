@@ -1,4 +1,4 @@
-﻿// lib/services/audio_service.dart
+// lib/services/audio_service.dart
 // Plays notification sounds using Web Audio API (synthesized, no audio files needed)
 import 'package:flutter/foundation.dart';
 import 'dart:js' as js;
@@ -12,9 +12,17 @@ class AudioService {
     _unlocked = true;
   }
 
+  /// Play loud chime when chef receives an incoming order (Ding-Dong-Ding! 🛎️)
+  static void playOrder() {
+    if (!kIsWeb) return;
+    try {
+      js.context.callMethod('goChefPlayOrder', []);
+    } catch (_) {}
+  }
+
   /// Play a short ding for new notifications
   static void playNotification() {
-    if (!kIsWeb || !_unlocked) return;
+    if (!kIsWeb) return;
     try {
       js.context.callMethod('goChefPlayNotification', []);
     } catch (_) {}
@@ -22,7 +30,7 @@ class AudioService {
 
   /// Play a lighter ping for incoming chat messages
   static void playMessage() {
-    if (!kIsWeb || !_unlocked) return;
+    if (!kIsWeb) return;
     try {
       js.context.callMethod('goChefPlayMessage', []);
     } catch (_) {}

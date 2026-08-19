@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
+import '../../services/audio_service.dart';
 import '../../models/order_model.dart';
 import '../chat/chat_screen.dart';
 
@@ -18,11 +19,13 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   final List<String> _tabs = ['Pending', 'Scheduled', 'Active', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
   bool _isLoading = true;
   List<OrderModel> _orders = [];
+  int _prevOrdersLength = -1;
   Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
+    AudioService.unlock();
     _loadOrders();
     _startPolling();
   }
@@ -34,7 +37,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   }
 
   void _startPolling() {
-    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       _silentLoadOrders();
     });
   }
@@ -44,6 +47,10 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
       final orders = await ApiService.getOrders();
       _checkScheduledOrders(orders);
       if (mounted) {
+        if (_prevOrdersLength >= 0 && orders.length > _prevOrdersLength) {
+          AudioService.playOrder();
+        }
+        _prevOrdersLength = orders.length;
         setState(() {
           _orders = orders;
         });

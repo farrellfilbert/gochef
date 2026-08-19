@@ -123,6 +123,23 @@
       osc.stop(startTime + duration);
     }
 
+    // Prominent multi-tone loud chime for incoming customer orders (Ding-Dong-Ding! 🛎️)
+    window.goChefPlayOrder = function() {
+      try {
+        const ctx = _getCtx();
+        const now = ctx.currentTime;
+        // Ascending harmonic chime sequence (C5 -> E5 -> G5 -> C6)
+        _playTone(523.25, now,        0.18, 0.40, 'triangle');
+        _playTone(659.25, now + 0.12, 0.18, 0.40, 'triangle');
+        _playTone(783.99, now + 0.24, 0.18, 0.40, 'triangle');
+        _playTone(1046.5, now + 0.36, 0.40, 0.45, 'sine');
+        
+        // Second chime echo for restaurant kitchen clarity
+        _playTone(783.99, now + 0.65, 0.16, 0.30, 'triangle');
+        _playTone(1046.5, now + 0.77, 0.50, 0.45, 'sine');
+      } catch(e) { console.warn('GoChef order audio error:', e); }
+    };
+
     // Two-tone pleasant ding for notifications
     window.goChefPlayNotification = function() {
       try {
@@ -144,6 +161,9 @@
 
     // Unlock audio context on first user interaction
     document.addEventListener('click', function() {
+      _getCtx();
+    }, { once: false });
+    document.addEventListener('touchstart', function() {
       _getCtx();
     }, { once: false });
 
