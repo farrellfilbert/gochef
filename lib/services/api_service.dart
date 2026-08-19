@@ -648,6 +648,23 @@ class ApiService {
     return false;
   }
 
+  static Future<bool> markAllNotificationsRead() async {
+    final userId = await getUserId();
+    if (userId == null) return false;
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/notifications.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'action': 'mark_all_read', 'user_id': userId}),
+    ).timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['success'] == true;
+    }
+    return false;
+  }
+
   // =============================================
   // ORDERS
   // =============================================

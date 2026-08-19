@@ -1,4 +1,14 @@
 <?php
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
 require_once 'db_connect.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -12,7 +22,7 @@ if ($method === 'GET') {
 
     $stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50");
     $stmt->execute([$user_id]);
-    $notifications = $stmt->fetchAll();
+    $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $unread = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
     $unread->execute([$user_id]);
@@ -21,6 +31,9 @@ if ($method === 'GET') {
 
 } elseif ($method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
+    if (!$input) {
+        $input = $_POST;
+    }
     $action = $input['action'] ?? '';
 
     if ($action === 'mark_read') {
@@ -32,11 +45,13 @@ if ($method === 'GET') {
         echo json_encode(['success' => true]);
     } elseif ($action === 'mark_all_read') {
         $user_id = intval($input['user_id'] ?? 0);
-        $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
-        $stmt->execute([$user_id]);
+        if ($user_id > 0) {
+            $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
+            $stmt->execute([$user_id]);
+        }
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'error' => 'Unknown action']);
+        echo json_encode(['success' => false, 'error' => 'Unknown action: ' . $action]);
     }
 }
 ?>

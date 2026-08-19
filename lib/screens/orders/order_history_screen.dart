@@ -361,19 +361,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                   if (onRate != null)
                     Padding(
                       padding: const EdgeInsets.only(right: 6),
-                      child: ElevatedButton(
+                      child: TextButton.icon(
                         onPressed: onRate,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber.withValues(alpha: 0.15),
-                          foregroundColor: Colors.amber,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(32),
-                            side: const BorderSide(color: Colors.amber, width: 1),
-                          ),
+                        icon: const Icon(Icons.star, color: Colors.amber, size: 16),
+                        label: const Text(
+                          'Rate',
+                          style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 13),
                         ),
-                        child: const Text('⭐ Rate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.amber,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
                       ),
                     ),
                   ElevatedButton(

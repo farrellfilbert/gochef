@@ -53,16 +53,35 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
       if (mounted) {
         setState(() {
           _currentUserId = userId;
-          // Filter active orders for tracking
           _activeOrders = allOrders.where((o) => o.status != 'Completed' && o.status != 'Cancelled').toList();
           _chats = allChats;
           _promos = (allNotifs['data'] as List? ?? []).map((n) => NotificationModel.fromJson(n)).toList();
           _isLoading = false;
         });
+        // Auto mark all read on open so bell badge clears properly
+        ApiService.markAllNotificationsRead();
       }
     } catch (e) {
       debugPrint('Error loading notifications: $e');
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _markAllAsRead() async {
+    await ApiService.markAllNotificationsRead();
+    if (mounted) {
+      setState(() {
+        _promos = _promos.map((n) => NotificationModel(
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          createdAt: n.createdAt,
+          isRead: true,
+        )).toList();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All notifications marked as read ✓'), duration: Duration(seconds: 1)),
+      );
     }
   }
 
@@ -97,13 +116,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.done_all, color: Colors.white70),
+            tooltip: 'Mark all as read',
+            onPressed: _markAllAsRead,
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.onSurfaceVariant,
           tabs: const [
-            Tab(text: 'System'),
+            Tab(text: 'System & Orders'),
             Tab(text: 'Chats'),
             Tab(text: 'Promos'),
           ],
@@ -123,47 +149,106 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
   }
 
   Widget _buildSystemTab() {
-    if (_activeOrders.isEmpty) {
+    final systemNotifs = _promos.where((n) {
+      final t = n.title.toLowerCase();
+      final m = n.message.toLowerCase();
+      return t.contains('order') || t.contains('system') || t.contains('status') || m.contains('order');
+    }).toList();
+
+    if (_activeOrders.isEmpty && systemNotifs.isEmpty) {
       return Center(
-        child: Text('No active orders to track', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
+        child: Text('No system notifications', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
       );
     }
     return RefreshIndicator(
       onRefresh: _loadAllData,
       color: AppColors.primary,
-      child: ListView.builder(
+      child: ListView(
         padding: const EdgeInsets.all(16),
-        itemCount: _activeOrders.length,
-        itemBuilder: (context, index) {
-          final order = _activeOrders[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (_activeOrders.isNotEmpty) ...[
+            Text('ACTIVE ORDERS', style: AppTextStyles.labelMono(color: const Color(0xFFFF80AB))),
+            const SizedBox(height: 10),
+            ..._activeOrders.map((order) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(order.kitchenName, style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
-                    Text('Order #${order.id}', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(order.kitchenName, style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
+                        Text('Order #${order.id}', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildOrderTracker(order.status),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: Text('Expected arrival: in 30 mins', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                    )
                   ],
                 ),
-                const SizedBox(height: 16),
-                _buildOrderTracker(order.status),
-                const SizedBox(height: 16),
-                Center(
-                  child: Text('Expected arrival: in 30 mins', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                )
-              ],
-            ),
-          );
-        },
+              );
+            }),
+            const SizedBox(height: 12),
+          ],
+          if (systemNotifs.isNotEmpty) ...[
+            Text('STATUS UPDATES', style: AppTextStyles.labelMono(color: Colors.white60)),
+            const SizedBox(height: 10),
+            ...systemNotifs.map((n) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.12)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(n.title, style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                              Text(
+                                n.createdAt.length >= 16 ? n.createdAt.substring(5, 16) : n.createdAt,
+                                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(n.message, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ],
       ),
     );
   }

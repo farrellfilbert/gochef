@@ -19,15 +19,15 @@ class NotificationBell extends StatefulWidget {
 
 class _NotificationBellState extends State<NotificationBell> {
   int _unreadCount = 0;
-  int _prevUnreadCount = 0;
+  int? _prevUnreadCount;
   Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
-    _fetchUnreadCount();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      _fetchUnreadCount();
+    _fetchUnreadCount(isInitial: true);
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _fetchUnreadCount(isInitial: false);
     });
   }
 
@@ -37,14 +37,14 @@ class _NotificationBellState extends State<NotificationBell> {
     super.dispose();
   }
 
-  Future<void> _fetchUnreadCount() async {
+  Future<void> _fetchUnreadCount({bool isInitial = false}) async {
     if (!mounted) return;
     try {
       final counts = await ApiService.getUnreadCounts();
       if (mounted) {
         final newCount = (counts['unread_notifications'] as int?) ?? 0;
-        // Play sound if count increased
-        if (newCount > _prevUnreadCount && _prevUnreadCount >= 0 && kIsWeb) {
+        // ONLY play sound when a NEW notification arrives while already on the screen (never on initial load)
+        if (!isInitial && _prevUnreadCount != null && newCount > _prevUnreadCount! && kIsWeb) {
           try { js.context.callMethod('goChefPlayNotification', []); } catch (_) {}
         }
         setState(() {
