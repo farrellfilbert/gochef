@@ -406,6 +406,26 @@ class ApiService {
     return null;
   }
 
+  static Future<bool> updateUserCaloriesGoal(dynamic userId, int dailyGoal) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/user_calories.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'user_id': userId,
+          'daily_goal': dailyGoal,
+        }),
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
+      }
+    } catch (e) {
+      print('Error updating user calories goal: $e');
+    }
+    return false;
+  }
+
   // =============================================
   // CART
   // =============================================

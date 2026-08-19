@@ -43,6 +43,7 @@ class ProfileData {
 class _UserProfileScreenState extends State<UserProfileScreen> {
   late Future<ProfileData> _profileFuture;
   final ImagePicker _picker = ImagePicker();
+  Set<String> _claimedPerks = {};
 
   @override
   void initState() {
@@ -67,6 +68,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       final userId = user.id;
       bonusCoins = prefs.getInt('user_coins_$userId') ?? 0;
       totalVouchers = prefs.getInt('user_vouchers_$userId') ?? 25;
+      final claimedList = prefs.getStringList('user_claimed_perks_$userId') ?? [];
+      _claimedPerks = claimedList.toSet();
     } catch (_) {}
 
     return ProfileData(user, orders, bonusCoins: bonusCoins, totalVouchers: totalVouchers);
@@ -550,7 +553,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Widget _buildPerkRow(String title, String subtitle, int cost, IconData icon, Color color, int currentPoints) {
-    final canClaim = currentPoints >= cost;
+    final bool canClaim = cost == 0 || currentPoints >= cost;
+    final bool isClaimed = _claimedPerks.contains(title);
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -562,10 +567,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
+              color: Colors.white.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 22),
+            child: Icon(icon, color: Colors.white, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -578,18 +583,23 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: (isClaimed || !canClaim) ? null : () {
               Navigator.pop(context);
               _claimPerk(title, cost, currentPoints: currentPoints);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: canClaim ? AppColors.primary : AppColors.surfaceContainerHighest,
-              foregroundColor: canClaim ? AppColors.onPrimary : AppColors.onSurfaceVariant,
+              backgroundColor: isClaimed ? const Color(0xFF2E384D) : (canClaim ? AppColors.primary : AppColors.surfaceContainerHighest),
+              foregroundColor: isClaimed ? Colors.white70 : (canClaim ? AppColors.onPrimary : AppColors.onSurfaceVariant),
+              disabledBackgroundColor: isClaimed ? const Color(0xFF2E384D) : AppColors.surfaceContainerHighest,
+              disabledForegroundColor: isClaimed ? Colors.white70 : AppColors.onSurfaceVariant,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               minimumSize: Size.zero,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: Text(cost > 0 ? '$cost pts' : 'Claim', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            child: Text(
+              isClaimed ? 'Claimed ✓' : (cost > 0 ? '$cost pts' : 'Claim'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
           ),
         ],
       ),
@@ -597,6 +607,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _claimPerk(String perkTitle, int cost, {int currentPoints = 0}) async {
+    if (_claimedPerks.contains(perkTitle)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You have already claimed "$perkTitle"')),
+      );
+      return;
+    }
+
     if (cost > 0 && currentPoints < cost) {
       showDialog(
         context: context,
@@ -643,6 +660,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       final currentVouchers = prefs.getInt('user_vouchers_$userId') ?? 25;
       await prefs.setInt('user_vouchers_$userId', currentVouchers + 1);
 
+      _claimedPerks.add(perkTitle);
+      await prefs.setStringList('user_claimed_perks_$userId', _claimedPerks.toList());
+
       _refreshProfile();
     } catch (_) {}
 
@@ -674,6 +694,389 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             child: const Text('Great!'),
           ),
         ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // CALORIES DETAILS & EDIT GOAL MODAL
+  // ==========================================
+  void _showCaloriesModal(dynamic userId, int initialDailyGoal, int initialWeeklyGoal, Map<String, dynamic>? calData) {
+    int currentDailyGoal = initialDailyGoal;
+    final goalController = TextEditingController(text: currentDailyGoal.toString());
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final int dailyCal = calData?['daily_calories'] ?? 0;
+            final int weeklyCal = calData?['weekly_calories'] ?? 0;
+            final int dailyGoal = currentDailyGoal;
+            final int weeklyGoal = currentDailyGoal * 7;
+            final int dailyPct = ((dailyCal / dailyGoal) * 100).toInt().clamp(0, 100);
+            final int weeklyPct = ((weeklyCal / weeklyGoal) * 100).toInt().clamp(0, 100);
+
+            final List todayMeals = calData?['today_meals'] ?? [];
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.85,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40, height: 4,
+                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 24),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Calories Intake & Goals', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+                              const Text('GoChef Personal Nutrition Target', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        // Today & Weekly Cards Row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1C2029),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text('Today', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13)),
+                                        Text('$dailyPct%', style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text('$dailyCal kcal', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                                    const SizedBox(height: 2),
+                                    Text('Goal: $dailyGoal kcal', style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                                    const SizedBox(height: 8),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: LinearProgressIndicator(
+                                        value: (dailyCal / dailyGoal).clamp(0.0, 1.0),
+                                        minHeight: 5,
+                                        backgroundColor: Colors.white12,
+                                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.orangeAccent),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1C2029),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text('Weekly', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13)),
+                                        Text('$weeklyPct%', style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text('$weeklyCal kcal', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                                    const SizedBox(height: 2),
+                                    Text('Goal: $weeklyGoal kcal', style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                                    const SizedBox(height: 8),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: LinearProgressIndicator(
+                                        value: (weeklyCal / weeklyGoal).clamp(0.0, 1.0),
+                                        minHeight: 5,
+                                        backgroundColor: Colors.white12,
+                                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.orangeAccent),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Section 2: Edit Custom Calorie Goal
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceContainerHigh.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.tune, color: Colors.white, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text('Set Your Daily Target', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Everyone has different dietary goals. Select a preset or type your custom daily target.',
+                                style: TextStyle(color: Colors.white60, fontSize: 12),
+                              ),
+                              const SizedBox(height: 14),
+
+                              // Quick preset chips
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _buildCaloriePresetChip('1,500 kcal (Cut)', 1500, currentDailyGoal, (v) {
+                                    setModalState(() {
+                                      currentDailyGoal = v;
+                                      goalController.text = v.toString();
+                                    });
+                                  }),
+                                  _buildCaloriePresetChip('1,800 kcal (Lean)', 1800, currentDailyGoal, (v) {
+                                    setModalState(() {
+                                      currentDailyGoal = v;
+                                      goalController.text = v.toString();
+                                    });
+                                  }),
+                                  _buildCaloriePresetChip('2,000 kcal (Standard)', 2000, currentDailyGoal, (v) {
+                                    setModalState(() {
+                                      currentDailyGoal = v;
+                                      goalController.text = v.toString();
+                                    });
+                                  }),
+                                  _buildCaloriePresetChip('2,500 kcal (Bulking)', 2500, currentDailyGoal, (v) {
+                                    setModalState(() {
+                                      currentDailyGoal = v;
+                                      goalController.text = v.toString();
+                                    });
+                                  }),
+                                  _buildCaloriePresetChip('3,000 kcal (Athlete)', 3000, currentDailyGoal, (v) {
+                                    setModalState(() {
+                                      currentDailyGoal = v;
+                                      goalController.text = v.toString();
+                                    });
+                                  }),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Input & Save Button
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      height: 48,
+                                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surface,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.white24),
+                                      ),
+                                      child: TextField(
+                                        controller: goalController,
+                                        keyboardType: TextInputType.number,
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                        decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          suffixText: 'kcal / day',
+                                          suffixStyle: TextStyle(color: Colors.white60, fontSize: 13),
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.symmetric(vertical: 14),
+                                        ),
+                                        onChanged: (val) {
+                                          final parsed = int.tryParse(val);
+                                          if (parsed != null && parsed >= 500 && parsed <= 10000) {
+                                            setModalState(() => currentDailyGoal = parsed);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  ElevatedButton(
+                                    onPressed: isSaving ? null : () async {
+                                      final target = int.tryParse(goalController.text) ?? currentDailyGoal;
+                                      if (target < 500 || target > 10000) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Please enter a target between 500 and 10,000 kcal')),
+                                        );
+                                        return;
+                                      }
+                                      setModalState(() => isSaving = true);
+                                      final success = await ApiService.updateUserCaloriesGoal(userId, target);
+                                      setModalState(() => isSaving = false);
+                                      if (success) {
+                                        _refreshProfile();
+                                        Navigator.pop(ctx);
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              backgroundColor: Colors.green.shade800,
+                                              content: Text('✅ Daily target updated to $target kcal! Weekly goal set to ${target * 7} kcal.'),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: Colors.black,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    child: isSaving
+                                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                                        : const Text('Save Goal', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Section 3: Today's Meals Intake History
+                        Text("Today's GoChef Meals", style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
+                        const SizedBox(height: 10),
+                        if (todayMeals.isEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'No GoChef meals ordered today yet.\nOrder any meal to automatically log its calories!',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.white54, fontSize: 13),
+                              ),
+                            ),
+                          )
+                        else
+                          ...todayMeals.map((order) {
+                            final items = order['items'] as List? ?? [];
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceContainerLow,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Order #${order['order_id']}', style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12)),
+                                      Text('${order['total_calories']} kcal', style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 14)),
+                                    ],
+                                  ),
+                                  const Divider(color: Colors.white12, height: 16),
+                                  ...items.map((it) => Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 2),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('${it['name']} x${it['quantity']}', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                                        Text('${it['total_calories']} kcal', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                                      ],
+                                    ),
+                                  )),
+                                ],
+                              ),
+                            );
+                          }),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCaloriePresetChip(String label, int value, int current, Function(int) onSelect) {
+    final bool isSel = current == value;
+    return GestureDetector(
+      onTap: () => onSelect(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSel ? Colors.white : AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSel ? Colors.white : Colors.white24),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSel ? Colors.black : Colors.white,
+            fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+            fontSize: 12,
+          ),
+        ),
       ),
     );
   }
@@ -997,6 +1400,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           subtitle: 'Valid for 3 days',
                           buttonText: 'Claim',
                           isLocked: false,
+                          isClaimed: _claimedPerks.contains('Free Delivery'),
                           onTap: () => _claimPerk('Free Delivery', 0, currentPoints: loyaltyPoints),
                         ),
                         const SizedBox(width: 16),
@@ -1007,6 +1411,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           subtitle: '500 Points',
                           buttonText: loyaltyPoints >= 500 ? 'Claim' : '500 pts',
                           isLocked: loyaltyPoints < 500,
+                          isClaimed: _claimedPerks.contains('10% Off Order'),
                           onTap: () => _claimPerk('10% Off Order', 500, currentPoints: loyaltyPoints),
                         ),
                         const SizedBox(width: 16),
@@ -1017,6 +1422,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           subtitle: 'With any entree',
                           buttonText: 'Claim',
                           isLocked: false,
+                          isClaimed: _claimedPerks.contains('Free Mocktail'),
                           onTap: () => _claimPerk('Free Mocktail', 0, currentPoints: loyaltyPoints),
                         ),
                       ],
@@ -1024,7 +1430,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Calories Tracker Card (Daily & Weekly)
+                  // Calories Tracker Card (Daily & Weekly - Tap to open management & edit goal)
                   FutureBuilder<Map<String, dynamic>?>(
                     future: ApiService.getUserCalories(user.id),
                     builder: (context, calSnap) {
@@ -1034,166 +1440,179 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       final int weeklyGoal = calSnap.data?['weekly_goal'] ?? 14000;
                       final int dailyPct = calSnap.data?['daily_percentage'] ?? ((dailyCal / dailyGoal) * 100).toInt().clamp(0, 100);
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 32),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1C2029).withValues(alpha: 0.7),
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.orange.withValues(alpha: 0.25)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.orange.withValues(alpha: 0.05),
-                              blurRadius: 16,
-                              offset: const Offset(0, 4),
+                          onTap: () => _showCaloriesModal(user.id, dailyGoal, weeklyGoal, calSnap.data),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 32),
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1C2029).withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.orange.withValues(alpha: 0.25)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.orange.withValues(alpha: 0.05),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Header
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Header
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange.withValues(alpha: 0.15),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 22),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                    Row(
                                       children: [
-                                        Text(
-                                          'Calories Tracker',
-                                          style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange.withValues(alpha: 0.15),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 22),
                                         ),
-                                        Text(
-                                          'Track intake per GoChef order',
-                                          style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                                        const SizedBox(width: 12),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Calories Tracker',
+                                              style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              'Tap to customize target & meals',
+                                              style: AppTextStyles.labelSm(color: Colors.orangeAccent).copyWith(fontSize: 11),
+                                            ),
+                                          ],
                                         ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                                          ),
+                                          child: Text(
+                                            '$dailyPct% Daily',
+                                            style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 11),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 12),
                                       ],
                                     ),
                                   ],
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-                                  ),
-                                  child: Text(
-                                    '$dailyPct% Daily',
-                                    style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 11),
+                                const SizedBox(height: 18),
+
+                                // Daily & Weekly Stats Row
+                                Row(
+                                  children: [
+                                    // Daily Box
+                                    Expanded(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.surfaceContainerLow,
+                                          borderRadius: BorderRadius.circular(14),
+                                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.today, size: 14, color: AppColors.onSurfaceVariant),
+                                                const SizedBox(width: 6),
+                                                Text('Daily', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.w600)),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                                              textBaseline: TextBaseline.alphabetic,
+                                              children: [
+                                                Text(
+                                                  '$dailyCal',
+                                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                const Text('kcal', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text('Target: $dailyGoal kcal', style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+
+                                    // Weekly Box
+                                    Expanded(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.surfaceContainerLow,
+                                          borderRadius: BorderRadius.circular(14),
+                                          border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.date_range, size: 14, color: AppColors.onSurfaceVariant),
+                                                const SizedBox(width: 6),
+                                                Text('Weekly', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.w600)),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                                              textBaseline: TextBaseline.alphabetic,
+                                              children: [
+                                                Text(
+                                                  '$weeklyCal',
+                                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                const Text('kcal', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text('Target: $weeklyGoal kcal', style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
+
+                                // Daily Progress Bar
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: LinearProgressIndicator(
+                                    value: (dailyCal / dailyGoal).clamp(0.0, 1.0),
+                                    minHeight: 6,
+                                    backgroundColor: Colors.white12,
+                                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.orangeAccent),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 18),
-
-                            // Daily & Weekly Stats Row
-                            Row(
-                              children: [
-                                // Daily Box
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surfaceContainerLow,
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.today, size: 14, color: AppColors.onSurfaceVariant),
-                                            const SizedBox(width: 6),
-                                            Text('Daily', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.w600)),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                                          textBaseline: TextBaseline.alphabetic,
-                                          children: [
-                                            Text(
-                                              '$dailyCal',
-                                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            const Text('kcal', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text('Target: $dailyGoal kcal', style: const TextStyle(color: Colors.white38, fontSize: 10)),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-
-                                // Weekly Box
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surfaceContainerLow,
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.date_range, size: 14, color: AppColors.onSurfaceVariant),
-                                            const SizedBox(width: 6),
-                                            Text('Weekly', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.w600)),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                                          textBaseline: TextBaseline.alphabetic,
-                                          children: [
-                                            Text(
-                                              '$weeklyCal',
-                                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            const Text('kcal', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text('Target: $weeklyGoal kcal', style: const TextStyle(color: Colors.white38, fontSize: 10)),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-
-                            // Daily Progress Bar
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
-                              child: LinearProgressIndicator(
-                                value: (dailyCal / dailyGoal).clamp(0.0, 1.0),
-                                minHeight: 6,
-                                backgroundColor: Colors.white12,
-                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.orangeAccent),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       );
                     },
@@ -1413,7 +1832,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     required String subtitle,
     required String buttonText,
     required bool isLocked,
-    required VoidCallback onTap,
+    bool isClaimed = false,
+    required VoidCallback? onTap,
   }) {
     return Container(
       width: 160,
@@ -1444,15 +1864,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             width: double.infinity,
             height: 32,
             child: ElevatedButton(
-              onPressed: onTap,
+              onPressed: (isClaimed || isLocked) ? null : onTap,
               style: ElevatedButton.styleFrom(
-                backgroundColor: isLocked ? AppColors.surfaceContainerHighest : color,
-                foregroundColor: isLocked ? AppColors.onSurfaceVariant : Colors.white,
+                backgroundColor: isClaimed 
+                    ? const Color(0xFF2E384D)
+                    : (isLocked ? AppColors.surfaceContainerHighest : color),
+                foregroundColor: isClaimed ? Colors.white70 : (isLocked ? AppColors.onSurfaceVariant : Colors.white),
+                disabledBackgroundColor: isClaimed ? const Color(0xFF2E384D) : AppColors.surfaceContainerHighest,
+                disabledForegroundColor: isClaimed ? Colors.white70 : AppColors.onSurfaceVariant,
                 elevation: 0,
                 padding: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: Text(buttonText, style: AppTextStyles.labelSm(color: isLocked ? AppColors.onSurfaceVariant : Colors.white).copyWith(fontWeight: FontWeight.bold)),
+              child: Text(
+                isClaimed ? 'Claimed ✓' : buttonText,
+                style: AppTextStyles.labelSm(color: isClaimed ? Colors.white70 : (isLocked ? AppColors.onSurfaceVariant : Colors.white)).copyWith(fontWeight: FontWeight.bold),
+              ),
             ),
           ),
         ],
