@@ -14,6 +14,17 @@ require_once 'db_connect.php';
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
+    $action = $_GET['action'] ?? '';
+    if ($action === 'mark_all_read') {
+        $user_id = intval($_GET['user_id'] ?? 0);
+        if ($user_id > 0) {
+            $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
+            $stmt->execute([$user_id]);
+        }
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
     if (!isset($_GET['user_id'])) {
         echo json_encode(['success' => false, 'error' => 'user_id required']);
         exit;
@@ -34,17 +45,17 @@ if ($method === 'GET') {
     if (!$input) {
         $input = $_POST;
     }
-    $action = $input['action'] ?? '';
+    $action = $input['action'] ?? $_GET['action'] ?? '';
 
     if ($action === 'mark_read') {
-        $notification_id = intval($input['notification_id'] ?? 0);
+        $notification_id = intval($input['notification_id'] ?? $_GET['notification_id'] ?? 0);
         if ($notification_id) {
             $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE id = ?");
             $stmt->execute([$notification_id]);
         }
         echo json_encode(['success' => true]);
     } elseif ($action === 'mark_all_read') {
-        $user_id = intval($input['user_id'] ?? 0);
+        $user_id = intval($input['user_id'] ?? $_GET['user_id'] ?? 0);
         if ($user_id > 0) {
             $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
             $stmt->execute([$user_id]);
