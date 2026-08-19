@@ -962,7 +962,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                       ],
                                     ),
                                   ),
-                                  const Icon(Icons.arrow_forward_ios, color: AppColors.primary, size: 16),
+                                  const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
                                 ],
                               ),
                             )
@@ -1429,10 +1429,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.2),
+              color: Colors.white.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
           const Spacer(),
           Text(title, style: AppTextStyles.bodyMd(color: AppColors.onSurface)),

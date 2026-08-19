@@ -184,10 +184,11 @@ class _CartScreenState extends State<CartScreen> {
                                     Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: AppColors.primaryContainer.withValues(alpha: 0.2),
+                                        color: Colors.white.withValues(alpha: 0.12),
                                         borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                                       ),
-                                      child: const Icon(Icons.location_on, color: AppColors.primary),
+                                      child: const Icon(Icons.location_on, color: Colors.white),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
@@ -220,14 +221,15 @@ class _CartScreenState extends State<CartScreen> {
                               ),
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                                 decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                                 ),
                                 child: Text(
                                   'Change',
-                                  style: AppTextStyles.labelMono(color: AppColors.primary),
+                                  style: AppTextStyles.labelMono(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ],
