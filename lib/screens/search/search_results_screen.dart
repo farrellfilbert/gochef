@@ -20,8 +20,16 @@ class SearchResultsScreen extends StatefulWidget {
 class _SearchResultsScreenState extends State<SearchResultsScreen> {
   late TextEditingController _searchController;
   bool _isLoading = false;
+  List<KitchenModel> _rawKitchens = [];
+  List<MenuItemModel> _rawDishes = [];
   List<KitchenModel> _kitchens = [];
   List<MenuItemModel> _dishes = [];
+
+  String _sortBy = 'relevance'; // 'relevance', 'price_asc', 'price_desc', 'rating'
+  String? _selectedPriceRange; // null, '$', '$$', '$$$'
+  double _minRating = 0.0; // 0.0, 4.0, 4.5
+  String? _selectedDietary; // null, 'Halal', 'Vegan', 'Vegetarian', 'Gluten-Free', 'Keto'
+  double _maxPrice = 100.0;
 
   @override
   void initState() {
@@ -40,15 +48,480 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     setState(() => _isLoading = true);
     try {
       final results = await ApiService.search(query);
-      setState(() {
-        _kitchens = results['kitchens'] ?? [];
-        _dishes = results['menu_items'] ?? [];
-      });
+      _rawKitchens = results['kitchens'] ?? [];
+      _rawDishes = results['menu_items'] ?? [];
+      _applyFilters();
     } catch (e) {
       debugPrint('Search error: $e');
-    } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _applyFilters() {
+    List<MenuItemModel> dishes = List.from(_rawDishes);
+    List<KitchenModel> kitchens = List.from(_rawKitchens);
+
+    // Max Price filter
+    if (_maxPrice < 100.0) {
+      dishes = dishes.where((d) => d.price <= _maxPrice).toList();
+    }
+
+    // Price Range filter ($: <=15, $$: 15-30, $$$: >30)
+    if (_selectedPriceRange == r'$') {
+      dishes = dishes.where((d) => d.price <= 15.0).toList();
+    } else if (_selectedPriceRange == r'$$') {
+      dishes = dishes.where((d) => d.price > 15.0 && d.price <= 30.0).toList();
+    } else if (_selectedPriceRange == r'$$$') {
+      dishes = dishes.where((d) => d.price > 30.0).toList();
+    }
+
+    // Min Rating filter
+    if (_minRating > 0.0) {
+      kitchens = kitchens.where((k) => k.rating >= _minRating).toList();
+      dishes = dishes.where((d) => d.rating >= _minRating).toList();
+    }
+
+    // Dietary filter
+    if (_selectedDietary != null && _selectedDietary!.isNotEmpty) {
+      final queryTag = _selectedDietary!.toLowerCase();
+      dishes = dishes.where((d) {
+        final name = d.name.toLowerCase();
+        final desc = d.description.toLowerCase();
+        final cat = d.categoryName.toLowerCase();
+        return name.contains(queryTag) || desc.contains(queryTag) || cat.contains(queryTag);
+      }).toList();
+    }
+
+    // Sorting
+    if (_sortBy == 'price_asc') {
+      dishes.sort((a, b) => a.price.compareTo(b.price));
+    } else if (_sortBy == 'price_desc') {
+      dishes.sort((a, b) => b.price.compareTo(a.price));
+    } else if (_sortBy == 'rating') {
+      dishes.sort((a, b) => b.rating.compareTo(a.rating));
+      kitchens.sort((a, b) => b.rating.compareTo(a.rating));
+    }
+
+    if (mounted) {
+      setState(() {
+        _dishes = dishes;
+        _kitchens = kitchens;
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _getSortLabel() {
+    switch (_sortBy) {
+      case 'price_asc':
+        return 'Price: Low-High';
+      case 'price_desc':
+        return 'Price: High-Low';
+      case 'rating':
+        return 'Rating: High-Low';
+      default:
+        return 'Relevance';
+    }
+  }
+
+  void _showSortModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Sort By', style: AppTextStyles.headlineMd(color: Colors.white)),
+              const SizedBox(height: 16),
+              _buildModalOption(
+                title: 'Relevance (Default)',
+                isSelected: _sortBy == 'relevance',
+                onTap: () {
+                  setState(() => _sortBy = 'relevance');
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              _buildModalOption(
+                title: 'Price: Low to High',
+                isSelected: _sortBy == 'price_asc',
+                onTap: () {
+                  setState(() => _sortBy = 'price_asc');
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              _buildModalOption(
+                title: 'Price: High to Low',
+                isSelected: _sortBy == 'price_desc',
+                onTap: () {
+                  setState(() => _sortBy = 'price_desc');
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              _buildModalOption(
+                title: 'Highest Rated (4.5+ ⭐)',
+                isSelected: _sortBy == 'rating',
+                onTap: () {
+                  setState(() => _sortBy = 'rating');
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showPriceModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Filter by Price', style: AppTextStyles.headlineMd(color: Colors.white)),
+              const SizedBox(height: 16),
+              _buildModalOption(
+                title: 'All Prices',
+                isSelected: _selectedPriceRange == null,
+                onTap: () {
+                  setState(() => _selectedPriceRange = null);
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              _buildModalOption(
+                title: r'$  •  Under $15 (Affordable)',
+                isSelected: _selectedPriceRange == r'$',
+                onTap: () {
+                  setState(() => _selectedPriceRange = r'$');
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              _buildModalOption(
+                title: r'$$  •  $15 - $30 (Standard)',
+                isSelected: _selectedPriceRange == r'$$',
+                onTap: () {
+                  setState(() => _selectedPriceRange = r'$$');
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              _buildModalOption(
+                title: r'$$$  •  Over $30 (Premium / Gourmet)',
+                isSelected: _selectedPriceRange == r'$$$',
+                onTap: () {
+                  setState(() => _selectedPriceRange = r'$$$');
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showRatingModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Filter by Rating', style: AppTextStyles.headlineMd(color: Colors.white)),
+              const SizedBox(height: 16),
+              _buildModalOption(
+                title: 'All Ratings',
+                isSelected: _minRating == 0.0,
+                onTap: () {
+                  setState(() => _minRating = 0.0);
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              _buildModalOption(
+                title: '4.0+ Stars ⭐⭐⭐⭐',
+                isSelected: _minRating == 4.0,
+                onTap: () {
+                  setState(() => _minRating = 4.0);
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              _buildModalOption(
+                title: '4.5+ Stars ⭐⭐⭐⭐⭐ (Top Rated)',
+                isSelected: _minRating == 4.5,
+                onTap: () {
+                  setState(() => _minRating = 4.5);
+                  Navigator.pop(ctx);
+                  _applyFilters();
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDietaryModal() {
+    final options = ['All', 'Halal', 'Vegan', 'Vegetarian', 'Gluten-Free', 'Organic', 'Keto', 'Pasta', 'Spicy', 'BBQ', 'Seafood'];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Dietary & Preferences', style: AppTextStyles.headlineMd(color: Colors.white)),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 10,
+                children: options.map((opt) {
+                  final isSel = (opt == 'All' && _selectedDietary == null) || (_selectedDietary == opt);
+                  return ChoiceChip(
+                    label: Text(opt),
+                    selected: isSel,
+                    selectedColor: Colors.white,
+                    backgroundColor: AppColors.surfaceContainerHigh,
+                    labelStyle: TextStyle(
+                      color: isSel ? Colors.black : Colors.white,
+                      fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedDietary = (opt == 'All') ? null : opt;
+                      });
+                      Navigator.pop(ctx);
+                      _applyFilters();
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showTuneFilterModal() {
+    double tempMaxPrice = _maxPrice;
+    double tempMinRating = _minRating;
+    String tempSort = _sortBy;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('All Filters', style: AppTextStyles.headlineMd(color: Colors.white)),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Max Price', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.w600)),
+                      Text('\$${tempMaxPrice.toStringAsFixed(0)}', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ],
+                  ),
+                  Slider(
+                    value: tempMaxPrice,
+                    min: 5.0,
+                    max: 100.0,
+                    divisions: 19,
+                    activeColor: Colors.white,
+                    inactiveColor: AppColors.outlineVariant.withValues(alpha: 0.3),
+                    onChanged: (val) => setModalState(() => tempMaxPrice = val),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('Minimum Rating', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      _buildModalRatingChip('Any', 0.0, tempMinRating, (val) => setModalState(() => tempMinRating = val)),
+                      const SizedBox(width: 8),
+                      _buildModalRatingChip('4.0+ ⭐', 4.0, tempMinRating, (val) => setModalState(() => tempMinRating = val)),
+                      const SizedBox(width: 8),
+                      _buildModalRatingChip('4.5+ ⭐', 4.5, tempMinRating, (val) => setModalState(() => tempMinRating = val)),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.white38),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _maxPrice = 100.0;
+                              _minRating = 0.0;
+                              _sortBy = 'relevance';
+                              _selectedPriceRange = null;
+                              _selectedDietary = null;
+                            });
+                            Navigator.pop(ctx);
+                            _applyFilters();
+                          },
+                          child: const Text('Reset All', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _maxPrice = tempMaxPrice;
+                              _minRating = tempMinRating;
+                              _sortBy = tempSort;
+                            });
+                            Navigator.pop(ctx);
+                            _applyFilters();
+                          },
+                          child: const Text('Apply Filters', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildModalOption({required String title, required bool isSelected, required VoidCallback onTap}) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      onTap: onTap,
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.white70,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: isSelected ? const Icon(Icons.check_circle, color: Colors.white) : const Icon(Icons.circle_outlined, color: Colors.white30),
+    );
+  }
+
+  Widget _buildModalRatingChip(String label, double value, double current, Function(double) onSelect) {
+    final isSel = current == value;
+    return GestureDetector(
+      onTap: () => onSelect(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSel ? Colors.white : AppColors.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isSel ? Colors.white : AppColors.outlineVariant.withValues(alpha: 0.3)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(color: isSel ? Colors.black : Colors.white, fontWeight: isSel ? FontWeight.bold : FontWeight.normal),
+        ),
+      ),
+    );
   }
 
   @override
@@ -202,13 +675,13 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceContainerHigh,
+                                color: (_maxPrice < 100.0 || _minRating > 0.0) ? Colors.white : AppColors.surfaceContainerHigh,
                                 shape: BoxShape.circle,
                                 border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
                               ),
                               child: IconButton(
-                                icon: const Icon(Icons.tune, color: Colors.white, size: 20),
-                                onPressed: () {},
+                                icon: Icon(Icons.tune, color: (_maxPrice < 100.0 || _minRating > 0.0) ? Colors.black : Colors.white, size: 20),
+                                onPressed: _showTuneFilterModal,
                               ),
                             ),
                           ],
@@ -220,10 +693,28 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                         padding: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
                         child: Row(
                           children: [
-                            _buildFilterChip('Sort by: Relevance', true, hasDropdown: true, onTap: () {}),
-                            _buildFilterChip('Price: \$\$', false, onTap: () {}),
-                            _buildFilterChip('Rating: 4.5+', false, onTap: () {}),
-                            _buildFilterChip('Dietary', false, hasAdd: true, onTap: () {}),
+                            _buildFilterChip(
+                              _sortBy == 'relevance' ? 'Sort by: Relevance' : 'Sort: ${_getSortLabel()}',
+                              _sortBy != 'relevance',
+                              hasDropdown: true,
+                              onTap: _showSortModal,
+                            ),
+                            _buildFilterChip(
+                              _selectedPriceRange == null ? 'Price: \$\$' : 'Price: $_selectedPriceRange',
+                              _selectedPriceRange != null,
+                              onTap: _showPriceModal,
+                            ),
+                            _buildFilterChip(
+                              _minRating == 0.0 ? 'Rating: 4.5+' : 'Rating: ${_minRating}+ ⭐',
+                              _minRating > 0.0,
+                              onTap: _showRatingModal,
+                            ),
+                            _buildFilterChip(
+                              _selectedDietary == null ? 'Dietary' : 'Dietary: $_selectedDietary',
+                              _selectedDietary != null,
+                              hasAdd: _selectedDietary == null,
+                              onTap: _showDietaryModal,
+                            ),
                           ],
                         ),
                       ),
