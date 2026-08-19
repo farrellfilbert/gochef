@@ -76,8 +76,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                         // Results Summary
                         Text(
                           '$totalResults KITCHENS & DISHES FOUND',
-                          style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)
-                              .copyWith(letterSpacing: 2),
+                          style: AppTextStyles.labelSm(color: Colors.white70)
+                              .copyWith(letterSpacing: 2, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 24),
 
@@ -85,7 +85,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                         if (_kitchens.isNotEmpty) ...[
                           Text(
                             'Featured Kitchens',
-                            style: AppTextStyles.headlineMd(color: AppColors.primary),
+                            style: AppTextStyles.headlineMd(color: Colors.white),
                           ),
                           const SizedBox(height: 12),
                           ..._kitchens.map((k) {
@@ -104,7 +104,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                         if (_dishes.isNotEmpty) ...[
                           Text(
                             'Matching Dishes',
-                            style: AppTextStyles.headlineMd(color: AppColors.primary),
+                            style: AppTextStyles.headlineMd(color: Colors.white),
                           ),
                           const SizedBox(height: 12),
                           GridView.count(
@@ -160,7 +160,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                         child: Row(
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+                              icon: const Icon(Icons.arrow_back, color: Colors.white),
                               onPressed: () {
                                 if (Navigator.canPop(context)) Navigator.pop(context);
                               },
@@ -177,19 +177,19 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                                 child: Row(
                                   children: [
                                     const SizedBox(width: 16),
-                                    const Icon(Icons.search, color: AppColors.onSurfaceVariant, size: 20),
+                                    const Icon(Icons.search, color: Colors.white70, size: 20),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: TextField(
                                         controller: _searchController,
-                                        style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+                                        style: AppTextStyles.bodyMd(color: Colors.white),
                                         onSubmitted: _performSearch,
                                         decoration: const InputDecoration(
                                           border: InputBorder.none,
                                           isDense: true,
                                           contentPadding: EdgeInsets.zero,
                                           hintText: 'Search Chefs, Kitchens or Meals…',
-                                          hintStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+                                          hintStyle: TextStyle(color: Colors.white70),
                                         ),
                                       ),
                                     ),
@@ -207,7 +207,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                                 border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
                               ),
                               child: IconButton(
-                                icon: const Icon(Icons.tune, color: AppColors.primary, size: 20),
+                                icon: const Icon(Icons.tune, color: Colors.white, size: 20),
                                 onPressed: () {},
                               ),
                             ),

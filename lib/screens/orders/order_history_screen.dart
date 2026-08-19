@@ -79,11 +79,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
               ),
               child: TextField(
-                style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+                style: AppTextStyles.bodyMd(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'Search past orders',
-                  hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5)),
-                  prefixIcon: const Icon(Icons.search, color: AppColors.onSurfaceVariant),
+                  hintStyle: AppTextStyles.bodyMd(color: Colors.white.withValues(alpha: 0.7)),
+                  prefixIcon: const Icon(Icons.search, color: Colors.white),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),

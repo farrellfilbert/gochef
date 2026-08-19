@@ -56,9 +56,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Filters', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                      Text('Filters', style: AppTextStyles.headlineMd(color: Colors.white)),
                       IconButton(
-                        icon: const Icon(Icons.close, color: AppColors.onSurfaceVariant),
+                        icon: const Icon(Icons.close, color: Colors.white),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -67,8 +67,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Max Price', style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
-                      Text('\$${currentMaxPrice.toStringAsFixed(0)}', style: AppTextStyles.bodyMd(color: AppColors.primary)),
+                      Text('Max Price', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.w600)),
+                      Text('\$${currentMaxPrice.toStringAsFixed(0)}', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 16)),
                     ],
                   ),
                   Slider(
@@ -88,8 +88,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Distance (miles)', style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
-                      Text('${currentDistance.toStringAsFixed(1)} miles', style: AppTextStyles.bodyMd(color: AppColors.primary)),
+                      Text('Distance (miles)', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.w600)),
+                      Text('${currentDistance.toStringAsFixed(1)} miles', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 16)),
                     ],
                   ),
                   Slider(
@@ -121,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         });
                         Navigator.pop(context);
                       },
-                      child: Text('Apply Filters', style: AppTextStyles.labelSm(color: AppColors.onPrimary)),
+                      child: Text('Apply Filters', style: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
                     ),
                   ),
                   const SizedBox(height: 24),
