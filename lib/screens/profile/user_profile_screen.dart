@@ -1024,6 +1024,181 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const SizedBox(height: 32),
 
+                  // Calories Tracker Card (Daily & Weekly)
+                  FutureBuilder<Map<String, dynamic>?>(
+                    future: ApiService.getUserCalories(user.id),
+                    builder: (context, calSnap) {
+                      final int dailyCal = calSnap.data?['daily_calories'] ?? 0;
+                      final int weeklyCal = calSnap.data?['weekly_calories'] ?? 0;
+                      final int dailyGoal = calSnap.data?['daily_goal'] ?? 2000;
+                      final int weeklyGoal = calSnap.data?['weekly_goal'] ?? 14000;
+                      final int dailyPct = calSnap.data?['daily_percentage'] ?? ((dailyCal / dailyGoal) * 100).toInt().clamp(0, 100);
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 32),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1C2029).withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.orange.withValues(alpha: 0.25)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orange.withValues(alpha: 0.05),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Header
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.withValues(alpha: 0.15),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 22),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Calories Tracker',
+                                          style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          'Track intake per GoChef order',
+                                          style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                                  ),
+                                  child: Text(
+                                    '$dailyPct% Daily',
+                                    style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 11),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+
+                            // Daily & Weekly Stats Row
+                            Row(
+                              children: [
+                                // Daily Box
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfaceContainerLow,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.today, size: 14, color: AppColors.onSurfaceVariant),
+                                            const SizedBox(width: 6),
+                                            Text('Daily', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.w600)),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                                          textBaseline: TextBaseline.alphabetic,
+                                          children: [
+                                            Text(
+                                              '$dailyCal',
+                                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            const Text('kcal', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text('Target: $dailyGoal kcal', style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+
+                                // Weekly Box
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfaceContainerLow,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.date_range, size: 14, color: AppColors.onSurfaceVariant),
+                                            const SizedBox(width: 6),
+                                            Text('Weekly', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.w600)),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                                          textBaseline: TextBaseline.alphabetic,
+                                          children: [
+                                            Text(
+                                              '$weeklyCal',
+                                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            const Text('kcal', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text('Target: $weeklyGoal kcal', style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Daily Progress Bar
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: LinearProgressIndicator(
+                                value: (dailyCal / dailyGoal).clamp(0.0, 1.0),
+                                minHeight: 6,
+                                backgroundColor: Colors.white12,
+                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.orangeAccent),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
                   // Account Management List
                   Align(
                     alignment: Alignment.centerLeft,

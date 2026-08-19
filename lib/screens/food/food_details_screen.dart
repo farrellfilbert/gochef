@@ -229,7 +229,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        item.name,
+                                        '${item.name} (${item.calories} calories)',
                                         style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface)
                                             .copyWith(height: 1.1),
                                       ),
@@ -313,7 +313,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                 children: [
                                   _buildUtilityItem(Icons.schedule, item.prepTime),
                                   _buildVerticalDivider(),
-                                  _buildUtilityItem(Icons.local_fire_department, 'Estimated'),
+                                  _buildUtilityItem(Icons.local_fire_department, '${item.calories} kcal'),
                                   _buildVerticalDivider(),
                                   _buildUtilityItem(Icons.restaurant, item.categoryName),
                                 ],

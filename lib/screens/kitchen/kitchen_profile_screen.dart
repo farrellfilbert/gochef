@@ -532,7 +532,14 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
           const SizedBox(width: 16),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Expanded(child: Text(menuItem.name, style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              Expanded(
+                child: Text(
+                  '${menuItem.name} (${menuItem.calories} calories)',
+                  style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontSize: 15),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               const SizedBox(width: 8),
               Text('\$' + menuItem.price.toStringAsFixed(2), style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
             ]),
@@ -544,6 +551,26 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                 const Icon(Icons.star, size: 14, color: AppColors.primary),
                 const SizedBox(width: 4),
                 Text(menuItem.rating.toString(), style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.local_fire_department, size: 11, color: Colors.orangeAccent),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${menuItem.calories} kcal',
+                        style: const TextStyle(fontSize: 10, color: Colors.orangeAccent, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
               ]),
               Row(children: [
                 // Share menu button

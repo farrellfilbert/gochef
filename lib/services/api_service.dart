@@ -388,6 +388,25 @@ class ApiService {
   }
 
   // =============================================
+  // CALORIES TRACKER
+  // =============================================
+
+  static Future<Map<String, dynamic>?> getUserCalories(dynamic userId) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/user_calories.php?user_id=$userId')).timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return data;
+        }
+      }
+    } catch (e) {
+      print('Error getting user calories: $e');
+    }
+    return null;
+  }
+
+  // =============================================
   // CART
   // =============================================
 

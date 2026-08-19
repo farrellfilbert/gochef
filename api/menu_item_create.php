@@ -30,11 +30,12 @@ $description = isset($data->description) ? $data->description : '';
 $price = floatval($data->price);
 $image = isset($data->image) ? $data->image : '';
 $is_popular = isset($data->is_popular) ? intval($data->is_popular) : 0;
+$calories = isset($data->calories) ? intval($data->calories) : 650;
 
-$query = "INSERT INTO menu_items (kitchen_id, category_id, name, description, price, image, is_popular) VALUES (?, ?, ?, ?, ?, ?, ?)";
+$query = "INSERT INTO menu_items (kitchen_id, category_id, name, description, price, image, is_popular, calories) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $pdo->prepare($query);
 
-if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular])) {
+if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular, $calories])) {
     $menu_item_id = $pdo->lastInsertId();
     
     // Process addon categories if provided

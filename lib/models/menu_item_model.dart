@@ -17,6 +17,7 @@ class MenuItemModel {
   final String kitchenName;
   final String kitchenAvatar;
   final int categoryId;
+  final int calories;
   final String createdAt;
   final String categoryName;
   final List<ReviewModel>? reviews;
@@ -38,6 +39,7 @@ class MenuItemModel {
     this.kitchenName = '',
     this.kitchenAvatar = '',
     this.categoryId = 0,
+    this.calories = 650,
     this.createdAt = '',
     this.categoryName = '',
     this.reviews,
@@ -61,6 +63,7 @@ class MenuItemModel {
       kitchenName: json['kitchen_name'] ?? '',
       kitchenAvatar: ApiService.formatImageUrl(json['kitchen_avatar']),
       categoryId: int.tryParse(json['category_id']?.toString() ?? '0') ?? 0,
+      calories: int.tryParse(json['calories']?.toString() ?? '') ?? 650,
       createdAt: json['created_at'] ?? '',
       categoryName: json['category_name'] ?? '',
       reviews: json['reviews'] != null

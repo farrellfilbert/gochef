@@ -105,6 +105,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
     final nameController = TextEditingController(text: item.name);
     final descriptionController = TextEditingController(text: item.description);
     final priceController = TextEditingController(text: item.price.toString());
+    final caloriesController = TextEditingController(text: item.calories.toString());
     XFile? selectedImage;
     bool isUploading = false;
     int? selectedCategoryId = item.categoryId > 0 ? item.categoryId : (_categories.isNotEmpty ? _categories.first.id : null);
@@ -167,26 +168,10 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                           border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5),
                         ),
                         child: selectedImage == null
-                            ? (item.image.isNotEmpty 
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Image.network(item.image, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
-                                  )
-                                : Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary.withValues(alpha: 0.1),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(Icons.add_a_photo, color: AppColors.primary, size: 28),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      const Text('Tap to pick image', style: TextStyle(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.w500)),
-                                    ],
-                                  ))
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.network(item.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.restaurant_menu, size: 48, color: AppColors.primary))),
+                              )
                             : ClipRRect(
                                 borderRadius: BorderRadius.circular(16),
                                 child: kIsWeb 
@@ -229,11 +214,26 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                       decoration: _buildInputDecoration('Description').copyWith(alignLabelWithHint: true),
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: priceController,
-                      style: const TextStyle(color: AppColors.onSurface),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: _buildInputDecoration('Price', prefixIcon: Icons.attach_money),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: priceController,
+                            style: const TextStyle(color: AppColors.onSurface),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: _buildInputDecoration('Price (\$)', prefixIcon: Icons.attach_money),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: caloriesController,
+                            style: const TextStyle(color: AppColors.onSurface),
+                            keyboardType: TextInputType.number,
+                            decoration: _buildInputDecoration('Calories (kcal)', prefixIcon: Icons.local_fire_department),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     AddonCategoryManager(
@@ -291,6 +291,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                                   'name': nameController.text,
                                   'description': descriptionController.text,
                                   'price': double.parse(priceController.text),
+                                  'calories': int.tryParse(caloriesController.text) ?? 650,
                                   'image': selectedImage != null ? imageUrl : '',
                                   'addon_categories': addonCategories.map((c) => c.toJson()).toList(),
                                 });
@@ -336,6 +337,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
     final nameController = TextEditingController();
     final descriptionController = TextEditingController();
     final priceController = TextEditingController();
+    final caloriesController = TextEditingController(text: '650');
     XFile? selectedImage;
     bool isUploading = false;
     int? selectedCategoryId = _categories.isNotEmpty ? _categories.first.id : null;
@@ -451,11 +453,26 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                       decoration: _buildInputDecoration('Description').copyWith(alignLabelWithHint: true),
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: priceController,
-                      style: const TextStyle(color: AppColors.onSurface),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: _buildInputDecoration('Price', prefixIcon: Icons.attach_money),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: priceController,
+                            style: const TextStyle(color: AppColors.onSurface),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: _buildInputDecoration('Price (\$)', prefixIcon: Icons.attach_money),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: caloriesController,
+                            style: const TextStyle(color: AppColors.onSurface),
+                            keyboardType: TextInputType.number,
+                            decoration: _buildInputDecoration('Calories (kcal)', prefixIcon: Icons.local_fire_department),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     AddonCategoryManager(
@@ -508,6 +525,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                                       'name': nameController.text,
                                       'description': descriptionController.text,
                                       'price': double.parse(priceController.text),
+                                      'calories': int.tryParse(caloriesController.text) ?? 650,
                                       'image': imageUrl,
                                       'is_popular': 0,
                                       'addon_categories': addonCategories.map((a) => a.toJson()).toList(),
@@ -517,7 +535,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                                     Navigator.pop(context);
                                     _loadMenu();
                                   } else {
-                                    throw Exception('Failed to save menu item');
+                                    throw Exception('Failed to create dish');
                                   }
                                 } else {
                                   throw Exception('Failed to upload image');
@@ -531,14 +549,12 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 0,
                             ),
                             child: isUploading 
-                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) 
-                              : const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                              : const Text('Add Dish', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           ),
                         ),
                       ],
@@ -658,7 +674,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                   child: _buildDishCard(
                     item: item,
                     id: item.id,
-                    title: item.name,
+                    title: '${item.name} (${item.calories} calories)',
                     description: item.description,
                     price: '\$${item.price.toStringAsFixed(2)}',
                     imagePath: item.image,

@@ -30,15 +30,16 @@ $name = isset($data->name) ? $data->name : '';
 $description = isset($data->description) ? $data->description : '';
 $price = isset($data->price) ? floatval($data->price) : 0;
 $image = isset($data->image) ? $data->image : '';
+$calories = isset($data->calories) ? intval($data->calories) : 650;
 
 if ($image !== '') {
-    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ? WHERE id = ? AND kitchen_id = ?";
+    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ?, calories = ? WHERE id = ? AND kitchen_id = ?";
     $stmt = $pdo->prepare($query);
-    $result = $stmt->execute([$name, $description, $price, $category_id, $image, $id, $kitchen_id]);
+    $result = $stmt->execute([$name, $description, $price, $category_id, $image, $calories, $id, $kitchen_id]);
 } else {
-    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ? WHERE id = ? AND kitchen_id = ?";
+    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, calories = ? WHERE id = ? AND kitchen_id = ?";
     $stmt = $pdo->prepare($query);
-    $result = $stmt->execute([$name, $description, $price, $category_id, $id, $kitchen_id]);
+    $result = $stmt->execute([$name, $description, $price, $category_id, $calories, $id, $kitchen_id]);
 }
 
 if ($result) {
