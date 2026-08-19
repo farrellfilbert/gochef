@@ -247,10 +247,10 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryContainer : Colors.transparent,
+          color: isSelected ? Colors.white : AppColors.surfaceContainerHigh.withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.primaryContainer : AppColors.outlineVariant,
+            color: isSelected ? Colors.white : AppColors.outlineVariant.withValues(alpha: 0.2),
           ),
         ),
         child: Row(
@@ -258,15 +258,15 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
             Text(
               label,
               style: AppTextStyles.labelSm(
-                color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
-              ),
+                color: isSelected ? Colors.black : Colors.white,
+              ).copyWith(fontWeight: isSelected ? FontWeight.bold : FontWeight.w500),
             ),
             if (hasDropdown) ...[
               const SizedBox(width: 4),
               Icon(
                 Icons.expand_more,
                 size: 16,
-                color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
+                color: isSelected ? Colors.black : Colors.white,
               ),
             ],
             if (hasAdd) ...[
@@ -274,7 +274,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
               Icon(
                 Icons.add,
                 size: 16,
-                color: isSelected ? AppColors.onPrimaryContainer : AppColors.onSurfaceVariant,
+                color: isSelected ? Colors.black : Colors.white,
               ),
             ],
           ],
