@@ -19,6 +19,7 @@ class FavoritesScreen extends StatefulWidget {
 
 class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _meals = [];
   List<Map<String, dynamic>> _kitchens = [];
   bool _isLoading = true;
@@ -47,10 +48,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
   }
 
   Future<void> _removeFavorite(int itemId, String type) async {
-    // Assuming backend endpoint /favorites.php?action=remove handles it, 
-    // but the current ApiService might not have removeFavorite. 
-    // We will just do local remove for demonstration if we don't have the API method.
-    // If ApiService.removeFavorite exists, call it. For now, local update:
     setState(() {
       if (type == 'dish') {
         _meals.removeWhere((m) => m['menu_item_id'] == itemId || m['item_id'] == itemId);
@@ -65,6 +62,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
 
   @override
   void dispose() {
+    _searchController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -103,14 +101,26 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
                     decoration: BoxDecoration(
                       color: AppColors.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                     ),
                     child: TextField(
-                      style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+                      controller: _searchController,
+                      cursorColor: Colors.white,
+                      style: AppTextStyles.bodyMd(color: Colors.white),
+                      onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(
                         hintText: 'Filter your favorites...',
-                        hintStyle: AppTextStyles.bodyMd(color: AppColors.outline),
-                        prefixIcon: const Icon(Icons.search, color: AppColors.outline),
+                        hintStyle: AppTextStyles.bodyMd(color: Colors.white70),
+                        prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, color: Colors.white70, size: 20),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {});
+                                },
+                              )
+                            : null,
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(vertical: 16),
                       ),
@@ -158,17 +168,28 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
   }
 
   Widget _buildMealsTab() {
-    if (_meals.isEmpty) {
+    final query = _searchController.text.trim().toLowerCase();
+    final filtered = _meals.where((m) {
+      if (query.isEmpty) return true;
+      final name = (m['name'] ?? '').toString().toLowerCase();
+      final kitchen = (m['kitchen_name'] ?? '').toString().toLowerCase();
+      return name.contains(query) || kitchen.contains(query);
+    }).toList();
+
+    if (filtered.isEmpty) {
       return Center(
-        child: Text('No favorite meals found.', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
+        child: Text(
+          query.isEmpty ? 'No favorite meals found.' : 'No matching favorite meals.',
+          style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant),
+        ),
       );
     }
     return ListView.separated(
       padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 120),
-      itemCount: _meals.length,
+      itemCount: filtered.length,
       separatorBuilder: (context, index) => const SizedBox(height: 24),
       itemBuilder: (context, index) {
-        final meal = _meals[index];
+        final meal = filtered[index];
         return _buildMealCard(
           id: meal['item_id'] ?? meal['menu_item_id'] ?? 0,
           title: meal['name'] ?? 'Unknown',
@@ -182,17 +203,28 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
   }
 
   Widget _buildKitchensTab() {
-    if (_kitchens.isEmpty) {
+    final query = _searchController.text.trim().toLowerCase();
+    final filtered = _kitchens.where((k) {
+      if (query.isEmpty) return true;
+      final name = (k['name'] ?? '').toString().toLowerCase();
+      final cuisine = (k['cuisine_type'] ?? '').toString().toLowerCase();
+      return name.contains(query) || cuisine.contains(query);
+    }).toList();
+
+    if (filtered.isEmpty) {
       return Center(
-        child: Text('No favorite kitchens found.', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
+        child: Text(
+          query.isEmpty ? 'No favorite kitchens found.' : 'No matching favorite kitchens.',
+          style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant),
+        ),
       );
     }
     return ListView.separated(
       padding: const EdgeInsets.only(top: 24, left: 20, right: 20, bottom: 120),
-      itemCount: _kitchens.length,
+      itemCount: filtered.length,
       separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        final kitchen = _kitchens[index];
+        final kitchen = filtered[index];
         return _buildKitchenCard(
           id: kitchen['item_id'] ?? kitchen['kitchen_id'] ?? 0,
           title: kitchen['name'] ?? 'Unknown',
