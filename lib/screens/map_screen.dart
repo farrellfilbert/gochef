@@ -542,7 +542,7 @@ class _MapScreenState extends State<MapScreen> {
                                   decoration: InputDecoration(
                                     hintText: 'Search city, area, or address...',
                                     hintStyle: AppTextStyles.bodyMd(
-                                      color: AppColors.onSurfaceVariant.withValues(alpha: 0.6),
+                                      color: Colors.white70,
                                     ),
                                     border: InputBorder.none,
                                     isDense: true,
@@ -556,12 +556,12 @@ class _MapScreenState extends State<MapScreen> {
                                   child: SizedBox(
                                     width: 18,
                                     height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                   ),
                                 )
                               else if (_searchController.text.isNotEmpty)
                                 IconButton(
-                                  icon: const Icon(Icons.close, color: AppColors.onSurfaceVariant, size: 20),
+                                  icon: const Icon(Icons.close, color: Colors.white70, size: 20),
                                   onPressed: () {
                                     _searchController.clear();
                                     setState(() => _searchResults = []);
@@ -572,9 +572,9 @@ class _MapScreenState extends State<MapScreen> {
                                     ? const SizedBox(
                                         width: 18,
                                         height: 18,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                       )
-                                    : const Icon(Icons.my_location, color: AppColors.primary),
+                                    : const Icon(Icons.my_location, color: Colors.white),
                                 tooltip: 'My GPS Location',
                                 onPressed: _isLocating ? null : () => _requestRealGPS(flyToLocation: true, showFeedback: true),
                               ),
@@ -740,10 +740,10 @@ class _MapScreenState extends State<MapScreen> {
             backgroundColor: AppColors.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
-              side: const BorderSide(color: AppColors.primary, width: 1.5),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.35), width: 1.5),
             ),
             onPressed: _focusOnChefs,
-            icon: const Icon(Icons.restaurant_menu, color: AppColors.primary, size: 20),
+            icon: const Icon(Icons.restaurant_menu, color: Colors.white, size: 20),
             label: const Text(
               '👨‍🍳 View All Chefs',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
