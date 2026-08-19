@@ -15,8 +15,8 @@ require_once 'db_connect.php';
 $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
 
 try {
-    // 1. Fetch user orders from last 7 days
-    $orderStmt = $pdo->prepare("SELECT id, order_date, created_at, status FROM orders WHERE user_id = ? AND status != 'cancelled' ORDER BY id DESC");
+    // 1. Fetch user orders
+    $orderStmt = $pdo->prepare("SELECT id, order_date, status FROM orders WHERE user_id = ? AND status != 'cancelled' ORDER BY id DESC");
     $orderStmt->execute([$user_id]);
     $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -34,8 +34,8 @@ try {
                                WHERE oi.order_id = ?");
 
     foreach ($orders as $order) {
-        $orderTimeStr = !empty($order['created_at']) ? $order['created_at'] : (!empty($order['order_date']) ? $order['order_date'] : '');
-        $orderTimestamp = strtotime($orderTimeStr);
+        $orderTimeStr = !empty($order['order_date']) ? $order['order_date'] : '';
+        $orderTimestamp = !empty($orderTimeStr) ? strtotime($orderTimeStr) : time();
         $orderDate = date('Y-m-d', $orderTimestamp);
 
         $itemStmt->execute([$order['id']]);
