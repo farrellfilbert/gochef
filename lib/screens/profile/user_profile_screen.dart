@@ -24,6 +24,7 @@ import '../chef_dashboard/chef_main_navigation.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../../widgets/cart_icon_button.dart';
 import '../../widgets/notification_bell.dart';
+import '../../services/support_helper.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -1674,12 +1675,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildListTile(Icons.help_outline, 'Help Center', () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpCenterScreen()));
+                        _buildListTile(Icons.support_agent, '24/7 Live Support Chat', () {
+                          SupportHelper.openLiveSupportChat(context);
                         }),
                         Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                        _buildListTile(Icons.chat_bubble_outline, 'Contact Support', () {
+                        _buildListTile(Icons.chat_bubble_outline, 'Help & Contact Support', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const ContactSupportScreen()));
+                        }),
+                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                        _buildListTile(Icons.help_outline, 'Help Center / FAQs', () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpCenterScreen()));
                         }),
                         Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                         _buildListTile(Icons.description_outlined, 'About GoChef', () {

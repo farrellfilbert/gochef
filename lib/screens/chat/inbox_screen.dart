@@ -3,6 +3,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../models/chat_model.dart';
 import '../../services/api_service.dart';
+import '../../services/support_helper.dart';
 import 'chat_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -63,23 +64,82 @@ class _InboxScreenState extends State<InboxScreen> {
       ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-        : _chats.isEmpty
-          ? Center(
-              child: Text(
-                'No messages yet',
-                style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+        : RefreshIndicator(
+            onRefresh: _loadInbox,
+            child: ListView(
+              children: [
+                _buildSupportBanner(),
+                if (_chats.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 60),
+                    child: Center(
+                      child: Text(
+                        'No other conversation history yet',
+                        style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                      ),
+                    ),
+                  )
+                else
+                  ..._chats.map((chat) => _buildChatTile(chat)),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _buildSupportBanner() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C2029),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Stack(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
               ),
-            )
-          : RefreshIndicator(
-              onRefresh: _loadInbox,
-              child: ListView.builder(
-                itemCount: _chats.length,
-                itemBuilder: (context, index) {
-                  final chat = _chats[index];
-                  return _buildChatTile(chat);
-                },
+              child: const Icon(Icons.support_agent, color: AppColors.primary, size: 24),
+            ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: Colors.greenAccent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.black, width: 1.5),
+                ),
               ),
             ),
+          ],
+        ),
+        title: Row(
+          children: [
+            Text('GoChef Live Support Desk', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(width: 6),
+            const Icon(Icons.verified, color: Colors.blueAccent, size: 16),
+          ],
+        ),
+        subtitle: const Text('24/7 Direct chat with Admin & Help Desk', style: TextStyle(color: Colors.white60, fontSize: 12)),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Text('Chat', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+        ),
+        onTap: () => SupportHelper.openLiveSupportChat(context),
+      ),
     );
   }
 

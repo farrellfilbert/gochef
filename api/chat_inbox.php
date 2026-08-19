@@ -28,7 +28,11 @@ try {
         SELECT 
             m1.*, 
             u.name as other_user_name, 
+            u.email as other_user_email,
+            u.phone as other_user_phone,
+            u.role as other_user_role,
             u.avatar as other_user_avatar,
+            k.id as kitchen_id,
             k.name as kitchen_name,
             k.avatar as kitchen_avatar,
             (SELECT COUNT(*) FROM chat_messages WHERE sender_id = u.id AND receiver_id = ? AND IFNULL(order_id, '') = IFNULL(m1.order_id, '') AND is_read = 0) as unread_count
@@ -74,9 +78,14 @@ try {
             'other_user_id' => $other_id,
             'name' => $name,
             'avatar' => $avatar,
+            'role' => $row['other_user_role'] ?? 'user',
+            'email' => $row['other_user_email'] ?? '',
+            'phone' => $row['other_user_phone'] ?? '',
+            'kitchen_id' => $row['kitchen_id'] ?? null,
+            'kitchen_name' => $row['kitchen_name'] ?? null,
             'last_message' => $row['message'],
             'created_at' => $row['created_at'],
-            'unread_count' => $row['unread_count'],
+            'unread_count' => intval($row['unread_count'] ?? 0),
             'order_id' => $row['order_id']
         ];
     }

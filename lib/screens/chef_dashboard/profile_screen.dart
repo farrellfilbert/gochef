@@ -9,6 +9,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'earnings_screen.dart';
 import '../../services/api_service.dart';
+import '../../services/support_helper.dart';
 import '../../models/kitchen_model.dart';
 import '../../main.dart';
 import '../auth/login_screen.dart';
@@ -1057,6 +1058,14 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                             _loadProfile();
                           });
                         },
+                      ),
+                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                      _buildSettingsTile(
+                        context, 
+                        Icons.support_agent, 
+                        '24/7 Chef Support Live Chat', 
+                        'Direct chat with GoChef Admin & Help Desk', 
+                        onTap: () => SupportHelper.openLiveSupportChat(context),
                       ),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Manage your operating times', onTap: _showBusinessHoursDialog),

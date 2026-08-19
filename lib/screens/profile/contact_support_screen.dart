@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import '../../theme/app_text_styles.dart';
+import '../../services/support_helper.dart';
 
 class ContactSupportScreen extends StatelessWidget {
   const ContactSupportScreen({super.key});
@@ -48,25 +48,33 @@ class ContactSupportScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Our support team and AI assistant are available 24/7 to help you with any questions.',
+                'Connect directly with our Admin Support Team or use our 24/7 AI Smart Assistant.',
                 style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
               _buildContactMethod(
+                Icons.support_agent, 
+                'Live Chat (GoChef Support Desk)', 
+                'Instant direct chat with GoChef Admin & Help Desk', 
+                () => SupportHelper.openLiveSupportChat(context),
+                isHighlighted: true,
+              ),
+              const SizedBox(height: 14),
+              _buildContactMethod(
                 Icons.smart_toy_outlined, 
-                'Live Chat (AI Support Assistant)', 
-                'Instant answers to your questions 24/7', 
+                'AI Smart Help Assistant', 
+                'Instant automated answers & FAQs 24/7', 
                 () => _openAiSupportChat(context),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _buildContactMethod(
                 Icons.sms_outlined, 
-                'Text Line', 
-                '+1 (555) 123-4567 (SMS & WhatsApp)', 
+                'Text Line & WhatsApp', 
+                '+1 (800) 462-4330 (24/7 Hotline)', 
                 () {},
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _buildContactMethod(
                 Icons.email_outlined, 
                 'Email Us', 
@@ -80,21 +88,22 @@ class ContactSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContactMethod(IconData icon, String title, String subtitle, VoidCallback onTap) {
+  Widget _buildContactMethod(IconData icon, String title, String subtitle, VoidCallback onTap, {bool isHighlighted = false}) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
+        color: isHighlighted ? AppColors.surfaceContainerHigh : AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
+        border: isHighlighted ? Border.all(color: AppColors.primary.withValues(alpha: 0.4), width: 1.5) : null,
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.primaryContainer.withValues(alpha: 0.1),
+            color: isHighlighted ? AppColors.primary.withValues(alpha: 0.2) : AppColors.primaryContainer.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: AppColors.primary),
+          child: Icon(icon, color: isHighlighted ? AppColors.primary : AppColors.onSurfaceVariant, size: 24),
         ),
         title: Text(title, style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
         subtitle: Padding(

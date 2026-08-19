@@ -1091,6 +1091,22 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>?> getSupportAdmin() async {
+    try {
+      final url = Uri.parse('$baseUrl/get_support_admin.php');
+      final response = await http.get(url).timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['admin'] != null) {
+          return Map<String, dynamic>.from(data['admin']);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting support admin: $e');
+    }
+    return null;
+  }
+
   // =============================================
   // ADMIN CONTROL PANEL
   // =============================================

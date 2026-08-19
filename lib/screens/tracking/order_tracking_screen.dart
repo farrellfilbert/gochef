@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
 import 'package:go_chef_app/services/api_service.dart';
+import 'package:go_chef_app/services/support_helper.dart';
 import 'package:go_chef_app/main.dart';
 import 'order_review_screen.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -174,6 +175,11 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         title: const Text('Track Order', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.support_agent, color: Colors.orangeAccent),
+            tooltip: 'Live Chat Support',
+            onPressed: () => SupportHelper.openLiveSupportChat(context, orderId: widget.orderId),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () {

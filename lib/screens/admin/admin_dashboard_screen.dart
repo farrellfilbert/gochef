@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../theme/app_colors.dart';
@@ -19,29 +20,55 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   bool _isLoadingChefs = true;
   bool _isLoadingPromos = true;
   bool _isLoadingUsers = true;
+  bool _isLoadingSupport = true;
   List<Map<String, dynamic>> _chefApplications = [];
   List<Map<String, dynamic>> _promotions = [];
   List<Map<String, dynamic>> _adminUsers = [];
+  List<Map<String, dynamic>> _supportChats = [];
   String _chefFilter = 'pending';
   String _userTypeFilter = 'all';
+  String _supportFilter = 'all';
   final TextEditingController _userSearchController = TextEditingController();
+  final TextEditingController _supportSearchController = TextEditingController();
+  Timer? _supportPollingTimer;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
     _loadChefs();
     _loadUsers();
     _loadPromotions();
+    _loadSupportChats();
+    _supportPollingTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (_tabController.index == 4) {
+        _loadSupportChats(isPolling: true);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _supportPollingTimer?.cancel();
+    _supportSearchController.dispose();
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadSupportChats({bool isPolling = false}) async {
+    if (!isPolling && mounted) {
+      setState(() => _isLoadingSupport = true);
+    }
+    final inbox = await ApiService.getChatInbox();
+    if (mounted) {
+      setState(() {
+        _supportChats = inbox;
+        _isLoadingSupport = false;
+      });
+    }
   }
 
   Future<void> _loadChefs() async {
@@ -638,11 +665,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.onSurfaceVariant,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          tabs: const [
-            Tab(icon: Icon(Icons.how_to_reg, size: 20), text: 'Approvals'),
-            Tab(icon: Icon(Icons.people_alt_outlined, size: 20), text: 'Users & Kitchens'),
-            Tab(icon: Icon(Icons.campaign_outlined, size: 20), text: 'Banners'),
-            Tab(icon: Icon(Icons.analytics_outlined, size: 20), text: 'Stats'),
+          tabs: [
+            const Tab(icon: Icon(Icons.how_to_reg, size: 20), text: 'Approvals'),
+            const Tab(icon: Icon(Icons.people_alt_outlined, size: 20), text: 'Users & Kitchens'),
+            const Tab(icon: Icon(Icons.campaign_outlined, size: 20), text: 'Banners'),
+            const Tab(icon: Icon(Icons.analytics_outlined, size: 20), text: 'Stats'),
+            Tab(
+              icon: _supportChats.any((c) => (c['unread_count'] as int? ?? 0) > 0)
+                  ? Badge(
+                      backgroundColor: Colors.redAccent,
+                      child: const Icon(Icons.support_agent, size: 20),
+                    )
+                  : const Icon(Icons.support_agent, size: 20),
+              text: 'Support',
+            ),
           ],
         ),
       ),
@@ -653,6 +689,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           _buildUsersAndKitchensTab(),
           _buildPromotionsTab(),
           _buildStatsTab(),
+          _buildLiveSupportTab(),
         ],
       ),
       floatingActionButton: _tabController.index == 2
@@ -1584,6 +1621,323 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       title: Text(title, style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
       subtitle: Text(subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
       trailing: const Icon(Icons.arrow_forward_ios, color: AppColors.onSurfaceVariant, size: 16),
+    );
+  }
+
+  // ==========================================
+  // LIVE SUPPORT DESK TAB (ADMIN)
+  // ==========================================
+  Widget _buildLiveSupportTab() {
+    final filtered = _supportChats.where((c) {
+      final query = _supportSearchController.text.toLowerCase().trim();
+      final name = (c['name'] ?? '').toString().toLowerCase();
+      final kitchen = (c['kitchen_name'] ?? '').toString().toLowerCase();
+      final msg = (c['last_message'] ?? '').toString().toLowerCase();
+      final order = (c['order_id'] ?? '').toString().toLowerCase();
+      final role = (c['role'] ?? 'user').toString().toLowerCase();
+
+      final matchesQuery = query.isEmpty ||
+          name.contains(query) ||
+          kitchen.contains(query) ||
+          msg.contains(query) ||
+          order.contains(query);
+
+      if (!matchesQuery) return false;
+
+      if (_supportFilter == 'chef') return role == 'chef';
+      if (_supportFilter == 'user') return role != 'chef';
+      if (_supportFilter == 'unread') return (c['unread_count'] as int? ?? 0) > 0;
+      return true;
+    }).toList();
+
+    int totalUnread = 0;
+    for (var c in _supportChats) {
+      totalUnread += (c['unread_count'] as int? ?? 0);
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => _loadSupportChats(),
+      child: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          // Header Summary Card
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.25),
+                  AppColors.surfaceContainerHigh,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.support_agent, color: Colors.white, size: 28),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text('Support Desk Inbox', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+                          if (totalUnread > 0) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text('$totalUnread NEW', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Direct live communications with Foodies and Chefs',
+                        style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white70),
+                  onPressed: () => _loadSupportChats(),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Search Bar
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+            ),
+            child: TextField(
+              controller: _supportSearchController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Search user, kitchen, order #, message...',
+                hintStyle: const TextStyle(color: Colors.white38),
+                prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                suffixIcon: _supportSearchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: Colors.white54),
+                        onPressed: () {
+                          _supportSearchController.clear();
+                          setState(() {});
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Filter Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildSupportFilterChip('All (${_supportChats.length})', 'all'),
+                const SizedBox(width: 8),
+                _buildSupportFilterChip('Chefs 👨‍🍳', 'chef'),
+                const SizedBox(width: 8),
+                _buildSupportFilterChip('Foodies 🍽️', 'user'),
+                const SizedBox(width: 8),
+                _buildSupportFilterChip('Unread 🔴', 'unread'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Chats List
+          if (_isLoadingSupport)
+            const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator(color: AppColors.primary)))
+          else if (filtered.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(40),
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  const Icon(Icons.chat_bubble_outline, size: 48, color: Colors.white24),
+                  const SizedBox(height: 12),
+                  Text('No support conversations found', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                ],
+              ),
+            )
+          else
+            ...filtered.map((chat) {
+              final isChef = chat['role'] == 'chef' || chat['kitchen_name'] != null;
+              final unread = chat['unread_count'] as int? ?? 0;
+              final hasOrder = chat['order_id'] != null && chat['order_id'].toString().isNotEmpty;
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: unread > 0 ? const Color(0xFF241E28) : AppColors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: unread > 0 ? AppColors.primary.withValues(alpha: 0.5) : AppColors.outlineVariant.withValues(alpha: 0.15),
+                    width: unread > 0 ? 1.5 : 1,
+                  ),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  leading: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: isChef ? Colors.amber.shade800 : AppColors.primary,
+                        backgroundImage: chat['avatar'] != null && chat['avatar'].toString().isNotEmpty
+                            ? NetworkImage(ApiService.formatImageUrl(chat['avatar']))
+                            : null,
+                        child: chat['avatar'] == null || chat['avatar'].toString().isEmpty
+                            ? Icon(isChef ? Icons.restaurant : Icons.person, color: Colors.white)
+                            : null,
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: isChef ? Colors.amber.shade700 : Colors.purpleAccent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(isChef ? Icons.storefront : Icons.person, size: 10, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          chat['name'] ?? 'User',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: unread > 0 ? FontWeight.bold : FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isChef ? Colors.amber.withValues(alpha: 0.2) : Colors.purple.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          isChef ? 'CHEF' : 'FOODIE',
+                          style: TextStyle(
+                            color: isChef ? Colors.amber.shade300 : Colors.purple.shade200,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (hasOrder) ...[
+                        const SizedBox(height: 2),
+                        Text('Order #${chat['order_id']}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                      ],
+                      const SizedBox(height: 4),
+                      Text(
+                        chat['last_message'] ?? 'Started a chat',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: unread > 0 ? Colors.white : AppColors.onSurfaceVariant,
+                          fontWeight: unread > 0 ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (unread > 0)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 4),
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Colors.redAccent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            '$unread',
+                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant, size: 18),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatScreen(
+                          otherParticipantId: chat['other_user_id'].toString(),
+                          otherParticipantName: chat['name'] ?? 'User',
+                          otherParticipantAvatar: ApiService.formatImageUrl(chat['avatar'] ?? ''),
+                          orderId: chat['order_id'],
+                          kitchenId: chat['kitchen_id']?.toString(),
+                          isOnline: true,
+                        ),
+                      ),
+                    ).then((_) => _loadSupportChats());
+                  },
+                ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSupportFilterChip(String label, String value) {
+    final isSelected = _supportFilter == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) setState(() => _supportFilter = value);
+      },
+      selectedColor: AppColors.primary,
+      backgroundColor: AppColors.surfaceContainerLow,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontSize: 12,
+      ),
+      side: BorderSide(
+        color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.3),
+      ),
     );
   }
 }
