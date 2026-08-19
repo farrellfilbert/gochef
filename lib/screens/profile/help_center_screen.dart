@@ -98,27 +98,26 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           Center(
             child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.15),
-                        blurRadius: 18,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Image.asset(
-                    'assets/images/GoCheflogo.png',
-                    height: 70,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.help_outline, size: 60, color: AppColors.primary),
+                Image.asset(
+                  'assets/images/logo.png',
+                  width: 90,
+                  height: 90,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Image.asset('assets/images/GoCheflogo.png', width: 90, height: 90),
+                ),
+                const SizedBox(height: 6),
+                Opacity(
+                  opacity: 0.9,
+                  child: Text(
+                    'The Grub Next Door',
+                    style: AppTextStyles.bodyMd(color: Colors.white).copyWith(
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 const Text(
                   'How can we help you?',
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),

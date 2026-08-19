@@ -22,27 +22,26 @@ class ContactSupportScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.15),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Image.asset(
-                  'assets/images/GoCheflogo.png',
-                  height: 80,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.support_agent, size: 80, color: AppColors.primary),
+              Image.asset(
+                'assets/images/logo.png',
+                width: 100,
+                height: 100,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Image.asset('assets/images/GoCheflogo.png', width: 100, height: 100),
+              ),
+              const SizedBox(height: 8),
+              Opacity(
+                opacity: 0.9,
+                child: Text(
+                  'The Grub Next Door',
+                  style: AppTextStyles.bodyMd(color: Colors.white).copyWith(
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Text(
                 'How can we help you?',
                 style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
