@@ -1079,15 +1079,11 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       ListTile(
                         leading: const Icon(Icons.person, color: Colors.white),
-                        title: Text('Switch to Foodie App', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
-                        subtitle: Text('Order food as a user', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                        trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
+                        title: Text('Switch to Foodie Mode', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                        trailing: const Icon(Icons.chevron_right, color: Colors.white60),
                         onTap: () async {
-                          // Change role to user to open foodie app
-                          final userIdStr = await ApiService.getUserId();
-                          if (userIdStr != null) {
-                             await ApiService.saveUserId(userIdStr, role: 'user', kitchenId: _kitchen?.id.toString());
-                          }
+                          final currentUserId = _kitchen?.userId != 0 ? _kitchen!.userId : (await ApiService.getUserId() ?? 1);
+                          await ApiService.saveUserId(currentUserId.toString(), role: 'foodie', kitchenId: _kitchen?.id.toString());
                           if (mounted) {
                             Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainNavigation()), (route) => false);
                           }
@@ -1097,7 +1093,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                       ListTile(
                         leading: const Icon(Icons.logout, color: Colors.redAccent),
                         title: Text('Log Out', style: AppTextStyles.bodyMd(color: Colors.redAccent).copyWith(fontWeight: FontWeight.bold)),
-                        trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
+                        trailing: const Icon(Icons.chevron_right, color: Colors.white60),
                         onTap: () async {
                           await ApiService.logout();
                           if (mounted) {
@@ -1172,17 +1168,19 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                '$badgeCount NEW',
+                '$badgeCount',
                 style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
               ),
             ),
           ],
         ],
       ),
-      subtitle: Text(subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
-      onTap: onTap ?? () {
-        if (destination != null) {
+      subtitle: Text(subtitle, style: AppTextStyles.labelSm(color: Colors.white70)),
+      trailing: const Icon(Icons.chevron_right, color: Colors.white60),
+      onTap: () {
+        if (onTap != null) {
+          onTap();
+        } else if (destination != null) {
           Navigator.push(context, MaterialPageRoute(builder: (context) => destination));
         }
       },

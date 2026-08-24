@@ -198,7 +198,7 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildListTile(IconData icon, String title, VoidCallback? onTap, {bool isError = false, IconData trailingIcon = Icons.chevron_right}) {
     Color color = isError ? AppColors.error : Colors.white;
     Color textColor = isError ? AppColors.error : Colors.white;
-    Color iconColor = isError ? AppColors.error.withValues(alpha: 0.4) : Colors.white70;
+    Color iconColor = isError ? AppColors.error.withValues(alpha: 0.4) : Colors.white;
 
     return InkWell(
       onTap: onTap,

@@ -1533,9 +1533,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                           children: [
                                             Row(
                                               children: [
-                                                const Icon(Icons.today, size: 14, color: AppColors.onSurfaceVariant),
+                                                const Icon(Icons.today, size: 14, color: Colors.white70),
                                                 const SizedBox(width: 6),
-                                                Text('Daily', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.w600)),
+                                                Text('Daily', style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontWeight: FontWeight.w600)),
                                               ],
                                             ),
                                             const SizedBox(height: 8),
@@ -1573,9 +1573,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                           children: [
                                             Row(
                                               children: [
-                                                const Icon(Icons.date_range, size: 14, color: AppColors.onSurfaceVariant),
+                                                const Icon(Icons.date_range, size: 14, color: Colors.white70),
                                                 const SizedBox(width: 6),
-                                                Text('Weekly', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.w600)),
+                                                Text('Weekly', style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontWeight: FontWeight.w600)),
                                               ],
                                             ),
                                             const SizedBox(height: 8),
@@ -1622,7 +1622,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   // Account Management List
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Account Management', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                    child: Text('Account Management', style: AppTextStyles.headlineMd(color: Colors.white)),
                   ),
                   const SizedBox(height: 8),
                   Container(
@@ -1665,7 +1665,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   // Support & About
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Support & About', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                    child: Text('Support & About', style: AppTextStyles.headlineMd(color: Colors.white)),
                   ),
                   const SizedBox(height: 8),
                   Container(
@@ -1807,7 +1807,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   Center(
                     child: Text(
                       'GoChef x The GRUB Next Door!',
-                      style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6)).copyWith(fontWeight: FontWeight.bold),
+                      style: AppTextStyles.labelSm(color: Colors.white60).copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -1822,9 +1822,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget _buildListTile(IconData icon, String title, VoidCallback? onTap) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.onSurfaceVariant),
-      title: Text(title, style: AppTextStyles.bodyLg(color: AppColors.onSurface)),
-      trailing: const Icon(Icons.arrow_forward_ios, color: AppColors.onSurfaceVariant, size: 16),
+      leading: Icon(icon, color: Colors.white),
+      title: Text(title, style: AppTextStyles.bodyLg(color: Colors.white)),
+      trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       onTap: onTap,
     );
