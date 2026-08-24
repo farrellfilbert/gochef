@@ -82,7 +82,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                 ],
               ),
               content: Text(
-                'Pendaftaran Chef dan Dapur Anda berhasil dikirim! Admin akan meninjau kelengkapan profil Anda terlebih dahulu. Anda akan menerima notifikasi setelah disetujui.',
+                'Your Chef & Kitchen application has been successfully submitted! Our team will review your profile details and menu. You will receive a notification once approved.',
                 style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
               ),
               actions: [
@@ -95,7 +95,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Mengerti', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text('Got It', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

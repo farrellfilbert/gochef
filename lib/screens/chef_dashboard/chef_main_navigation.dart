@@ -84,9 +84,9 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('🛎️ PESANAN BARU MASUK!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                        const Text('🛎️ NEW ORDER RECEIVED!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
                         Text(
-                          latestOrderId != null ? '$latestCustomer ($latestOrderId) $latestTotal' : 'Ada pesanan baru yang harus dipersiapkan',
+                          latestOrderId != null ? '$latestCustomer ($latestOrderId) $latestTotal' : 'New incoming order waiting for preparation',
                           style: const TextStyle(fontSize: 12, color: Colors.white70),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -96,7 +96,7 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
                 ],
               ),
               action: SnackBarAction(
-                label: 'LIHAT ORDER',
+                label: 'VIEW ORDER',
                 textColor: Colors.amberAccent,
                 onPressed: () {
                   setState(() {

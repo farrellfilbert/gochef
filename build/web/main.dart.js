@@ -114208,7 +114208,7 @@ q=A.m(8)
 p=A.a9(B.uZ,1)
 o=t.p
 q=A.B(A.a([A.o(m,A.d("ADMIN",m,m,m,m,A.cp(m,m,B.j7,m,m,m,m,m,m,m,m,11,m,m,B.t,m,m,!0,m,m,m,m,m,m,m,m),m,m,m),B.i,m,m,new A.y(r,m,p,q,m,m,B.m),m,m,m,m,B.lf,m,m,m),B.P,A.d("GoChef Control",m,m,m,m,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4).bK(18),m,m,m)],o),B.j,B.e,B.c,0,m,m)
-p=A.a([A.Bm(B.WO,B.aj3,new A.aDI(a),m),A.by(m,m,B.Xl,m,m,new A.aDJ(n,a),m,m,"Logout Admin")],o)
+p=A.a([A.Bm(B.WO,B.aj4,new A.aDI(a),m),A.by(m,m,B.Xl,m,m,new A.aDJ(n,a),m,m,"Logout Admin")],o)
 r=n.d
 r===$&&A.b()
 s=A.eu(p,m,m,!0,!0,B.D,A.b8y(r,B.k,3,B.k,B.mM,A.a([B.abK,B.abC,B.abH,B.abD,new A.kp("Support",J.b6G(n.Q,new A.aDK())?new A.Et(B.b0,m,m,B.xD,m):B.xD,m)],o),B.p,m),1,m,m,0,!1,m,!1,m,m,s,m,!0,m,m,m,m,m,q,m,m,m,1,m,!0)
@@ -114314,7 +114314,7 @@ A.aDj.prototype={
 $1(a){var s,r=null,q=A.m(20),p=this.a?"Suspend Kitchen & Chef":"Suspend User Account",o=t.p
 p=A.B(A.a([B.VH,B.P,A.a8(A.d(p,r,B.a9,r,r,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4).bK(18),r,r,r),1)],o),B.j,B.e,B.c,0,r,r)
 s=A.J(A.a([A.d('Are you sure you want to suspend "'+A.k(J.L(this.b,"name"))+'"? They will not be able to log in or make transactions.',r,r,r,r,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),r,r,r),B.hb,A.ct(r,B.ah,!1,r,!0,B.u,r,A.cx(),this.c,r,r,r,r,r,2,A.dq(r,new A.d0(4,A.m(12),B.v),r,r,r,r,r,r,!0,r,r,r,r,r,r,B.a1,!0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,B.bv,"Reason for suspension",!0,!0,!1,r,r,r,r,r,r,r,r,r,r,r,r,r,r),B.y,!0,r,!0,r,!1,r,B.ai,r,r,r,r,r,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.ab,r,r,r,r,r,r,r,r,r,r,r,B.bH,!0,B.Y,r,B.av,r,r,r,r)],o),B.x,B.e,B.Z,0,B.l)
-return A.i6(A.a([A.eF(B.it,new A.aDh(a),r),A.cl(B.aiB,new A.aDi(a),A.c3(r,r,B.v0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r))],o),B.D,s,new A.aO(q,B.v),p)},
+return A.i6(A.a([A.eF(B.it,new A.aDh(a),r),A.cl(B.aiC,new A.aDi(a),A.c3(r,r,B.v0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r))],o),B.D,s,new A.aO(q,B.v),p)},
 $S:28}
 A.aDh.prototype={
 $0(){A.ac(this.a,!1).aH(!1)
@@ -114327,7 +114327,7 @@ $S:0}
 A.aDg.prototype={
 $1(a){var s=null,r=A.m(20),q=A.k(J.L(this.a,"name")),p=this.b?" and their kitchen data":""
 p=A.d('Are you sure you want to permanently delete "'+q+'"'+p+"? This action CANNOT be undone.",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),s,s,s)
-return A.i6(A.a([A.eF(B.it,new A.aDe(a),s),A.cl(B.ain,new A.aDf(a),A.c3(s,s,B.b0,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s))],t.p),B.D,p,new A.aO(r,B.v),B.a7x)},
+return A.i6(A.a([A.eF(B.it,new A.aDe(a),s),A.cl(B.aio,new A.aDf(a),A.c3(s,s,B.b0,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s))],t.p),B.D,p,new A.aO(r,B.v),B.a7x)},
 $S:28}
 A.aDe.prototype={
 $0(){A.ac(this.a,!1).aH(!1)
@@ -114348,7 +114348,7 @@ $S:0}
 A.aDv.prototype={
 $1(a){var s=null,r=A.d("Reject Chef Application",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),s,s,s),q=A.d("Are you sure you want to reject this kitchen application?",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),s,s,s),p=A.cp(s,s,B.p.q(0.5),s,s,s,s,s,s,s,s,s,s,s,s,s,s,!0,s,s,s,s,s,s,s,s),o=t.p
 p=A.J(A.a([q,B.a7,A.ct(s,B.ah,!1,s,!0,B.u,s,A.cx(),this.a,s,s,s,s,s,2,A.dq(s,new A.d0(4,A.m(12),B.ny),s,s,s,s,s,s,!0,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,p,"e.g. Incomplete menu or unclear kitchen photo",s,s,s,s,s,s,s,B.bv,"Reason for rejection",!0,!0,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s),B.y,!0,s,!0,s,!1,s,B.ai,s,s,s,s,s,s,s,s,1,s,s,!1,"\u2022",s,s,s,s,s,!1,s,s,!1,s,!0,s,B.ab,s,s,s,s,s,s,s,s,s,s,s,B.bH,!0,B.Y,s,B.av,s,s,s,s)],o),B.x,B.e,B.Z,0,B.l)
-return A.i6(A.a([A.eF(B.it,new A.aDt(a),s),A.cl(B.aja,new A.aDu(a),A.c3(s,s,B.b0,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s))],o),B.D,p,s,r)},
+return A.i6(A.a([A.eF(B.it,new A.aDt(a),s),A.cl(B.ajb,new A.aDu(a),A.c3(s,s,B.b0,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s))],o),B.D,p,s,r)},
 $S:28}
 A.aDt.prototype={
 $0(){A.ac(this.a,!1).aH(!1)
@@ -114508,7 +114508,7 @@ n=A.m(12)
 f=f.h(g,"kitchen_description")
 if(f==null)f="No description provided."
 n=A.a([p,B.a7,A.o(j,A.d(f,j,j,j,j,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),j,j,j),B.i,j,j,new A.y(o,j,j,n,j,j,B.m),j,j,j,j,B.b3,j,j,1/0)],k)
-if(d)B.b.L(n,A.a([B.H,A.B(A.a([new A.uW(j,j,B.W1,j,new A.aCt(h,r,g,s),"Chat with Applicant",j,A.oH(j,B.k.q(0.15),j,j,j,j,j,j,j,j,j,j,j,B.b3,j,j,j),B.amb,j),B.P,A.a8(A.I0(B.W5,B.aiV,new A.aCu(h,s,r),A.n6(j,j,j,j,j,j,j,j,j,j,j,j,B.dz,j,new A.aO(A.m(12),B.v),B.tw,j,j,j,j)),1),B.P,A.a8(A.ut(B.Yn,B.ajj,new A.aCv(h,s,r),A.c3(j,j,B.nM,j,j,j,j,j,j,j,j,j,B.dz,j,new A.aO(A.m(12),B.v),j,j,j,j,j)),1)],k),B.j,B.e,B.c,0,j,j)],k))
+if(d)B.b.L(n,A.a([B.H,A.B(A.a([new A.uW(j,j,B.W1,j,new A.aCt(h,r,g,s),"Chat with Applicant",j,A.oH(j,B.k.q(0.15),j,j,j,j,j,j,j,j,j,j,j,B.b3,j,j,j),B.amb,j),B.P,A.a8(A.I0(B.W5,B.aiW,new A.aCu(h,s,r),A.n6(j,j,j,j,j,j,j,j,j,j,j,j,B.dz,j,new A.aO(A.m(12),B.v),B.tw,j,j,j,j)),1),B.P,A.a8(A.ut(B.Yn,B.ajj,new A.aCv(h,s,r),A.c3(j,j,B.nM,j,j,j,j,j,j,j,j,j,B.dz,j,new A.aO(A.m(12),B.v),j,j,j,j,j)),1)],k),B.j,B.e,B.c,0,j,j)],k))
 else B.b.L(n,A.a([B.a7,B.vv,B.c1,A.B(A.a([A.ut(B.xj,B.ry,new A.aCw(h,r,g,s),A.c3(j,j,B.k,j,j,j,j,j,j,j,j,j,B.jm,j,new A.aO(A.m(10),B.v),j,j,j,j,j)),B.P,new A.ef(new A.aCx(h,g,r,s),j),B.hc,A.by(j,j,B.xE,j,j,new A.aCy(h,r,g,s),j,j,"Delete Kitchen")],k),B.j,B.e,B.c,0,j,j)],k))
 return A.o(j,A.J(n,B.x,B.e,B.c,0,B.l),B.i,j,j,new A.y(B.a1,j,q,e,j,j,B.m),j,j,j,B.dx,B.a5,j,j,j)},
 $S:85}
@@ -114704,7 +114704,7 @@ return A.w($async$$0,r)},
 $S:2}
 A.aCQ.prototype={
 $1(a){var s=null
-return A.i6(A.a([A.eF(B.ahk,new A.aCO(a),s),A.cl(B.aiT,new A.aCP(a),A.c3(s,s,B.b0,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s))],t.p),B.D,B.ahG,s,B.ahq)},
+return A.i6(A.a([A.eF(B.ahk,new A.aCO(a),s),A.cl(B.aiU,new A.aCP(a),A.c3(s,s,B.b0,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s))],t.p),B.D,B.ahG,s,B.ahq)},
 $S:28}
 A.aCO.prototype={
 $0(){A.ac(this.a,!1).aH(!1)
@@ -115115,7 +115115,7 @@ $0(){return this.a.Q=!1},
 $S:0}
 A.aK6.prototype={
 $1(a){var s=null,r=A.m(20),q=t.p,p=A.J(A.a([A.o(s,B.XZ,B.i,s,s,new A.y(B.bK.q(0.15),s,s,s,s,s,B.X),s,s,s,s,B.a5,s,s,s),B.H,A.d("Application Submitted!",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),B.b7,s,s)],q),B.j,B.e,B.c,0,B.l),o=A.d("Thank you for registering as a Chef Partner!\n\nYour application has been received and is currently under review by the Admin team. You will be able to log in to the Chef Dashboard once your kitchen is approved.",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),B.b7,s,s)
-return A.i6(A.a([A.bb(A.cl(B.aig,new A.aK3(this.a,a),A.c3(s,s,B.k,s,s,s,s,s,s,s,s,s,B.eg,s,new A.aO(A.m(12),B.v),s,s,s,s,s)),s,1/0)],q),B.D,o,new A.aO(r,B.v),p)},
+return A.i6(A.a([A.bb(A.cl(B.aih,new A.aK3(this.a,a),A.c3(s,s,B.k,s,s,s,s,s,s,s,s,s,B.eg,s,new A.aO(A.m(12),B.v),s,s,s,s,s)),s,1/0)],q),B.D,o,new A.aO(r,B.v),p)},
 $S:28}
 A.aK3.prototype={
 $0(){A.ac(this.b,!1).aH(null)
@@ -116523,7 +116523,7 @@ if(r.length===0)s.push(new A.W(B.St,A.be(A.d("No other conversation history yet"
 else B.b.L(s,new A.af(r,new A.aPN(q),A.ab(r).i("af<1,f>")))
 s=A.kj(p,A.n0(s,B.u,p,p,p,B.T,!1),p,q.gaw6())}return A.d2(o,B.bb,s,p,!1,p,p)},
 alG(){var s=null,r=A.m(16),q=A.a9(B.k.q(0.3),1),p=t.p
-return A.o(s,A.jk(B.hF,s,s,!0,!0,A.cd(B.ao,A.a([A.o(s,B.XI,B.i,s,s,new A.y(B.k.q(0.15),s,s,s,s,s,B.X),s,s,s,s,B.eh,s,s,s),A.cs(0,A.o(s,s,B.i,s,s,new A.y(B.aI,s,A.a9(B.E,1.5),s,s,s,B.X),s,10,s,s,s,s,s,10),s,s,s,0,s,s)],p),B.u,B.ak,s),s,new A.aPJ(this),s,s,B.aiX,s,A.B(A.a([A.d("GoChef Live Support Desk",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.d,16,B.o,1.5).aw(B.t),s,s,s),B.c9,B.VM],p),B.j,B.e,B.c,0,s,s),A.o(s,B.ry,B.i,s,s,new A.y(B.k,s,s,A.m(12),s,s,B.m),s,s,s,s,B.cE,s,s,s),s),B.i,s,s,new A.y(B.aX,s,q,r,s,s,B.m),s,s,s,B.ej,s,s,s,s)},
+return A.o(s,A.jk(B.hF,s,s,!0,!0,A.cd(B.ao,A.a([A.o(s,B.XI,B.i,s,s,new A.y(B.k.q(0.15),s,s,s,s,s,B.X),s,s,s,s,B.eh,s,s,s),A.cs(0,A.o(s,s,B.i,s,s,new A.y(B.aI,s,A.a9(B.E,1.5),s,s,s,B.X),s,10,s,s,s,s,s,10),s,s,s,0,s,s)],p),B.u,B.ak,s),s,new A.aPJ(this),s,s,B.aiY,s,A.B(A.a([A.d("GoChef Live Support Desk",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.d,16,B.o,1.5).aw(B.t),s,s,s),B.c9,B.VM],p),B.j,B.e,B.c,0,s,s),A.o(s,B.ry,B.i,s,s,new A.y(B.k,s,s,A.m(12),s,s,B.m),s,s,s,s,B.cE,s,s,s),s),B.i,s,s,new A.y(B.aX,s,q,r,s,s,B.m),s,s,s,B.ej,s,s,s,s)},
 akR(a){var s,r,q,p,o,n=null,m=B.A.q(0.2),l=a.c,k=l.length===0
 l=!k?new A.cL(l,1,n,B.aK):n
 s=t.p
@@ -117253,7 +117253,7 @@ p.r6()},
 $S:0}
 A.aC5.prototype={
 $1(a){var s,r=null,q=a.a,p=a.b,o=A.m(16),n=A.a9(A.aw(51,B.A.u()>>>16&255,B.A.u()>>>8&255,B.A.u()&255),1),m=this.a,l=t.p
-l=A.a([A.B(A.a([A.a8(A.J(A.a([A.wO(!1,r,B.YX,!1,r,p.b,r,r,1,new A.aC_(m,q),r,r,r,r,B.bU,B.Y,r,r),B.a0,A.B(A.a([A.bb(A.bbW(new A.aC0(m,q),p.c),24,24),B.P,B.aiL,B.aP,A.bb(A.bbW(new A.aC1(m,q),p.d),24,24),B.P,B.aht],l),B.j,B.e,B.c,0,r,r)],l),B.j,B.e,B.c,0,B.l),1),A.by(r,r,B.W2,r,r,new A.aC2(m,q),r,r,r)],l),B.x,B.e,B.c,0,r,r),B.H,B.ahL,B.a0],l)
+l=A.a([A.B(A.a([A.a8(A.J(A.a([A.wO(!1,r,B.YX,!1,r,p.b,r,r,1,new A.aC_(m,q),r,r,r,r,B.bU,B.Y,r,r),B.a0,A.B(A.a([A.bb(A.bbW(new A.aC0(m,q),p.c),24,24),B.P,B.aiN,B.aP,A.bb(A.bbW(new A.aC1(m,q),p.d),24,24),B.P,B.aht],l),B.j,B.e,B.c,0,r,r)],l),B.j,B.e,B.c,0,B.l),1),A.by(r,r,B.W2,r,r,new A.aC2(m,q),r,r,r)],l),B.x,B.e,B.c,0,r,r),B.H,B.ahL,B.a0],l)
 s=p.e
 s=new A.vg(s,A.ab(s).i("vg<1>"))
 B.b.L(l,s.gjf(s).fT(0,new A.aC3(m,q),t.l))
@@ -117442,7 +117442,7 @@ n.c.M(e).f.a8P()
 e=n.c.M(e).f
 c=A.o(null,B.Xf,B.i,null,null,B.tM,null,null,null,null,B.b9,null,null,null)
 b=t.p
-e.b2(A.dE(new A.JU(B.m6,"LIHAT ORDER",new A.aI3(n),null),null,null,B.Pw,B.di,B.u,null,A.B(A.a([c,B.af,A.a8(A.J(A.a([B.ajc,A.d(j!=null?A.k(i)+" ("+j+") "+A.k(h):"Ada pesanan baru yang harus dipersiapkan",null,B.a9,null,null,B.mN,null,null,null)],b),B.x,B.e,B.Z,0,B.l),1)],b),B.j,B.e,B.c,0,null,null),null,B.S0,null,null,null,null,null,null,null,new A.aO(A.m(16),B.v),null,null))}else if(e===-1)n.x=j
+e.b2(A.dE(new A.JU(B.m6,"VIEW ORDER",new A.aI3(n),null),null,null,B.Pw,B.di,B.u,null,A.B(A.a([c,B.af,A.a8(A.J(A.a([B.aid,A.d(j!=null?A.k(i)+" ("+j+") "+A.k(h):"New incoming order waiting for preparation",null,B.a9,null,null,B.mN,null,null,null)],b),B.x,B.e,B.Z,0,B.l),1)],b),B.j,B.e,B.c,0,null,null),null,B.S0,null,null,null,null,null,null,null,new A.aO(A.m(16),B.v),null,null))}else if(e===-1)n.x=j
 e=n.f
 if(l>e&&e>=0){A.bns()
 n.c.M(t.q).f.b2(A.dE(null,null,null,B.k,B.di,B.u,null,A.B(A.a([B.Yw,B.cW,A.d("\ud83d\udcac Pesan baru dari pelanggan ("+A.k(l)+" belum dibaca)",null,null,null,null,null,null,null,null)],t.p),B.j,B.e,B.c,0,null,null),null,B.R,null,null,null,null,null,null,null,null,null,null))}n.B(new A.aI4(n,l,k))}p=2
@@ -117534,7 +117534,7 @@ p=A.m(24)
 o=A.a9(A.aw(13,B.d.u()>>>16&255,B.d.u()>>>8&255,B.d.u()&255),1)
 n=t.p
 m=this.a
-return A.dz(A.J(A.a([A.o(l,A.J(A.a([A.B(A.a([A.d("TOTAL BALANCE",l,l,l,l,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.p,12,B.r,1.3333333333333333,0.24),l,l,l),A.bF(B.pd,A.aw(51,B.p.u()>>>16&255,B.p.u()>>>8&255,B.p.u()&255),l,48)],n),B.j,B.J,B.c,0,l,l),A.d(r,l,l,l,l,A.ad().$5$color$fontSize$fontWeight$height$letterSpacing(B.d,36,B.t,1.2222222222222223,-0.72),l,l,l),B.a3,A.bb(A.Xw(B.aj4,new A.aHN(a),A.n6(l,l,B.F,l,l,l,l,l,l,l,l,l,l,l,new A.aO(A.m(28),B.v),B.Lg,l,l,l,l)),56,1/0)],n),B.x,B.e,B.c,0,B.l),B.i,l,l,new A.y(q,l,o,p,l,l,B.m),l,l,l,l,B.bi,l,l,l),B.aU,A.d("Recent Transactions",l,l,l,l,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),l,l,l),B.H,m.LH("Payout sent to Bank","Yesterday","-$420.50",!1),m.LH("Order #ORD-1029","Oct 20, 2:30 PM","+$15.50",!0),m.LH("Order #ORD-1028","Oct 20, 1:15 PM","+$32.00",!0)],n),B.x,B.e,B.c,0,B.l),l,B.y,B.a5,l,l,B.T)},
+return A.dz(A.J(A.a([A.o(l,A.J(A.a([A.B(A.a([A.d("TOTAL BALANCE",l,l,l,l,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.p,12,B.r,1.3333333333333333,0.24),l,l,l),A.bF(B.pd,A.aw(51,B.p.u()>>>16&255,B.p.u()>>>8&255,B.p.u()&255),l,48)],n),B.j,B.J,B.c,0,l,l),A.d(r,l,l,l,l,A.ad().$5$color$fontSize$fontWeight$height$letterSpacing(B.d,36,B.t,1.2222222222222223,-0.72),l,l,l),B.a3,A.bb(A.Xw(B.aj5,new A.aHN(a),A.n6(l,l,B.F,l,l,l,l,l,l,l,l,l,l,l,new A.aO(A.m(28),B.v),B.Lg,l,l,l,l)),56,1/0)],n),B.x,B.e,B.c,0,B.l),B.i,l,l,new A.y(q,l,o,p,l,l,B.m),l,l,l,l,B.bi,l,l,l),B.aU,A.d("Recent Transactions",l,l,l,l,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),l,l,l),B.H,m.LH("Payout sent to Bank","Yesterday","-$420.50",!1),m.LH("Order #ORD-1029","Oct 20, 2:30 PM","+$15.50",!0),m.LH("Order #ORD-1028","Oct 20, 1:15 PM","+$32.00",!0)],n),B.x,B.e,B.c,0,B.l),l,B.y,B.a5,l,l,B.T)},
 $S:711}
 A.aHN.prototype={
 $0(){this.a.M(t.q).f.b2(B.aaq)},
@@ -117618,7 +117618,7 @@ s=r.c
 s.toString
 A.f2(q,q,!1,q,new A.aIx(p,r,new A.bV(B.aA,o),new A.bV(B.aA,o),new A.bV(B.aA,o),new A.bV(new A.cn("650",B.ba,B.aG),o)),s,q,!0,t.z)},
 G(a){var s,r,q,p,o=this,n=null,m=B.D.q(0.8),l=t.p
-m=A.eu(A.a([A.by(n,n,B.XF,n,n,new A.aIM(),n,n,n)],l),n,n,!0,!0,m,n,1,n,n,0,!1,n,!1,n,n,n,n,!0,n,n,n,n,n,B.aid,n,n,n,1,n,!0)
+m=A.eu(A.a([A.by(n,n,B.XF,n,n,new A.aIM(),n,n,n)],l),n,n,!0,!0,m,n,1,n,n,0,!1,n,!1,n,n,n,n,!0,n,n,n,n,n,B.aie,n,n,n,1,n,!0)
 if(o.e)l=B.bn
 else{s=A.m(12)
 r=A.a9(B.A.q(0.2),1)
@@ -118398,7 +118398,7 @@ A.f2(r,r,!1,r,new A.aJv(q,this,new A.bV(new A.cn(o,B.ba,B.aG),n),new A.bV(new A.
 G(b4){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,b0,b1,b2=this,b3=null
 if(b2.d)s=B.bn
 else{s=t.p
-if(b2.e==null)s=A.be(new A.W(B.bi,A.J(A.a([B.Xj,B.H,B.aii,B.a0,B.ait,A.B(A.a([A.ut(B.xo,B.ahX,b2.gawa(),A.c3(b3,b3,B.k,b3,b3,b3,b3,b3,b3,b3,b3,b3,B.SJ,b3,new A.aO(A.m(12),B.v),b3,b3,b3,b3,b3)),B.af,A.I0(B.pD,B.aji,new A.aJO(b2,b4),A.n6(b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,B.ej,b3,new A.aO(A.m(12),B.v),B.tt,b3,b3,b3,b3))],s),B.j,B.at,B.c,0,b3,b3)],s),B.j,B.at,B.c,0,B.l),b3),b3,b3)
+if(b2.e==null)s=A.be(new A.W(B.bi,A.J(A.a([B.Xj,B.H,B.aij,B.a0,B.aiu,A.B(A.a([A.ut(B.xo,B.ahX,b2.gawa(),A.c3(b3,b3,B.k,b3,b3,b3,b3,b3,b3,b3,b3,b3,B.SJ,b3,new A.aO(A.m(12),B.v),b3,b3,b3,b3,b3)),B.af,A.I0(B.pD,B.aji,new A.aJO(b2,b4),A.n6(b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,B.ej,b3,new A.aO(A.m(12),B.v),B.tt,b3,b3,b3,b3))],s),B.j,B.at,B.c,0,b3,b3)],s),B.j,B.at,B.c,0,B.l),b3),b3,b3)
 else{r=B.D.q(0.9)
 q=A.b6(b3,A.h7(b2.e.r,new A.aJP(),B.aH,b3,b3,b3),B.y,!1,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,b3,new A.aJQ(b2),b3,b3,b3,b3,b3,b3,!1,B.M)
 p=A.o(b3,b3,B.i,b3,b3,new A.y(b3,b3,b3,b3,b3,new A.ha(B.e5,B.dn,B.bV,A.a([B.F,B.D],t.t_),b3,b3),B.m),b3,b3,b3,b3,b3,b3,b3,b3)
@@ -118418,7 +118418,7 @@ o=B.an.q(0.4)
 l=A.m(16)
 l=A.o(b3,A.J(A.a([A.d('"'+b2.e.e+'"',b3,b3,b3,b3,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5).QY(B.cS),b3,b3,b3),B.a7,A.B(A.a([b2.XX(b2.e.y),B.P,b2.XX("Farm-to-Table")],s),B.j,B.e,B.c,0,b3,b3)],s),B.x,B.e,B.c,0,B.l),B.i,b3,b3,new A.y(o,b3,B.Ll,l,b3,b3,B.m),b3,b3,b3,b3,B.a5,b3,b3,b3)
 o=b2.gaz_()
-k=A.B(A.a([A.B(A.a([B.WG,B.P,A.d("Kitchen Map Pin & Location",b3,b3,b3,b3,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),b3,b3,b3)],s),B.j,B.e,B.c,0,b3,b3),A.Bm(B.V9,B.aiP,o,b3)],s),B.j,B.J,B.c,0,b3,b3)
+k=A.B(A.a([A.B(A.a([B.WG,B.P,A.d("Kitchen Map Pin & Location",b3,b3,b3,b3,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),b3,b3,b3)],s),B.j,B.e,B.c,0,b3,b3),A.Bm(B.V9,B.aiR,o,b3)],s),B.j,B.J,B.c,0,b3,b3)
 j=B.an.q(0.4)
 i=A.m(16)
 h=A.a9(B.k.q(0.2),1)
@@ -118610,7 +118610,7 @@ $0(){return this.b.w=this.a.a},
 $S:0}
 A.aJy.prototype={
 $1(a){var s=null,r=t.p,q=this.a,p=A.B(A.a([A.B(A.a([B.WT,B.P,A.d("Kitchen Inspection",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),s,s,s)],r),B.j,B.e,B.c,0,s,s),A.by(s,s,B.fK,s,s,new A.aJw(q),s,s,s)],r),B.j,B.J,B.c,0,s,s),o=B.aI.q(0.1),n=A.m(16),m=A.a9(B.aI.q(0.3),1)
-return new A.W(B.bi,A.J(A.a([p,B.H,A.o(s,A.B(A.a([A.o(s,B.ahR,B.i,s,s,B.LJ,s,s,s,s,B.b3,s,s,s),B.aP,A.a8(A.J(A.a([B.aj_,B.ac,A.d("Grade A (Score: 98/100) \u2022 Verified by City Food Safety Authority",s,s,s,s,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.L,12,B.r,1.3333333333333333,0.24),s,s,s)],r),B.x,B.e,B.c,0,B.l),1)],r),B.j,B.e,B.c,0,s,s),B.i,s,s,new A.y(o,s,m,n,s,s,B.m),s,s,s,s,B.a5,s,s,s),B.H,q.Lu("Food Handler License","Valid until Nov 2026",B.dT,B.au),B.a0,q.Lu("Commercial Kitchen Standards","Certified & Compliant",B.dT,B.au),B.a0,q.Lu("Fire Safety & Sanitation","Inspected Q1 2026",B.dT,B.au),B.a3,A.bb(A.I0(B.xB,B.ajy,new A.aJx(q),A.n6(s,s,s,s,s,s,s,s,s,s,s,s,s,s,new A.aO(A.m(25),B.v),B.eH,s,s,s,s)),50,1/0),B.H],r),B.x,B.e,B.Z,0,B.l),s)},
+return new A.W(B.bi,A.J(A.a([p,B.H,A.o(s,A.B(A.a([A.o(s,B.ahR,B.i,s,s,B.LJ,s,s,s,s,B.b3,s,s,s),B.aP,A.a8(A.J(A.a([B.aj0,B.ac,A.d("Grade A (Score: 98/100) \u2022 Verified by City Food Safety Authority",s,s,s,s,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.L,12,B.r,1.3333333333333333,0.24),s,s,s)],r),B.x,B.e,B.c,0,B.l),1)],r),B.j,B.e,B.c,0,s,s),B.i,s,s,new A.y(o,s,m,n,s,s,B.m),s,s,s,s,B.a5,s,s,s),B.H,q.Lu("Food Handler License","Valid until Nov 2026",B.dT,B.au),B.a0,q.Lu("Commercial Kitchen Standards","Certified & Compliant",B.dT,B.au),B.a0,q.Lu("Fire Safety & Sanitation","Inspected Q1 2026",B.dT,B.au),B.a3,A.bb(A.I0(B.xB,B.ajy,new A.aJx(q),A.n6(s,s,s,s,s,s,s,s,s,s,s,s,s,s,new A.aO(A.m(25),B.v),B.eH,s,s,s,s)),50,1/0),B.H],r),B.x,B.e,B.Z,0,B.l),s)},
 $S:45}
 A.aJw.prototype={
 $0(){var s=this.a.c
@@ -118642,7 +118642,7 @@ A.aJu.prototype={
 $2(a,b){var s=this,r=null,q=A.d("Edit Profile",r,r,r,r,A.ad().$4$color$fontSize$fontWeight$height(B.B,20,B.z,1.4),r,r,r),p=s.c,o=s.d,n=s.e,m=s.f,l=t.p,k=A.dz(A.J(A.a([A.ct(r,B.ah,!1,r,!0,B.u,r,A.cx(),p,r,r,r,r,r,2,B.Z4,B.y,!0,r,!0,r,!1,r,B.ai,r,r,r,r,r,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.ab,r,r,r,r,r,r,r,r,r,r,r,B.bU,!0,B.Y,r,B.av,r,r,r,r),B.a0,A.ct(r,B.ah,!1,r,!0,B.u,r,A.cx(),o,r,r,r,r,r,2,B.Z_,B.y,!0,r,!0,r,!1,r,B.ai,r,r,r,r,r,r,r,r,3,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.ab,r,r,r,r,r,r,r,r,r,r,r,B.bU,!0,B.Y,r,B.av,r,r,r,r),B.a0,A.ct(r,B.ah,!1,r,!0,B.u,r,A.cx(),n,r,r,r,r,r,2,B.Z3,B.y,!0,r,!0,r,!1,r,B.ai,r,r,r,r,r,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.ab,r,r,r,r,r,r,r,r,r,r,r,B.bU,!0,B.Y,r,B.av,r,r,r,r),B.a0,A.ct(r,B.ah,!1,r,!0,B.u,r,A.cx(),m,r,r,r,r,r,2,B.Z1,B.y,!0,r,!0,r,!1,r,B.ai,r,r,r,r,r,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.ab,r,r,r,r,r,r,r,r,r,r,r,B.bU,!0,B.Y,r,B.av,r,r,r,r)],l),B.j,B.e,B.Z,0,B.l),r,B.y,r,r,r,B.T),j=s.a,i=j.a,h=A.eF(B.it,i?r:new A.aJs(a),r)
 p=i?r:new A.aJt(j,s.b,b,p,o,n,m,a)
 o=A.c3(r,r,B.k,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r)
-return A.i6(A.a([h,A.cl(j.a?B.r9:B.aiO,p,o)],l),B.an,k,r,q)},
+return A.i6(A.a([h,A.cl(j.a?B.r9:B.aiQ,p,o)],l),B.an,k,r,q)},
 $S:170}
 A.aJs.prototype={
 $0(){A.ac(this.a,!1).aH(null)
@@ -119185,7 +119185,7 @@ d=A.m(20)
 c=A.a9(B.k.q(0.2),1)
 d=A.B(A.a([f,A.o(a0,A.B(A.a([B.W_,B.b1,A.d(B.f.U(q.r,1),a0,a0,a0,a0,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.B,14,B.r,1.4285714285714286,0.28),a0,a0,a0)],g),B.j,B.e,B.c,0,a0,a0),B.i,a0,a0,new A.y(B.bP,a0,c,d,a0,a0,B.m),a0,a0,a0,a0,B.cE,a0,a0,a0)],g),B.x,B.J,B.c,0,a0,a0)
 c=A.m(12)
-c=A.b6(a0,A.o(a0,A.B(A.a([A.hm(a0,new A.cL(q.as,1,a0,B.aK),a0,a0,20),B.af,A.a8(A.J(A.a([A.d(q.Q,a0,a0,a0,a0,A.n().$4$color$fontSize$fontWeight$height(B.B,16,B.o,1.5),a0,a0,a0),B.aiv],g),B.x,B.e,B.c,0,B.l),1),B.fJ],g),B.j,B.e,B.c,0,a0,a0),B.i,a0,a0,new A.y(B.aX,a0,a0,c,a0,a0,B.m),a0,a0,a0,a0,B.b3,a0,a0,a0),B.y,!1,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,new A.aNV(a1,q),a0,a0,a0,a0,a0,a0,!1,B.M)
+c=A.b6(a0,A.o(a0,A.B(A.a([A.hm(a0,new A.cL(q.as,1,a0,B.aK),a0,a0,20),B.af,A.a8(A.J(A.a([A.d(q.Q,a0,a0,a0,a0,A.n().$4$color$fontSize$fontWeight$height(B.B,16,B.o,1.5),a0,a0,a0),B.aiw],g),B.x,B.e,B.c,0,B.l),1),B.fJ],g),B.j,B.e,B.c,0,a0,a0),B.i,a0,a0,new A.y(B.aX,a0,a0,c,a0,a0,B.m),a0,a0,a0,a0,B.b3,a0,a0,a0),B.y,!1,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,a0,new A.aNV(a1,q),a0,a0,a0,a0,a0,a0,!1,B.M)
 f=A.m(12)
 b=A.a9(B.bG,1)
 f=A.a([d,B.a3,c,B.a3,A.o(a0,A.B(A.a([o.LI(B.hX,q.x),A.o(a0,a0,B.i,B.A.q(0.2),a0,a0,a0,40,a0,a0,a0,a0,a0,1),o.LI(B.fF,e+" kcal"),A.o(a0,a0,B.i,B.A.q(0.2),a0,a0,a0,40,a0,a0,a0,a0,a0,1),o.LI(B.eS,q.ch)],g),B.j,B.e,B.c,0,a0,a0),B.i,a0,a0,new A.y(B.bP,a0,b,f,a0,a0,B.m),a0,a0,a0,a0,B.a5,a0,a0,a0),B.aU,A.d("Description",a0,a0,a0,a0,A.ad().$4$color$fontSize$fontWeight$height(B.B,20,B.z,1.4),a0,a0,a0),B.a0,A.d(q.d,a0,a0,a0,a0,A.n().$4$color$fontSize$fontWeight$height(B.d,16,B.o,1.5).pr(1.5),a0,a0,a0),B.aU],g)
@@ -120738,7 +120738,7 @@ j=A.eu(A.a([A.by(k,k,B.VN,k,k,new A.aCm(l),k,k,k)],s),k,k,!0,!0,B.D,k,1,k,k,0,!1
 if(l.f)s=B.bn
 else{r=A.o(k,A.B(A.a([B.XX,B.af,A.a8(A.d("Tap anywhere on the map or select from your saved addresses below to set your delivery location.",k,k,k,k,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.j7,12,B.r,1.3333333333333333,0.24),k,k,k),1)],s),B.j,B.e,B.c,0,k,k),B.i,B.Qa,k,k,k,k,k,k,B.ej,k,k,k)
 q=A.WO(l.w,15,B.xR,k,k,new A.aCn(l))
-q=A.bb(A.cd(B.ao,A.a([new A.oA(A.a([A.Bx(B.fM,u.C,"com.astroboomin.gochef"),A.WP(A.a([A.zT(B.Yh,40,l.w,40)],t._I))],s),q,l.d,k),A.cs(8,A.o(k,B.aiC,B.i,k,k,new A.y(B.aM,k,k,A.m(6),k,k,B.m),k,k,k,k,B.d7,k,k,k),k,k,k,8,k,k)],s),B.u,B.ak,k),200,k)
+q=A.bb(A.cd(B.ao,A.a([new A.oA(A.a([A.Bx(B.fM,u.C,"com.astroboomin.gochef"),A.WP(A.a([A.zT(B.Yh,40,l.w,40)],t._I))],s),q,l.d,k),A.cs(8,A.o(k,B.aiD,B.i,k,k,new A.y(B.aM,k,k,A.m(6),k,k,B.m),k,k,k,k,B.d7,k,k,k),k,k,k,8,k,k)],s),B.u,B.ak,k),200,k)
 p=B.a1.q(0.6)
 o=B.A.q(0.1)
 n=A.d("Deliver To: ",k,k,k,k,A.n().$4$color$fontSize$fontWeight$height(B.d,16,B.o,1.5).aw(B.t),k,k,k)
@@ -120843,7 +120843,7 @@ r=s?B.TL:B.TM
 q=t.p
 r=A.J(A.a([A.bF(r,s?B.k:B.p,o,20),B.ac,A.d(B.f.U(1.5+b*0.9,1)+" mi",o,o,o,o,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.p,12,B.r,1.3333333333333333,0.24),o,o,o)],q),B.j,B.e,B.c,0,B.l)
 p=A.a([A.a8(A.d(m.b,o,o,o,o,A.n().$4$color$fontSize$fontWeight$height(B.B,16,B.o,1.5).aw(B.t),o,o,o),1)],q)
-if(s)p.push(A.o(o,B.aio,B.i,o,o,new A.y(B.k.q(0.15),o,o,A.m(4),o,o,B.m),o,o,o,o,B.fz,o,o,o))
+if(s)p.push(A.o(o,B.aip,B.i,o,o,new A.y(B.k.q(0.15),o,o,A.m(4),o,o,B.m),o,o,o,o,B.fz,o,o,o))
 return A.dp(!1,o,!0,A.o(o,A.B(A.a([r,B.aP,A.a8(A.J(A.a([A.B(p,B.j,B.e,B.c,0,o,o),B.ac,A.d(m.c,o,o,o,o,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.p,12,B.r,1.3333333333333333,0.24),o,o,o),B.a0,A.d("User Name | (+62) 812-3456-7890",o,o,o,o,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.p.q(0.6),12,B.r,1.3333333333333333,0.24),o,o,o)],q),B.x,B.e,B.c,0,B.l),1),B.aP,A.by(o,o,B.WF,o,o,new A.aCj(),o,o,o)],q),B.x,B.e,B.c,0,o,o),B.i,l,o,o,o,o,o,o,B.a5,o,o,o),o,!0,o,o,o,o,o,o,o,o,o,o,o,new A.aCk(n,m),o,o,o,o,o,o,o)},
 $S:767}
 A.aCk.prototype={
@@ -120917,7 +120917,7 @@ break
 case 6:case 1:return A.v(q,r)
 case 2:return A.u(o.at(-1),r)}})
 return A.w($async$vi,r)},
-G(a){var s,r,q,p,o=this,n=null,m=A.eu(n,n,n,!0,!0,B.D.q(0.8),n,1,n,n,0,!1,n,!1,n,n,n,n,!0,n,n,n,n,n,B.aj1,n,n,n,1,n,!0),l=A.d("Open Your Kitchen",n,n,n,n,A.ad().$4$color$fontSize$fontWeight$height(B.k,24,B.t,1.3333333333333333),n,n,n),k=A.d("Turn your passion into a business. Set up your kitchen details below.",n,n,n,n,A.n().$4$color$fontSize$fontWeight$height(B.p,18,B.o,1.5555555555555556),n,n,n),j=A.a9(B.k.q(0.3),2),i=o.z
+G(a){var s,r,q,p,o=this,n=null,m=A.eu(n,n,n,!0,!0,B.D.q(0.8),n,1,n,n,0,!1,n,!1,n,n,n,n,!0,n,n,n,n,n,B.aj2,n,n,n,1,n,!0),l=A.d("Open Your Kitchen",n,n,n,n,A.ad().$4$color$fontSize$fontWeight$height(B.k,24,B.t,1.3333333333333333),n,n,n),k=A.d("Turn your passion into a business. Set up your kitchen details below.",n,n,n,n,A.n().$4$color$fontSize$fontWeight$height(B.p,18,B.o,1.5555555555555556),n,n,n),j=A.a9(B.k.q(0.3),2),i=o.z
 if(i!=null){i=i.c
 i===$&&A.b()
 i=A.h3(B.aH,new A.cL(i,1,n,B.aK),n)}else i=n
@@ -120936,8 +120936,8 @@ A.aEY.prototype={
 $0(){return this.a.y=!0},
 $S:0}
 A.aEZ.prototype={
-$1(a){var s=null,r=A.m(20),q=t.p,p=A.B(A.a([B.VE,B.cW,A.d("Application Submitted",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),s,s,s)],q),B.j,B.e,B.c,0,s,s),o=A.d("Pendaftaran Chef dan Dapur Anda berhasil dikirim! Admin akan meninjau kelengkapan profil Anda terlebih dahulu. Anda akan menerima notifikasi setelah disetujui.",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),s,s,s)
-return A.i6(A.a([A.cl(B.aiR,new A.aEX(this.a,a),A.c3(s,s,B.k,s,s,s,s,s,s,s,s,s,s,s,new A.aO(A.m(12),B.v),s,s,s,s,s))],q),B.D,o,new A.aO(r,B.v),p)},
+$1(a){var s=null,r=A.m(20),q=t.p,p=A.B(A.a([B.VE,B.cW,A.d("Application Submitted",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),s,s,s)],q),B.j,B.e,B.c,0,s,s),o=A.d("Your Chef & Kitchen application has been successfully submitted! Our team will review your profile details and menu. You will receive a notification once approved.",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),s,s,s)
+return A.i6(A.a([A.cl(B.aiF,new A.aEX(this.a,a),A.c3(s,s,B.k,s,s,s,s,s,s,s,s,s,s,s,new A.aO(A.m(12),B.v),s,s,s,s,s))],q),B.D,o,new A.aO(r,B.v),p)},
 $S:28}
 A.aEX.prototype={
 $0(){A.ac(this.b,!1).aH(null)
@@ -121064,7 +121064,7 @@ G(a){var s,r,q,p,o,n,m=this,l=null,k=m.f
 if(!(m.e.length===0)){s=A.ab(k).i("aY<1>")
 k=A.a5(new A.aY(k,new A.aOL(m),s),s.i("D.E"))}s=A.eu(l,l,l,!0,!0,B.D,l,1,l,l,0,!1,l,!1,l,B.fI,l,l,!0,l,l,l,l,l,B.ahZ,l,l,l,1,l,!0)
 r=t.p
-q=A.be(A.J(A.a([A.kV("assets/images/logo.png",l,new A.aOM(),B.d0,90,90),B.cY,A.hU(A.d("The Grub Next Door",l,l,l,l,A.n().$4$color$fontSize$fontWeight$height(B.d,16,B.o,1.5).Ad(14,B.z,1.2),l,l,l),0.9),B.hb,B.aiS,B.ac,B.ajC],r),B.j,B.e,B.c,0,B.l),l,l)
+q=A.be(A.J(A.a([A.kV("assets/images/logo.png",l,new A.aOM(),B.d0,90,90),B.cY,A.hU(A.d("The Grub Next Door",l,l,l,l,A.n().$4$color$fontSize$fontWeight$height(B.d,16,B.o,1.5).Ad(14,B.z,1.2),l,l,l),0.9),B.hb,B.aiT,B.ac,B.ajC],r),B.j,B.e,B.c,0,B.l),l,l)
 p=A.m(16)
 o=A.a9(B.cD,1)
 n=A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5)
@@ -121106,7 +121106,7 @@ return new A.W(B.dR,A.o(q,A.bcT(A.a([new A.W(B.SC,A.d(p,q,q,q,q,A.n().$4$color$f
 $S:771}
 A.Ah.prototype={
 G(a){var s=null
-return A.d2(A.eu(s,s,s,!0,!0,B.D,s,1,s,s,0,!1,s,!1,s,B.fI,s,s,!0,s,s,s,s,s,B.ahJ,s,s,s,1,s,!0),B.bb,A.be(A.J(A.a([B.Yc,B.a3,A.d("No Payment Methods",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.B,20,B.z,1.4),s,s,s),B.a0,A.d("Add a credit card or e-wallet to speed up checkout.",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),B.b7,s,s),B.aU,A.ut(B.Yv,B.aiw,new A.asw(),A.c3(s,s,B.k,s,s,s,s,s,s,s,s,s,B.vS,s,s,s,s,s,s,s))],t.p),B.j,B.at,B.c,0,B.l),s,s),s,!1,s,s)}}
+return A.d2(A.eu(s,s,s,!0,!0,B.D,s,1,s,s,0,!1,s,!1,s,B.fI,s,s,!0,s,s,s,s,s,B.ahJ,s,s,s,1,s,!0),B.bb,A.be(A.J(A.a([B.Yc,B.a3,A.d("No Payment Methods",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.B,20,B.z,1.4),s,s,s),B.a0,A.d("Add a credit card or e-wallet to speed up checkout.",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),B.b7,s,s),B.aU,A.ut(B.Yv,B.aix,new A.asw(),A.c3(s,s,B.k,s,s,s,s,s,s,s,s,s,B.vS,s,s,s,s,s,s,s))],t.p),B.j,B.at,B.c,0,B.l),s,s),s,!1,s,s)}}
 A.asw.prototype={
 $0(){},
 $S:0}
@@ -121478,7 +121478,7 @@ return null},
 $S:0}
 A.b2a.prototype={
 $1(a){var s=null,r=A.m(20),q=t.p,p=A.B(A.a([B.VF,B.cW,A.d("Perk Unlocked! \ud83c\udf89",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4).bK(18),s,s,s)],q),B.j,B.e,B.c,0,s,s),o=A.d('"'+this.a+'" has been claimed and added to your vouchers wallet!',s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),s,s,s)
-return A.i6(A.a([A.cl(B.aiJ,new A.b27(a),A.c3(s,s,B.k,s,s,s,s,s,s,B.d,s,s,s,s,new A.aO(A.m(12),B.v),s,s,s,s,s))],q),B.D,o,new A.aO(r,B.v),p)},
+return A.i6(A.a([A.cl(B.aiL,new A.b27(a),A.c3(s,s,B.k,s,s,s,s,s,s,B.d,s,s,s,s,new A.aO(A.m(12),B.v),s,s,s,s,s))],q),B.D,o,new A.aO(r,B.v),p)},
 $S:28}
 A.b27.prototype={
 $0(){A.ac(this.a,!1).aH(null)
@@ -121509,7 +121509,7 @@ i=a1.d
 h=A.B(A.a([A.B(A.a([A.o(a2,B.Wc,B.i,a2,a2,new A.y(B.aE.q(0.15),a2,a2,a2,a2,a2,B.X),a2,a2,a2,a2,B.b9,a2,a2,a2),B.af,A.J(A.a([A.d("Calories Intake & Goals",a2,a2,a2,a2,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4).bK(18),a2,a2,a2),B.ah4],j),B.x,B.e,B.c,0,B.l)],j),B.j,B.e,B.c,0,a2,a2),A.by(a2,a2,B.fK,a2,a2,new A.b2l(i),a2,a2,a2)],j),B.j,B.J,B.c,0,a2,a2)
 g=A.m(16)
 f=A.a9(B.aE.q(0.3),1)
-g=A.a8(A.o(a2,A.J(A.a([A.B(A.a([B.aiI,A.d(""+n+"%",a2,a2,a2,a2,B.JE,a2,a2,a2)],j),B.j,B.J,B.c,0,a2,a2),B.a0,A.d(A.k(a5)+" kcal",a2,a2,a2,a2,B.rt,a2,a2,a2),B.ca,A.d("Goal: "+q+" kcal",a2,a2,a2,a2,B.rs,a2,a2,a2),B.a0,A.dG(A.m(4),A.b7S(B.cD,5,B.f.cC(o,0,1),B.nr),B.ar)],j),B.x,B.e,B.c,0,B.l),B.i,a2,a2,new A.y(B.aX,a2,f,g,a2,a2,B.m),a2,a2,a2,a2,B.a5,a2,a2,a2),1)
+g=A.a8(A.o(a2,A.J(A.a([A.B(A.a([B.aiK,A.d(""+n+"%",a2,a2,a2,a2,B.JE,a2,a2,a2)],j),B.j,B.J,B.c,0,a2,a2),B.a0,A.d(A.k(a5)+" kcal",a2,a2,a2,a2,B.rt,a2,a2,a2),B.ca,A.d("Goal: "+q+" kcal",a2,a2,a2,a2,B.rs,a2,a2,a2),B.a0,A.dG(A.m(4),A.b7S(B.cD,5,B.f.cC(o,0,1),B.nr),B.ar)],j),B.x,B.e,B.c,0,B.l),B.i,a2,a2,new A.y(B.aX,a2,f,g,a2,a2,B.m),a2,a2,a2,a2,B.a5,a2,a2,a2),1)
 f=A.m(16)
 o=A.a9(B.aE.q(0.2),1)
 f=A.B(A.a([g,B.af,A.a8(A.o(a2,A.J(A.a([A.B(A.a([B.ahe,A.d(""+l+"%",a2,a2,a2,a2,B.JE,a2,a2,a2)],j),B.j,B.J,B.c,0,a2,a2),B.a0,A.d(A.k(s)+" kcal",a2,a2,a2,a2,B.rt,a2,a2,a2),B.ca,A.d("Goal: "+p+" kcal",a2,a2,a2,a2,B.rs,a2,a2,a2),B.a0,A.dG(A.m(4),A.b7S(B.cD,5,B.f.cC(m,0,1),B.nr),B.ar)],j),B.x,B.e,B.c,0,B.l),B.i,a2,a2,new A.y(B.aX,a2,o,f,a2,a2,B.m),a2,a2,a2,a2,B.a5,a2,a2,a2),1)],j),B.j,B.e,B.c,0,a2,a2)
@@ -121525,7 +121525,7 @@ a0=A.a9(B.d4,1)
 a=A.a8(A.o(a2,A.ct(a2,B.ah,!1,a2,!0,B.u,a2,A.cx(),c,a2,a2,a2,a2,a2,2,B.Z0,B.y,!0,a2,!0,a2,!1,a2,B.ai,a2,a2,a2,a2,B.ir,a2,a2,a2,1,a2,a2,!1,"\u2022",a2,new A.b2r(r,a7),a2,a2,a2,!1,a2,a2,!1,a2,!0,a2,B.ab,a2,a2,a2,a2,a2,a2,a2,a2,a2,a2,a2,B.f5,!0,B.Y,a2,B.av,a2,a2,a2,a2),B.i,a2,a2,new A.y(B.D,a2,a0,a,a2,a2,B.m),a2,48,a2,a2,B.Sx,a2,a2,a2),1)
 i=r.b?a2:new A.b2s(r,d,c,a6,a7,a1.f,i)
 d=A.c3(a2,a2,B.d,a2,a2,a2,a2,a2,a2,B.E,a2,a2,B.SL,a2,new A.aO(A.m(12),B.v),a2,a2,a2,a2,a2)
-o=A.a([f,B.a3,A.o(a2,A.J(A.a([e,B.cY,B.aiU,B.hb,b,B.H,A.B(A.a([a,B.af,A.cl(r.b?B.a9V:B.ahT,i,d)],j),B.j,B.e,B.c,0,a2,a2)],j),B.x,B.e,B.c,0,B.l),B.i,a2,a2,new A.y(o,a2,g,m,a2,a2,B.m),a2,a2,a2,a2,B.vP,a2,a2,a2),B.a3,A.d("Today's GoChef Meals",a2,a2,a2,a2,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4).bK(16),a2,a2,a2),B.c1],j)
+o=A.a([f,B.a3,A.o(a2,A.J(A.a([e,B.cY,B.aiV,B.hb,b,B.H,A.B(A.a([a,B.af,A.cl(r.b?B.a9V:B.ahT,i,d)],j),B.j,B.e,B.c,0,a2,a2)],j),B.x,B.e,B.c,0,B.l),B.i,a2,a2,new A.y(o,a2,g,m,a2,a2,B.m),a2,a2,a2,a2,B.vP,a2,a2,a2),B.a3,A.d("Today's GoChef Meals",a2,a2,a2,a2,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4).bK(16),a2,a2,a2),B.c1],j)
 r=J.aj(k)
 if(r.gad(k)){r=A.m(14)
 o.push(A.o(a2,B.NY,B.i,a2,a2,new A.y(B.a1,a2,A.a9(B.A.q(0.1),1),r,a2,a2,B.m),a2,a2,a2,a2,B.ab,a2,a2,a2))}else B.b.L(o,r.fT(k,new A.b2t(),t.l))
@@ -122790,7 +122790,7 @@ $S:0}
 A.aZo.prototype={
 $1(a){var s=null,r=this.a,q=B.q.b1(r.y+1,7),p=r.x[q],o=A.m(20),n=t.p,m=A.B(A.a([B.Wv,B.cW,A.d("Already Claimed Today",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4).bK(18),s,s,s)],n),B.j,B.e,B.c,0,s,s)
 r=A.d("You have already collected Day "+(r.y+1)+" coins!\n\nCome back tomorrow to unlock Day "+(q+1)+" reward ("+p+" coins)!",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.p,16,B.o,1.5),s,s,s)
-return A.i6(A.a([A.cl(B.aj5,new A.aZn(a),A.c3(s,s,B.k,s,s,s,s,s,s,B.d,s,s,s,s,new A.aO(A.m(12),B.v),s,s,s,s,s))],n),B.D,r,new A.aO(o,B.v),m)},
+return A.i6(A.a([A.cl(B.aj6,new A.aZn(a),A.c3(s,s,B.k,s,s,s,s,s,s,B.d,s,s,s,s,new A.aO(A.m(12),B.v),s,s,s,s,s))],n),B.D,r,new A.aO(o,B.v),m)},
 $S:28}
 A.aZn.prototype={
 $0(){A.ac(this.a,!1).aH(null)
@@ -122845,7 +122845,7 @@ this.a.c.M(t.q).f.b2(A.dE(s,s,s,B.k,B.di,B.u,s,A.d('Voucher code "'+A.k(q.h(r,"c
 $S:0}
 A.aZr.prototype={
 $1(a){var s=null,r=t.p,q=this.a
-return new A.W(B.bi,A.J(A.a([A.be(A.o(s,s,B.i,s,s,new A.y(B.A.q(0.3),s,s,A.m(2),s,s,B.m),s,4,s,s,s,s,s,40),s,s),B.bS,A.B(A.a([A.o(s,B.Wl,B.i,s,s,new A.y(B.au.q(0.15),s,s,s,s,s,B.X),s,s,s,s,B.b3,s,s,s),B.aP,A.a8(A.J(A.a([A.B(A.a([A.d("GoChef PLUS",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),s,s,s),B.P,A.o(s,B.aiZ,B.i,s,s,new A.y(B.au.q(0.2),s,s,A.m(12),s,s,B.m),s,s,s,s,B.jo,s,s,s)],r),B.j,B.e,B.c,0,s,s),A.d("VIP Membership Active",s,s,s,s,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.p,12,B.r,1.3333333333333333,0.24),s,s,s)],r),B.x,B.e,B.c,0,B.l),1)],r),B.j,B.e,B.c,0,s,s),B.a3,A.d("Your VIP Benefits:",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.d,18,B.o,1.5555555555555556).aw(B.t),s,s,s),B.a7,q.y4(B.lB,"Unlimited $0 Free Delivery on all orders"),q.y4(B.jy,"Extra 15% discount across 500+ restaurants"),q.y4(B.lE,"2x Daily Coins & Loyalty Points Multiplier"),q.y4(B.wI,"Priority Kitchen Prep & Express Delivery"),q.y4(B.eT,"24/7 Dedicated Concierge Support"),B.a3,A.bb(A.cl(B.ai7,new A.aZq(q,a),A.c3(s,s,B.au,s,s,s,s,s,s,B.d,s,s,s,s,new A.aO(A.m(16),B.v),s,s,s,s,s)),48,1/0)],r),B.x,B.e,B.Z,0,B.l),s)},
+return new A.W(B.bi,A.J(A.a([A.be(A.o(s,s,B.i,s,s,new A.y(B.A.q(0.3),s,s,A.m(2),s,s,B.m),s,4,s,s,s,s,s,40),s,s),B.bS,A.B(A.a([A.o(s,B.Wl,B.i,s,s,new A.y(B.au.q(0.15),s,s,s,s,s,B.X),s,s,s,s,B.b3,s,s,s),B.aP,A.a8(A.J(A.a([A.B(A.a([A.d("GoChef PLUS",s,s,s,s,A.ad().$4$color$fontSize$fontWeight$height(B.d,20,B.z,1.4),s,s,s),B.P,A.o(s,B.aj_,B.i,s,s,new A.y(B.au.q(0.2),s,s,A.m(12),s,s,B.m),s,s,s,s,B.jo,s,s,s)],r),B.j,B.e,B.c,0,s,s),A.d("VIP Membership Active",s,s,s,s,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.p,12,B.r,1.3333333333333333,0.24),s,s,s)],r),B.x,B.e,B.c,0,B.l),1)],r),B.j,B.e,B.c,0,s,s),B.a3,A.d("Your VIP Benefits:",s,s,s,s,A.n().$4$color$fontSize$fontWeight$height(B.d,18,B.o,1.5555555555555556).aw(B.t),s,s,s),B.a7,q.y4(B.lB,"Unlimited $0 Free Delivery on all orders"),q.y4(B.jy,"Extra 15% discount across 500+ restaurants"),q.y4(B.lE,"2x Daily Coins & Loyalty Points Multiplier"),q.y4(B.wI,"Priority Kitchen Prep & Express Delivery"),q.y4(B.eT,"24/7 Dedicated Concierge Support"),B.a3,A.bb(A.cl(B.ai7,new A.aZq(q,a),A.c3(s,s,B.au,s,s,s,s,s,s,B.d,s,s,s,s,new A.aO(A.m(16),B.v),s,s,s,s,s)),48,1/0)],r),B.x,B.e,B.Z,0,B.l),s)},
 $S:45}
 A.aZq.prototype={
 $0(){var s,r
@@ -122869,7 +122869,7 @@ s=l.a
 r=A.eF(B.it,s?p:new A.aZz(q.d),p)
 k=s?p:new A.aZA(l,q.b,k,b,q.d)
 s=A.c3(p,p,B.k,p,p,p,p,p,p,B.d,p,p,p,p,new A.aO(A.m(12),B.v),p,p,p,p,p)
-return A.i6(A.a([r,A.cl(l.a?B.IL:B.aj8,k,s)],n),B.D,j,new A.aO(o,B.v),m)},
+return A.i6(A.a([r,A.cl(l.a?B.IL:B.aj9,k,s)],n),B.D,j,new A.aO(o,B.v),m)},
 $S:170}
 A.aZz.prototype={
 $0(){A.ac(this.a,!1).aH(null)
@@ -123037,7 +123037,7 @@ s=A.d(s,l,l,l,l,A.ad().$4$color$fontSize$fontWeight$height(B.d2,20,B.z,1.4),l,l,
 p=A.ct(l,B.ah,!1,l,!0,B.u,l,A.cx(),m.e,l,l,l,l,l,2,A.dq(l,new A.d0(4,A.m(16),B.v),l,l,l,l,l,l,!0,l,l,l,l,l,l,B.aX,!0,l,l,l,l,l,l,l,l,l,l,l,l,l,B.bv,"Leave a comment (optional)...",l,l,l,l,l,l,l,l,l,!0,!0,!1,l,l,l,l,l,l,l,l,l,l,l,l,l,l),B.y,!0,l,!0,l,!1,l,B.ai,l,l,l,l,l,l,l,l,4,l,l,!1,"\u2022",l,l,l,l,l,!1,l,l,!1,l,!0,l,B.ab,l,l,l,l,l,l,l,l,l,l,l,B.bH,!0,B.Y,l,B.av,l,l,l,l)
 o=m.f?l:m.gaz1()
 n=A.c3(l,l,B.k,l,l,l,l,l,l,l,l,l,l,l,new A.aO(A.m(16),B.v),l,l,l,l,l)
-return A.d2(k,B.D,A.dz(A.J(A.a([B.Wt,B.H,j,B.a0,i,B.cX,q,B.H,s,B.aU,p,B.cX,A.bb(A.cl(m.f?B.nI:A.d("SUBMIT REVIEW",l,l,l,l,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.d,14,B.r,1.4285714285714286,0.28).dI(16,B.t),l,l,l),o,n),56,1/0),B.H,A.eF(B.aj9,new A.aUf(a),l)],t.p),B.j,B.e,B.c,0,B.l),l,B.y,B.bi,l,l,B.T),l,!1,l,l)}}
+return A.d2(k,B.D,A.dz(A.J(A.a([B.Wt,B.H,j,B.a0,i,B.cX,q,B.H,s,B.aU,p,B.cX,A.bb(A.cl(m.f?B.nI:A.d("SUBMIT REVIEW",l,l,l,l,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.d,14,B.r,1.4285714285714286,0.28).dI(16,B.t),l,l,l),o,n),56,1/0),B.H,A.eF(B.aja,new A.aUf(a),l)],t.p),B.j,B.e,B.c,0,B.l),l,B.y,B.bi,l,l,B.T),l,!1,l,l)}}
 A.aU7.prototype={
 $0(){return this.a.f=!0},
 $S:0}
@@ -123202,7 +123202,7 @@ B.b.L(m,k)}B.b.L(l,m)}p.push(A.o(e,A.J(l,B.x,B.e,B.c,0,B.l),B.i,e,e,new A.y(B.fq
 if(B.b.n(A.a(["Completed","Delivered"],t.s),f.e)){o=A.a([B.bK.q(0.2),B.bK.q(0.05)],t.t_)
 n=A.m(16)
 m=A.a9(B.bK.q(0.3),1)
-B.b.L(p,A.a([B.H,A.o(e,A.J(A.a([B.aic,B.ac,B.ajl,B.a7,A.bb(A.ut(B.Wn,B.aij,new A.aUB(f,a3),A.c3(e,e,B.bK,e,e,e,0,e,e,B.E,e,e,e,e,new A.aO(A.m(12),B.v),e,e,e,e,e)),44,1/0)],r),B.j,B.e,B.c,0,B.l),B.i,e,e,new A.y(e,e,m,n,e,new A.ha(B.eE,B.fg,B.bV,o,e,e),B.m),e,e,e,e,B.a5,e,e,1/0)],r))}p.push(B.a3)
+B.b.L(p,A.a([B.H,A.o(e,A.J(A.a([B.aic,B.ac,B.ajl,B.a7,A.bb(A.ut(B.Wn,B.aik,new A.aUB(f,a3),A.c3(e,e,B.bK,e,e,e,0,e,e,B.E,e,e,e,e,new A.aO(A.m(12),B.v),e,e,e,e,e)),44,1/0)],r),B.j,B.e,B.c,0,B.l),B.i,e,e,new A.y(e,e,m,n,e,new A.ha(B.eE,B.fg,B.bV,o,e,e),B.m),e,e,e,e,B.a5,e,e,1/0)],r))}p.push(B.a3)
 o=A.m(16)
 n=A.a9(B.A.q(0.1),1)
 m=A.Y(a3).aIC(B.F)
@@ -123813,7 +123813,7 @@ k===$&&A.b()
 k=A.WO(k,14.5,B.xR,p,p,new A.aQH(q))
 s=A.Bx(B.fM,"https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}","com.astroboomin.gochef")
 r=q.f
-j.push(A.a8(A.dG(l,A.cd(B.ao,A.a([new A.oA(A.a([s,A.WP(A.a([A.zT(A.J(A.a([A.o(p,B.ahv,B.i,p,p,new A.y(B.k,p,p,A.m(12),A.a([new A.b7(0,B.a4,B.E.q(0.5),B.w,4)],t.V),p,B.m),p,p,p,p,B.lf,p,p,p),B.WV],m),B.j,B.e,B.Z,0,B.l),80,r,80)],t._I))],m),k,q.d,p),A.cs(p,A.o(p,B.aiD,B.i,p,p,new A.y(B.E.q(0.7),p,p,A.m(12),p,p,B.m),p,p,p,p,B.cE,p,p,p),p,p,10,10,10,p)],m),B.u,B.ak,p),B.ar),1))
+j.push(A.a8(A.dG(l,A.cd(B.ao,A.a([new A.oA(A.a([s,A.WP(A.a([A.zT(A.J(A.a([A.o(p,B.ahv,B.i,p,p,new A.y(B.k,p,p,A.m(12),A.a([new A.b7(0,B.a4,B.E.q(0.5),B.w,4)],t.V),p,B.m),p,p,p,p,B.lf,p,p,p),B.WV],m),B.j,B.e,B.Z,0,B.l),80,r,80)],t._I))],m),k,q.d,p),A.cs(p,A.o(p,B.aiE,B.i,p,p,new A.y(B.E.q(0.7),p,p,A.m(12),p,p,B.m),p,p,p,p,B.cE,p,p,p),p,p,10,10,10,p)],m),B.u,B.ak,p),B.ar),1))
 k=q.r
 k===$&&A.b()
 k=A.B(A.a([B.V7,B.c9,A.a8(A.d(k,1,B.a9,p,p,B.af7,p,p,p),1)],m),B.j,B.e,B.c,0,p,p)
@@ -124039,7 +124039,7 @@ n=A.o(i,A.ct(i,B.ah,!1,i,!0,B.u,i,A.cx(),j.e,i,i,i,i,i,2,B.YY,B.y,!0,i,!0,i,!1,i
 m=A.c3(i,i,B.k,i,i,i,0,i,i,B.d,i,i,i,i,new A.aO(A.m(14),B.v),i,i,i,i,i)
 l=j.w
 k=l?i:j.gaDZ()
-return A.o(i,A.dz(A.J(A.a([g,B.IM,f,B.a7,s,B.ac,r,B.bS,q,B.a0,e,B.bS,new A.dv(B.cz,i,i,p,i),B.a0,o,B.H,n,B.a3,A.bb(A.cl(l?B.aa7:B.aix,k,m),50,1/0)],t.p),B.j,B.e,B.Z,0,B.l),i,B.y,i,i,i,B.T),B.i,i,i,B.tL,i,i,i,i,new A.a4(24,24,24,h.f.d+24),i,i,i)}}
+return A.o(i,A.dz(A.J(A.a([g,B.IM,f,B.a7,s,B.ac,r,B.bS,q,B.a0,e,B.bS,new A.dv(B.cz,i,i,p,i),B.a0,o,B.H,n,B.a3,A.bb(A.cl(l?B.aa7:B.aiy,k,m),50,1/0)],t.p),B.j,B.e,B.Z,0,B.l),i,B.y,i,i,i,B.T),B.i,i,i,B.tL,i,i,i,i,new A.a4(24,24,24,h.f.d+24),i,i,i)}}
 A.aVz.prototype={
 $0(){return this.a.w=!0},
 $S:0}
@@ -131465,8 +131465,8 @@ B.NX=new A.dS(B.V,null,null,B.Xp,null)
 B.kQ=new A.z(0.5411764705882353,1,1,1,B.n)
 B.agk=new A.C(!0,B.kQ,null,null,null,null,13,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.b7=new A.ps(2,"center")
-B.aiu=new A.ae("No GoChef meals ordered today yet.\nOrder any meal to automatically log its calories!",null,B.agk,B.b7,null,null,null,null,null,null,null)
-B.NY=new A.dS(B.V,null,null,B.aiu,null)
+B.aiv=new A.ae("No GoChef meals ordered today yet.\nOrder any meal to automatically log its calories!",null,B.agk,B.b7,null,null,null,null,null,null,null)
+B.NY=new A.dS(B.V,null,null,B.aiv,null)
 B.lG=new A.aa(58675,"MaterialIcons",!1)
 B.Y3=new A.U(B.lG,48,B.k,null,null)
 B.NZ=new A.dS(B.V,null,null,B.Y3,null)
@@ -131484,8 +131484,8 @@ B.nI=new A.i8(null,null,null,null,null,B.d,null,null,null,null)
 B.O2=new A.dS(B.V,null,null,B.nI,null)
 B.Oo=new A.i8(null,null,null,null,null,null,null,null,null,null)
 B.O3=new A.dS(B.V,null,null,B.Oo,null)
-B.aiq=new A.ae("No orders found.",null,B.bH,null,null,null,null,null,null,null,null)
-B.a5N=new A.W(B.hH,B.aiq,null)
+B.air=new A.ae("No orders found.",null,B.bH,null,null,null,null,null,null,null,null)
+B.a5N=new A.W(B.hH,B.air,null)
 B.O4=new A.dS(B.V,null,null,B.a5N,null)
 B.ou=new A.a4(40,40,40,40)
 B.a5V=new A.W(B.ou,B.j_,null)
@@ -131679,8 +131679,8 @@ B.pu=new A.aa(62447,"MaterialIcons",!1)
 B.Yg=new A.U(B.pu,32,B.k,null,null)
 B.a0=new A.cf(null,8,null,null)
 B.bv=new A.C(!0,B.p,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.aiQ=new A.ae("Tap to upload kitchen photo",null,B.bv,null,null,null,null,null,null,null,null)
-B.a1V=s([B.Yg,B.a0,B.aiQ],t.p)
+B.aiS=new A.ae("Tap to upload kitchen photo",null,B.bv,null,null,null,null,null,null,null,null)
+B.a1V=s([B.Yg,B.a0,B.aiS],t.p)
 B.QP=new A.oj(B.T,B.at,B.c,B.j,null,B.l,null,0,B.a1V,null)
 B.Xh=new A.U(B.pe,32,B.k,null,null)
 B.ac=new A.cf(null,4,null,null)
@@ -132919,10 +132919,10 @@ B.dH=new A.vQ(1,"landscape")
 B.ym=s([B.cg,B.dH],A.aZ("Q<vQ>"))
 B.a0x=s(["Q1","Q2","Q3","Q4"],t.s)
 B.f5=new A.C(!0,B.d,null,null,null,null,16,B.t,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.ail=new A.ae("GoChef AI Support Assistant",null,B.f5,null,null,null,null,null,null,null,null)
+B.aim=new A.ae("GoChef AI Support Assistant",null,B.f5,null,null,null,null,null,null,null,null)
 B.adi=new A.C(!0,B.aI,null,null,null,null,12,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.ahI=new A.ae("Always online \u2022 Instant replies",null,B.adi,null,null,null,null,null,null,null,null)
-B.a0y=s([B.ail,B.ahI],t.p)
+B.a0y=s([B.aim,B.ahI],t.p)
 B.a0z=s([-1,0,0,1,0,0,-1,0,1,0,0,0,-1,1,0,1,1,1,1,0],t.n)
 B.uh=new A.yp(B.d,null)
 B.qg=new A.A4(B.d,null)
@@ -133088,10 +133088,10 @@ B.QI=new A.z(0.058823529411764705,0,0,0,B.n)
 B.Mg=new A.b7(0,B.a4,B.QI,B.ep,1)
 B.a1O=s([B.M6,B.Mg],t.V)
 B.adj=new A.C(!0,B.d,null,null,null,null,17,B.t,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.aif=new A.ae("Set Kitchen Map Pin",null,B.adj,null,null,null,null,null,null,null,null)
+B.aig=new A.ae("Set Kitchen Map Pin",null,B.adj,null,null,null,null,null,null,null,null)
 B.Jw=new A.C(!0,B.d3,null,null,null,null,11,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.ajz=new A.ae("Tap or drag anywhere to place your kitchen pin",null,B.Jw,null,null,null,null,null,null,null,null)
-B.a1R=s([B.aif,B.ajz],t.p)
+B.a1R=s([B.aig,B.ajz],t.p)
 B.a1S=s(["pointerdown","pointermove","pointerleave","pointerup","pointercancel","touchstart","touchend","touchmove","touchcancel","mousedown","mousemove","mouseleave","mouseup","wheel"],t.s)
 B.a1T=s(["Before Christ","Anno Domini"],t.s)
 B.a5J=new A.W(B.hD,B.qg,null)
@@ -134359,8 +134359,8 @@ B.jZ=new A.m6(null,null)
 B.TK=new A.aa(57569,"MaterialIcons",!1)
 B.Vc=new A.U(B.TK,null,B.b0,null,null)
 B.mO=new A.C(!0,B.d,null,null,null,null,18,B.t,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.air=new A.ae("Account Suspended",null,B.mO,null,null,null,null,null,null,null,null)
-B.a0K=s([B.Vc,B.cW,B.air],t.p)
+B.ais=new A.ae("Account Suspended",null,B.mO,null,null,null,null,null,null,null,null)
+B.a0K=s([B.Vc,B.cW,B.ais],t.p)
 B.HH=new A.pg(B.aC,B.e,B.c,B.j,null,B.l,null,0,B.a0K,null)
 B.Vm=new A.U(B.pv,null,B.bK,null,null)
 B.ahs=new A.ae("Pending Approval",null,B.mO,null,null,null,null,null,null,null,null)
@@ -134705,92 +134705,92 @@ B.ah3=new A.ae("Please add a delivery address first",null,null,null,null,null,nu
 B.aal=new A.c0(B.ah3,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.aia=new A.ae("Email and password cannot be empty",null,null,null,null,null,null,null,null,null,null)
 B.aam=new A.c0(B.aia,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aiF=new A.ae("Menu items no longer available",null,null,null,null,null,null,null,null,null,null)
-B.aan=new A.c0(B.aiF,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiH=new A.ae("Menu items no longer available",null,null,null,null,null,null,null,null,null,null)
+B.aan=new A.c0(B.aiH,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ahy=new A.ae("\ud83d\udccd Detecting current GPS location...",null,null,null,null,null,null,null,null,null,null)
 B.aao=new A.c0(B.ahy,null,null,null,null,null,null,null,null,null,null,null,null,B.d6,!1,null,null,null,B.u,null)
 B.ahF=new A.ae("Failed to publish banner",null,null,null,null,null,null,null,null,null,null)
 B.aap=new A.c0(B.ahF,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ahh=new A.ae("\ud83d\udcb8 Payout request submitted to your linked bank account!",null,null,null,null,null,null,null,null,null,null)
 B.aaq=new A.c0(B.ahh,B.D,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aik=new A.ae("Failed to reject application",null,null,null,null,null,null,null,null,null,null)
-B.aar=new A.c0(B.aik,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aiH=new A.ae("Added to cart",null,null,null,null,null,null,null,null,null,null)
-B.aas=new A.c0(B.aiH,B.k,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aiM=new A.ae("\u26a0\ufe0f Unable to access GPS. Please allow location permissions in your browser.",null,null,null,null,null,null,null,null,null,null)
-B.aat=new A.c0(B.aiM,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.ail=new A.ae("Failed to reject application",null,null,null,null,null,null,null,null,null,null)
+B.aar=new A.c0(B.ail,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiJ=new A.ae("Added to cart",null,null,null,null,null,null,null,null,null,null)
+B.aas=new A.c0(B.aiJ,B.k,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiO=new A.ae("\u26a0\ufe0f Unable to access GPS. Please allow location permissions in your browser.",null,null,null,null,null,null,null,null,null,null)
+B.aat=new A.c0(B.aiO,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ahA=new A.ae("Removed from favorites",null,null,null,null,null,null,null,null,null,null)
 B.aau=new A.c0(B.ahA,B.k,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aiN=new A.ae("Failed to update order status",null,null,null,null,null,null,null,null,null,null)
-B.aav=new A.c0(B.aiN,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiP=new A.ae("Failed to update order status",null,null,null,null,null,null,null,null,null,null)
+B.aav=new A.c0(B.aiP,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ajn=new A.ae("\u274c Failed to save kitchen location. Please try again.",null,null,null,null,null,null,null,null,null,null)
 B.aaw=new A.c0(B.ajn,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ahf=new A.ae("Name, price and image are required!",null,null,null,null,null,null,null,null,null,null)
 B.aax=new A.c0(B.ahf,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.aju=new A.ae("This account is not registered as a chef",null,null,null,null,null,null,null,null,null,null)
 B.aay=new A.c0(B.aju,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aim=new A.ae("Password must be at least 6 characters",null,null,null,null,null,null,null,null,null,null)
-B.aaz=new A.c0(B.aim,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.ain=new A.ae("Password must be at least 6 characters",null,null,null,null,null,null,null,null,null,null)
+B.aaz=new A.c0(B.ain,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ajk=new A.ae("Failed to delete account",null,null,null,null,null,null,null,null,null,null)
 B.aaA=new A.c0(B.ajk,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aiW=new A.ae("Failed to restore account",null,null,null,null,null,null,null,null,null,null)
-B.aaB=new A.c0(B.aiW,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aj7=new A.ae("Reordering...",null,null,null,null,null,null,null,null,null,null)
-B.aaC=new A.c0(B.aj7,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiX=new A.ae("Failed to restore account",null,null,null,null,null,null,null,null,null,null)
+B.aaB=new A.c0(B.aiX,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aj8=new A.ae("Reordering...",null,null,null,null,null,null,null,null,null,null)
+B.aaC=new A.c0(B.aj8,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ai3=new A.ae("Please fill all required fields",null,null,null,null,null,null,null,null,null,null)
 B.aaD=new A.c0(B.ai3,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aiE=new A.ae("Registration successful! Please login.",null,null,null,null,null,null,null,null,null,null)
-B.aaE=new A.c0(B.aiE,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aj0=new A.ae(u.W,null,null,null,null,null,null,null,null,null,null)
-B.aaF=new A.c0(B.aj0,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aj6=new A.ae("Profile updated successfully",null,null,null,null,null,null,null,null,null,null)
-B.aaG=new A.c0(B.aj6,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiG=new A.ae("Registration successful! Please login.",null,null,null,null,null,null,null,null,null,null)
+B.aaE=new A.c0(B.aiG,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aj1=new A.ae(u.W,null,null,null,null,null,null,null,null,null,null)
+B.aaF=new A.c0(B.aj1,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aj7=new A.ae("Profile updated successfully",null,null,null,null,null,null,null,null,null,null)
+B.aaG=new A.c0(B.aj7,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ahd=new A.ae("Re-inspection request submitted to health inspector.",null,null,null,null,null,null,null,null,null,null)
 B.aaH=new A.c0(B.ahd,B.au,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aiY=new A.ae("Review submitted! Thank you.",null,null,null,null,null,null,null,null,null,null)
-B.aaI=new A.c0(B.aiY,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aip=new A.ae("Failed to send message",null,null,null,null,null,null,null,null,null,null)
-B.aaJ=new A.c0(B.aip,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiZ=new A.ae("Review submitted! Thank you.",null,null,null,null,null,null,null,null,null,null)
+B.aaI=new A.c0(B.aiZ,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiq=new A.ae("Failed to send message",null,null,null,null,null,null,null,null,null,null)
+B.aaJ=new A.c0(B.aiq,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ahB=new A.ae("\u2705 Kitchen map pin location saved successfully!",null,null,null,null,null,null,null,null,null,null)
 B.aaK=new A.c0(B.ahB,B.au,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ahP=new A.ae("Please fill all fields",null,null,null,null,null,null,null,null,null,null)
 B.aaL=new A.c0(B.ahP,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.ais=new A.ae("Removed from cart",null,null,null,null,null,null,null,null,null,null)
-B.aaM=new A.c0(B.ais,B.k,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.ait=new A.ae("Removed from cart",null,null,null,null,null,null,null,null,null,null)
+B.aaM=new A.c0(B.ait,B.k,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ai0=new A.ae("Account suspended successfully \u23f8\ufe0f",null,null,null,null,null,null,null,null,null,null)
 B.aaN=new A.c0(B.ai0,B.aE,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ai5=new A.ae("Please enter a banner title",null,null,null,null,null,null,null,null,null,null)
 B.aaO=new A.c0(B.ai5,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ahp=new A.ae("Server error",null,null,null,null,null,null,null,null,null,null)
 B.aaP=new A.c0(B.ahp,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aie=new A.ae("Please enter a target between 500 and 10,000 kcal",null,null,null,null,null,null,null,null,null,null)
-B.aaQ=new A.c0(B.aie,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aih=new A.ae("All notifications marked as read \u2713",null,null,null,null,null,null,null,null,null,null)
-B.aaR=new A.c0(B.aih,null,null,null,null,null,null,null,null,null,null,null,null,B.d6,!1,null,null,null,B.u,null)
-B.aiz=new A.ae("Name and price are required!",null,null,null,null,null,null,null,null,null,null)
-B.aaS=new A.c0(B.aiz,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aif=new A.ae("Please enter a target between 500 and 10,000 kcal",null,null,null,null,null,null,null,null,null,null)
+B.aaQ=new A.c0(B.aif,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aii=new A.ae("All notifications marked as read \u2713",null,null,null,null,null,null,null,null,null,null)
+B.aaR=new A.c0(B.aii,null,null,null,null,null,null,null,null,null,null,null,null,B.d6,!1,null,null,null,B.u,null)
+B.aiA=new A.ae("Name and price are required!",null,null,null,null,null,null,null,null,null,null)
+B.aaS=new A.c0(B.aiA,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ajs=new A.ae("Please select Date and Time for your scheduled delivery",null,null,null,null,null,null,null,null,null,null)
 B.aaT=new A.c0(B.ajs,B.bh,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ahx=new A.ae("Please upload both a kitchen photo and a personal photo",null,null,null,null,null,null,null,null,null,null)
 B.aaU=new A.c0(B.ahx,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.aje=new A.ae("Refreshing status...",null,null,null,null,null,null,null,null,null,null)
 B.aaV=new A.c0(B.aje,null,null,null,null,null,null,null,null,null,null,null,null,B.d6,!1,null,null,null,B.u,null)
-B.aiG=new A.ae("Chef application approved successfully! \ud83c\udf89",null,null,null,null,null,null,null,null,null,null)
-B.aaW=new A.c0(B.aiG,B.au,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aiA=new A.ae("Please select a category!",null,null,null,null,null,null,null,null,null,null)
-B.IR=new A.c0(B.aiA,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.ajb=new A.ae("Application rejected and user notified.",null,null,null,null,null,null,null,null,null,null)
-B.aaX=new A.c0(B.ajb,B.aE,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aiy=new A.ae("Account deleted permanently \ud83d\uddd1\ufe0f",null,null,null,null,null,null,null,null,null,null)
-B.aaY=new A.c0(B.aiy,B.b0,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aj2=new A.ae("Dish deleted",null,null,null,null,null,null,null,null,null,null)
-B.aaZ=new A.c0(B.aj2,B.k,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiI=new A.ae("Chef application approved successfully! \ud83c\udf89",null,null,null,null,null,null,null,null,null,null)
+B.aaW=new A.c0(B.aiI,B.au,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiB=new A.ae("Please select a category!",null,null,null,null,null,null,null,null,null,null)
+B.IR=new A.c0(B.aiB,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.ajc=new A.ae("Application rejected and user notified.",null,null,null,null,null,null,null,null,null,null)
+B.aaX=new A.c0(B.ajc,B.aE,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiz=new A.ae("Account deleted permanently \ud83d\uddd1\ufe0f",null,null,null,null,null,null,null,null,null,null)
+B.aaY=new A.c0(B.aiz,B.b0,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aj3=new A.ae("Dish deleted",null,null,null,null,null,null,null,null,null,null)
+B.aaZ=new A.c0(B.aj3,B.k,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ai4=new A.ae("Failed to submit review. Please try again.",null,null,null,null,null,null,null,null,null,null)
 B.ab_=new A.c0(B.ai4,B.b0,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ajq=new A.ae("Promo banner published live! \ud83d\ude80",null,null,null,null,null,null,null,null,null,null)
 B.ab0=new A.c0(B.ajq,B.au,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
-B.aiK=new A.ae("Failed to submit review.",null,null,null,null,null,null,null,null,null,null)
-B.ab1=new A.c0(B.aiK,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
+B.aiM=new A.ae("Failed to submit review.",null,null,null,null,null,null,null,null,null,null)
+B.ab1=new A.c0(B.aiM,null,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ajo=new A.ae("Atmosphere photo updated",null,null,null,null,null,null,null,null,null,null)
 B.ab2=new A.c0(B.ajo,B.au,null,null,null,null,null,null,null,null,null,null,null,B.R,!1,null,null,null,B.u,null)
 B.ahN=new A.ae("All fields are required",null,null,null,null,null,null,null,null,null,null)
@@ -135301,47 +135301,47 @@ B.ai6=new A.ae("Remove",null,B.Jz,null,null,null,null,null,null,null,null)
 B.ai7=new A.ae("Explore PLUS Exclusive Deals",null,B.cM,null,null,null,null,null,null,null,null)
 B.ai8=new A.ae("Apply",null,null,null,null,null,null,null,null,null,null)
 B.aic=new A.ae("Enjoyed your meal? \u2b50",null,B.f5,null,null,null,null,null,null,null,null)
-B.aid=new A.ae("Menu Management",null,B.c2,null,null,null,null,null,null,null,null)
-B.aig=new A.ae("Back to Login",null,B.f5,null,null,null,null,null,null,null,null)
-B.aii=new A.ae("Chef Kitchen Profile Not Found",null,B.mO,null,null,null,null,null,null,null,null)
+B.aid=new A.ae("\ud83d\udece\ufe0f NEW ORDER RECEIVED!",null,B.ru,null,null,null,null,null,null,null,null)
+B.aie=new A.ae("Menu Management",null,B.c2,null,null,null,null,null,null,null,null)
+B.aih=new A.ae("Back to Login",null,B.f5,null,null,null,null,null,null,null,null)
+B.aij=new A.ae("Chef Kitchen Profile Not Found",null,B.mO,null,null,null,null,null,null,null,null)
 B.agG=new A.C(!0,null,null,null,null,null,14,B.t,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.aij=new A.ae("Rate Your Experience",null,B.agG,null,null,null,null,null,null,null,null)
-B.ain=new A.ae("Delete Permanently",null,B.c2,null,null,null,null,null,null,null,null)
+B.aik=new A.ae("Rate Your Experience",null,B.agG,null,null,null,null,null,null,null,null)
+B.aio=new A.ae("Delete Permanently",null,B.c2,null,null,null,null,null,null,null,null)
 B.JI=new A.ae("kcal",null,B.Ji,null,null,null,null,null,null,null,null)
-B.aio=new A.ae("Last Used",null,B.rr,null,null,null,null,null,null,null,null)
-B.ait=new A.ae("Could not load your kitchen profile. Please check your connection or tap retry.",null,B.rw,B.b7,null,null,null,null,null,null,null)
-B.aiv=new A.ae("View Kitchen Profile",null,B.mL,null,null,null,null,null,null,null,null)
-B.aiw=new A.ae("Add Payment Method",null,null,null,null,null,null,null,null,null,null)
+B.aip=new A.ae("Last Used",null,B.rr,null,null,null,null,null,null,null,null)
+B.aiu=new A.ae("Could not load your kitchen profile. Please check your connection or tap retry.",null,B.rw,B.b7,null,null,null,null,null,null,null)
+B.aiw=new A.ae("View Kitchen Profile",null,B.mL,null,null,null,null,null,null,null,null)
+B.aix=new A.ae("Add Payment Method",null,null,null,null,null,null,null,null,null,null)
 B.afT=new A.C(!0,B.p,null,null,null,null,null,B.t,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.JJ=new A.ae("Cancel",null,B.afT,null,null,null,null,null,null,null,null)
 B.afb=new A.C(!0,null,null,null,null,null,15,B.t,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.aix=new A.ae("Submit Review \u2b50",null,B.afb,null,null,null,null,null,null,null,null)
-B.aiB=new A.ae("Suspend Account",null,B.c2,null,null,null,null,null,null,null,null)
+B.aiy=new A.ae("Submit Review \u2b50",null,B.afb,null,null,null,null,null,null,null,null)
+B.aiC=new A.ae("Suspend Account",null,B.c2,null,null,null,null,null,null,null,null)
 B.Jk=new A.C(!0,B.L,null,null,null,null,11,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.aiC=new A.ae("Tap map to pinpoint",null,B.Jk,null,null,null,null,null,null,null,null)
-B.aiD=new A.ae("\ud83d\udca1 Tap anywhere on the map to place your kitchen pin.",null,B.Jk,B.b7,null,null,null,null,null,null,null)
-B.aiI=new A.ae("Today",null,B.Jp,null,null,null,null,null,null,null,null)
-B.aiJ=new A.ae("Great!",null,null,null,null,null,null,null,null,null,null)
-B.aiL=new A.ae("Required",null,B.Jy,null,null,null,null,null,null,null,null)
-B.aiO=new A.ae("Save",null,B.bH,null,null,null,null,null,null,null,null)
-B.aiP=new A.ae("Edit Pin",null,B.Jq,null,null,null,null,null,null,null,null)
-B.aiR=new A.ae("Mengerti",null,B.c2,null,null,null,null,null,null,null,null)
-B.aiS=new A.ae("How can we help you?",null,B.mO,null,null,null,null,null,null,null,null)
-B.aiT=new A.ae("Delete",null,B.bH,null,null,null,null,null,null,null,null)
-B.aiU=new A.ae("Everyone has different dietary goals. Select a preset or type your custom daily target.",null,B.mK,null,null,null,null,null,null,null,null)
-B.aiV=new A.ae("Reject",null,B.Jz,null,null,null,null,null,null,null,null)
-B.aiX=new A.ae("24/7 Direct chat with Admin & Help Desk",null,B.mK,null,null,null,null,null,null,null,null)
+B.aiD=new A.ae("Tap map to pinpoint",null,B.Jk,null,null,null,null,null,null,null,null)
+B.aiE=new A.ae("\ud83d\udca1 Tap anywhere on the map to place your kitchen pin.",null,B.Jk,B.b7,null,null,null,null,null,null,null)
+B.aiF=new A.ae("Got It",null,B.c2,null,null,null,null,null,null,null,null)
+B.aiK=new A.ae("Today",null,B.Jp,null,null,null,null,null,null,null,null)
+B.aiL=new A.ae("Great!",null,null,null,null,null,null,null,null,null,null)
+B.aiN=new A.ae("Required",null,B.Jy,null,null,null,null,null,null,null,null)
+B.aiQ=new A.ae("Save",null,B.bH,null,null,null,null,null,null,null,null)
+B.aiR=new A.ae("Edit Pin",null,B.Jq,null,null,null,null,null,null,null,null)
+B.aiT=new A.ae("How can we help you?",null,B.mO,null,null,null,null,null,null,null,null)
+B.aiU=new A.ae("Delete",null,B.bH,null,null,null,null,null,null,null,null)
+B.aiV=new A.ae("Everyone has different dietary goals. Select a preset or type your custom daily target.",null,B.mK,null,null,null,null,null,null,null,null)
+B.aiW=new A.ae("Reject",null,B.Jz,null,null,null,null,null,null,null,null)
+B.aiY=new A.ae("24/7 Direct chat with Admin & Help Desk",null,B.mK,null,null,null,null,null,null,null,null)
 B.adr=new A.C(!0,B.au,null,null,null,null,10,B.t,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.aiZ=new A.ae("ACTIVE",null,B.adr,null,null,null,null,null,null,null,null)
-B.aj_=new A.ae("Health Inspection: Passed",null,B.f5,null,null,null,null,null,null,null,null)
-B.aj1=new A.ae("Become a Chef",null,null,null,null,null,null,null,null,null,null)
-B.aj3=new A.ae("Foodie View",null,B.mL,null,null,null,null,null,null,null,null)
-B.aj4=new A.ae("Cash Out Now",null,B.f5,null,null,null,null,null,null,null,null)
-B.aj5=new A.ae("Got it!",null,null,null,null,null,null,null,null,null,null)
-B.aj8=new A.ae("Apply",null,B.cM,null,null,null,null,null,null,null,null)
-B.aj9=new A.ae("Skip for now",null,B.bv,null,null,null,null,null,null,null,null)
-B.aja=new A.ae("Reject",null,B.c2,null,null,null,null,null,null,null,null)
-B.ajc=new A.ae("\ud83d\udece\ufe0f PESANAN BARU MASUK!",null,B.ru,null,null,null,null,null,null,null,null)
+B.aj_=new A.ae("ACTIVE",null,B.adr,null,null,null,null,null,null,null,null)
+B.aj0=new A.ae("Health Inspection: Passed",null,B.f5,null,null,null,null,null,null,null,null)
+B.aj2=new A.ae("Become a Chef",null,null,null,null,null,null,null,null,null,null)
+B.aj4=new A.ae("Foodie View",null,B.mL,null,null,null,null,null,null,null,null)
+B.aj5=new A.ae("Cash Out Now",null,B.f5,null,null,null,null,null,null,null,null)
+B.aj6=new A.ae("Got it!",null,null,null,null,null,null,null,null,null,null)
+B.aj9=new A.ae("Apply",null,B.cM,null,null,null,null,null,null,null,null)
+B.aja=new A.ae("Skip for now",null,B.bv,null,null,null,null,null,null,null,null)
+B.ajb=new A.ae("Reject",null,B.c2,null,null,null,null,null,null,null,null)
 B.ajd=new A.ae("No customization groups added yet.",null,B.bv,null,null,null,null,null,null,null,null)
 B.ajf=new A.ae("Save",null,B.cM,null,null,null,null,null,null,null,null)
 B.ajg=new A.ae("Use",null,B.mM,null,null,null,null,null,null,null,null)
