@@ -13,8 +13,8 @@ class SecurityPasswordScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.onSurface),
-        title: const Text('Security & Password'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Security & Password', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -34,23 +34,25 @@ class SecurityPasswordScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.primaryContainer.withValues(alpha: 0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             shape: BoxShape.circle,
+            border: Border.all(color: Colors.white24),
           ),
-          child: Icon(icon, color: AppColors.primary),
+          child: Icon(icon, color: Colors.white),
         ),
-        title: Text(title, style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+        title: Text(title, style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
-          child: Text(subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+          child: Text(subtitle, style: AppTextStyles.labelSm(color: Colors.white70)),
         ),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
+        trailing: const Icon(Icons.chevron_right, color: Colors.white70),
         onTap: () {},
       ),
     );

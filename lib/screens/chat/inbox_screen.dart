@@ -57,13 +57,13 @@ class _InboxScreenState extends State<InboxScreen> {
     return Scaffold(
       backgroundColor: AppColors.midnight,
       appBar: AppBar(
-        title: Text('Messages', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+        title: Text('Messages', style: AppTextStyles.headlineMd(color: Colors.white)),
         backgroundColor: AppColors.surface,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.onSurface),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _isLoading 
-        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+        ? const Center(child: CircularProgressIndicator(color: Colors.white))
         : RefreshIndicator(
             onRefresh: _loadInbox,
             child: ListView(
@@ -75,7 +75,7 @@ class _InboxScreenState extends State<InboxScreen> {
                     child: Center(
                       child: Text(
                         'No other conversation history yet',
-                        style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                        style: AppTextStyles.bodyMd(color: Colors.white70),
                       ),
                     ),
                   )
@@ -93,7 +93,7 @@ class _InboxScreenState extends State<InboxScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1C2029),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.white24),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -102,10 +102,11 @@ class _InboxScreenState extends State<InboxScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
+                border: Border.all(color: Colors.white24),
               ),
-              child: const Icon(Icons.support_agent, color: AppColors.primary, size: 24),
+              child: const Icon(Icons.support_agent, color: Colors.white, size: 24),
             ),
             Positioned(
               right: 0,

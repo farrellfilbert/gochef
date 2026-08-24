@@ -855,7 +855,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Enter coupon or chef promo code below:', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                  Text('Enter coupon or chef promo code below:', style: AppTextStyles.bodyMd(color: Colors.white70)),
                   const SizedBox(height: 16),
                   TextField(
                     controller: controller,
@@ -863,25 +863,25 @@ class _SearchScreenState extends State<SearchScreen> {
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2),
                     decoration: InputDecoration(
                       hintText: 'e.g. GOCHEF50',
-                      hintStyle: TextStyle(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5), letterSpacing: 1),
+                      hintStyle: const TextStyle(color: Colors.white60, letterSpacing: 1),
                       filled: true,
                       fillColor: AppColors.surfaceContainerLow,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
-                      prefixIcon: const Icon(Icons.local_offer, color: AppColors.primary),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white24)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white)),
+                      prefixIcon: const Icon(Icons.local_offer, color: Colors.white),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Try: GOCHEF50, WELCOME10, PLUSVIP, CHEFBUDI',
-                    style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                    style: AppTextStyles.labelSm(color: Colors.white60).copyWith(fontSize: 11),
                   ),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: isValidating ? null : () => Navigator.pop(ctx),
-                  child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
                 ),
                 ElevatedButton(
                   onPressed: isValidating
