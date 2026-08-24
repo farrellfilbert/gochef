@@ -13,30 +13,30 @@ class ContactSupportScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.onSurface),
-        title: const Text('Contact Support'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Contact Support', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
                 'assets/images/logo.png',
-                width: 100,
-                height: 100,
+                width: 90,
+                height: 90,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Image.asset('assets/images/GoCheflogo.png', width: 100, height: 100),
+                errorBuilder: (_, __, ___) => Image.asset('assets/images/GoCheflogo.png', width: 90, height: 90),
               ),
               const SizedBox(height: 8),
               Opacity(
-                opacity: 0.9,
+                opacity: 0.95,
                 child: Text(
-                  'The Grub Next Door',
+                  'The GRUB Next Door',
                   style: AppTextStyles.bodyMd(color: Colors.white).copyWith(
                     letterSpacing: 1.2,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     fontSize: 15,
                   ),
                 ),
@@ -44,7 +44,7 @@ class ContactSupportScreen extends StatelessWidget {
               const SizedBox(height: 20),
               Text(
                 'How can we help you?',
-                style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
+                style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
@@ -52,7 +52,7 @@ class ContactSupportScreen extends StatelessWidget {
                 style: AppTextStyles.bodyMd(color: Colors.white70),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
               _buildContactMethod(
                 Icons.support_agent, 
                 'Live Chat (GoChef Support Desk)', 
@@ -81,6 +81,7 @@ class ContactSupportScreen extends StatelessWidget {
                 'support@thegrubnextdoor.com', 
                 () {},
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
