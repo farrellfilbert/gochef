@@ -49,7 +49,7 @@ class ContactSupportScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'Connect directly with our Admin Support Team or use our 24/7 AI Smart Assistant.',
-                style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                style: AppTextStyles.bodyMd(color: Colors.white70),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -93,24 +93,25 @@ class ContactSupportScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: isHighlighted ? AppColors.surfaceContainerHigh : AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
-        border: isHighlighted ? Border.all(color: AppColors.primary.withValues(alpha: 0.4), width: 1.5) : null,
+        border: isHighlighted ? Border.all(color: Colors.white38, width: 1.5) : Border.all(color: Colors.white10),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isHighlighted ? AppColors.primary.withValues(alpha: 0.2) : AppColors.primaryContainer.withValues(alpha: 0.1),
+            color: isHighlighted ? Colors.white.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.08),
             shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
           ),
-          child: Icon(icon, color: isHighlighted ? AppColors.primary : AppColors.onSurfaceVariant, size: 24),
+          child: Icon(icon, color: Colors.white, size: 24),
         ),
-        title: Text(title, style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+        title: Text(title, style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
-          child: Text(subtitle, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+          child: Text(subtitle, style: AppTextStyles.labelSm(color: Colors.white70)),
         ),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
+        trailing: const Icon(Icons.chevron_right, color: Colors.white70),
         onTap: onTap,
       ),
     );

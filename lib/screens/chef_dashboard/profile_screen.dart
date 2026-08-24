@@ -891,7 +891,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                 // About Section
                 Row(
                   children: [
-                    const Icon(Icons.info, color: AppColors.primary, size: 20),
+                    const Icon(Icons.info, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
                     Text('About the Kitchen', style: AppTextStyles.headlineMd(color: Colors.white)),
                   ],
@@ -902,14 +902,14 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(16),
-                    border: const Border(left: BorderSide(color: AppColors.primary, width: 4)),
+                    border: const Border(left: BorderSide(color: Colors.white, width: 4)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '"${_kitchen!.description}"',
-                        style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontStyle: FontStyle.italic),
+                        style: AppTextStyles.bodyMd(color: Colors.white70).copyWith(fontStyle: FontStyle.italic),
                       ),
                       const SizedBox(height: 12),
                       Row(
@@ -930,15 +930,15 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.pin_drop, color: AppColors.primary, size: 20),
+                        const Icon(Icons.pin_drop, color: Colors.white, size: 20),
                         const SizedBox(width: 8),
                         Text('Kitchen Map Pin & Location', style: AppTextStyles.headlineMd(color: Colors.white)),
                       ],
                     ),
                     TextButton.icon(
                       onPressed: _openLocationPicker,
-                      icon: const Icon(Icons.edit_location_alt, color: AppColors.primary, size: 16),
-                      label: const Text('Edit Pin', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13)),
+                      icon: const Icon(Icons.edit_location_alt, color: Colors.white, size: 16),
+                      label: const Text('Edit Pin', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                     ),
                   ],
                 ),
@@ -948,14 +948,14 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                    border: Border.all(color: Colors.white24),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.location_on, color: AppColors.primary, size: 18),
+                          const Icon(Icons.location_on, color: Colors.white, size: 18),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -978,10 +978,11 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                         height: 42,
                         child: OutlinedButton.icon(
                           onPressed: _openLocationPicker,
-                          icon: const Icon(Icons.map_outlined, color: AppColors.primary, size: 16),
-                          label: const Text('Set / Adjust Map Pin Location', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                          icon: const Icon(Icons.map_outlined, color: Colors.white, size: 16),
+                          label: const Text('Set / Adjust Map Pin Location', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.primary),
+                            side: const BorderSide(color: Colors.white),
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
@@ -994,13 +995,13 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                 // Atmosphere Photos Section
                 Row(
                   children: [
-                    const Icon(Icons.photo_library, color: AppColors.primary, size: 20),
+                    const Icon(Icons.photo_library, color: Colors.white, size: 20),
                     const SizedBox(width: 8),
                     Text('Atmosphere Photos', style: AppTextStyles.headlineMd(color: Colors.white)),
                   ],
                 ),
                 const SizedBox(height: 12),
-                Text('Upload up to 4 photos to show off your kitchen vibe.', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                Text('Upload up to 4 photos to show off your kitchen vibe.', style: AppTextStyles.labelSm(color: Colors.white70)),
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 100,
@@ -1019,12 +1020,12 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                           decoration: BoxDecoration(
                             color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                            border: Border.all(color: Colors.white24),
                             image: hasImage ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover) : null,
                           ),
                           child: hasImage 
                             ? null 
-                            : const Center(child: Icon(Icons.add_a_photo, color: AppColors.onSurfaceVariant)),
+                            : const Center(child: Icon(Icons.add_a_photo, color: Colors.white70)),
                         ),
                       );
                     },
@@ -1119,9 +1120,9 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
   Widget _buildStatItem(String value, String label, {bool highlight = false}) {
     return Column(
       children: [
-        Text(value, style: AppTextStyles.displayLgMobile(color: AppColors.primary)),
+        Text(value, style: AppTextStyles.displayLgMobile(color: Colors.white)),
         const SizedBox(height: 4),
-        Text(label, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontWeight: FontWeight.bold, fontSize: 10)),
+        Text(label, style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontWeight: FontWeight.bold, fontSize: 10)),
       ],
     );
   }
@@ -1132,9 +1133,9 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.white24),
       ),
-      child: Text(text, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+      child: Text(text, style: AppTextStyles.labelSm(color: Colors.white70)),
     );
   }
 

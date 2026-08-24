@@ -88,8 +88,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.onSurface),
-        title: const Text('Help Center'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Help Center', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -138,10 +138,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
             decoration: BoxDecoration(
               color: AppColors.surfaceContainerLow,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white12),
+              border: Border.all(color: Colors.white24),
             ),
             child: TextField(
               controller: _searchController,
+              cursorColor: Colors.white,
               onChanged: (val) {
                 setState(() {
                   _searchQuery = val.trim();
@@ -149,11 +150,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               },
               decoration: InputDecoration(
                 hintText: 'Search FAQs, topics, delivery, dine-in...',
-                hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
-                prefixIcon: const Icon(Icons.search, color: AppColors.onSurfaceVariant),
+                hintStyle: const TextStyle(color: Colors.white70),
+                prefixIcon: const Icon(Icons.search, color: Colors.white),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white60, size: 18),
+                        icon: const Icon(Icons.clear, color: Colors.white70, size: 18),
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _searchQuery = '');
@@ -162,14 +163,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     : null,
                 border: InputBorder.none,
               ),
-              style: const TextStyle(color: AppColors.onSurface),
+              style: const TextStyle(color: Colors.white),
             ),
           ),
           const SizedBox(height: 24),
 
           Text(
             'Frequently Asked Questions (${filteredFaqs.length})',
-            style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold),
+            style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
 

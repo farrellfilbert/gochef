@@ -16,10 +16,10 @@ class SettingsScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Settings', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+        title: Text('Settings', style: AppTextStyles.headlineMd(color: Colors.white)),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: AppColors.outlineVariant.withValues(alpha: 0.2), height: 1),
@@ -71,9 +71,9 @@ class SettingsScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.notifications, color: AppColors.primary),
+                            const Icon(Icons.notifications, color: Colors.white),
                             const SizedBox(width: 12),
-                            Text('Notification Settings', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                            Text('Notification Settings', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -159,15 +159,15 @@ class SettingsScreen extends StatelessWidget {
             // Logout
             ElevatedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.logout),
-              label: const Text('Log Out'),
+              icon: const Icon(Icons.logout, color: Colors.white),
+              label: const Text('Log Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
-                foregroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 56),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
-                  side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
+                  side: const BorderSide(color: Colors.white30),
                 ),
                 elevation: 0,
               ),
@@ -176,7 +176,7 @@ class SettingsScreen extends StatelessWidget {
             Center(
               child: Text(
                 'GoChef x The GRUB Next Door!',
-                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6)).copyWith(fontWeight: FontWeight.bold),
+                style: AppTextStyles.labelSm(color: Colors.white60).copyWith(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -190,15 +190,15 @@ class SettingsScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Text(
         title.toUpperCase(),
-        style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6)).copyWith(letterSpacing: 1.5),
+        style: AppTextStyles.labelSm(color: Colors.white70).copyWith(letterSpacing: 1.5, fontWeight: FontWeight.bold),
       ),
     );
   }
 
   Widget _buildListTile(IconData icon, String title, VoidCallback? onTap, {bool isError = false, IconData trailingIcon = Icons.chevron_right}) {
-    Color color = isError ? AppColors.error : AppColors.primary;
-    Color textColor = isError ? AppColors.error : AppColors.onSurface;
-    Color iconColor = isError ? AppColors.error.withValues(alpha: 0.4) : AppColors.onSurfaceVariant.withValues(alpha: 0.4);
+    Color color = isError ? AppColors.error : Colors.white;
+    Color textColor = isError ? AppColors.error : Colors.white;
+    Color iconColor = isError ? AppColors.error.withValues(alpha: 0.4) : Colors.white70;
 
     return InkWell(
       onTap: onTap,
@@ -223,18 +223,18 @@ class SettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.primary),
+            Icon(icon, color: Colors.white),
             const SizedBox(width: 12),
-            Expanded(child: Text(title, style: AppTextStyles.bodyMd(color: AppColors.onSurface))),
+            Expanded(child: Text(title, style: AppTextStyles.bodyMd(color: Colors.white))),
             Text(
               value,
               style: valueIsMono
-                  ? AppTextStyles.labelMono(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6))
-                  : AppTextStyles.bodyMd(color: AppColors.primary),
+                  ? AppTextStyles.labelMono(color: Colors.white70)
+                  : AppTextStyles.bodyMd(color: Colors.white70),
             ),
             if (!valueIsMono) ...[
               const SizedBox(width: 4),
-              Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant.withValues(alpha: 0.4)),
+              const Icon(Icons.chevron_right, color: Colors.white70),
             ]
           ],
         ),
@@ -250,8 +250,8 @@ class SettingsScreen extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: AppTextStyles.bodyMd(color: AppColors.onSurface)),
-            Icon(trailingIcon, color: AppColors.onSurfaceVariant.withValues(alpha: 0.4)),
+            Text(title, style: AppTextStyles.bodyMd(color: Colors.white)),
+            Icon(trailingIcon, color: Colors.white70),
           ],
         ),
       ),
@@ -262,7 +262,7 @@ class SettingsScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+        Text(label, style: AppTextStyles.bodyMd(color: Colors.white70)),
         Switch(
           value: initialValue,
           onChanged: (val) {},

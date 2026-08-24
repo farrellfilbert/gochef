@@ -14,7 +14,7 @@ class AboutScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.onSurface),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text('About GoChef', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: Center(
@@ -45,12 +45,12 @@ class AboutScreen extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'GoChef • Version 1.0.0',
-                style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
+                style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 24),
               Text(
                 'The Grub Next Door connects you with the best private chefs, artisan home cooks, and boutique catering services right in your neighborhood. Enjoy authentic gourmet culinary experiences delivered fresh to your doorstep or booked for private dine-in.',
-                style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                style: AppTextStyles.bodyMd(color: Colors.white.withValues(alpha: 0.95)),
                 textAlign: TextAlign.center,
               ),
               const Spacer(),
@@ -60,7 +60,7 @@ class AboutScreen extends StatelessWidget {
               const SizedBox(height: 32),
               Text(
                 '© 2026 GoChef x The GRUB Next Door! All rights reserved.',
-                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5)),
+                style: AppTextStyles.labelSm(color: Colors.white60),
               ),
               const SizedBox(height: 24),
             ],
@@ -77,7 +77,7 @@ class AboutScreen extends StatelessWidget {
       },
       child: Text(
         text,
-        style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(
+        style: AppTextStyles.bodyMd(color: Colors.white).copyWith(
           decoration: TextDecoration.underline,
           fontWeight: FontWeight.bold,
         ),
