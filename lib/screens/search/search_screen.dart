@@ -615,16 +615,17 @@ class _SearchScreenState extends State<SearchScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('My Vouchers', style: AppTextStyles.headlineMd(color: Colors.white)),
-                          Text('$_voucherCount vouchers ready to use', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                          Text('$_voucherCount vouchers ready to use', style: AppTextStyles.labelSm(color: Colors.white70)),
                         ],
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryContainer.withValues(alpha: 0.2),
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white24),
                         ),
-                        child: Text('$_voucherCount Available', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                        child: Text('$_voucherCount Available', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                       )
                     ],
                   ),
@@ -641,7 +642,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           decoration: BoxDecoration(
                             color: AppColors.surfaceContainerLow,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
+                            border: Border.all(color: Colors.white10),
                           ),
                           child: Row(
                             children: [
@@ -664,18 +665,19 @@ class _SearchScreenState extends State<SearchScreen> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: AppColors.primary.withValues(alpha: 0.2),
+                                        color: Colors.white.withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: Colors.white24),
                                       ),
                                       child: Text(
                                         v['discount'] ?? 'PROMO',
-                                        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11),
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
                                       ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(v['title'] ?? 'Discount Voucher', style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 14)),
                                     const SizedBox(height: 2),
-                                    Text('Code: ${v['code']} • Expires in ${v['expiresIn'] ?? '7 Days'}', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                    Text('Code: ${v['code']} • Expires in ${v['expiresIn'] ?? '7 Days'}', style: AppTextStyles.labelSm(color: Colors.white70)),
                                   ],
                                 ),
                               ),

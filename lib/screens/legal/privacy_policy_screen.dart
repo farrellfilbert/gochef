@@ -34,7 +34,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                border: Border.all(color: Colors.white24),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,10 +44,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.2),
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white24),
                         ),
-                        child: const Icon(Icons.privacy_tip_outlined, color: AppColors.primary, size: 24),
+                        child: const Icon(Icons.privacy_tip_outlined, color: Colors.white, size: 24),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -60,7 +61,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                             ),
                             Text(
                               'The GRUB Next Door!',
-                              style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
+                              style: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -261,14 +262,14 @@ class PrivacyPolicyScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.surfaceContainerHigh,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+                border: Border.all(color: Colors.white30),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'PRIVACY COMMITMENT',
-                    style: AppTextStyles.headlineMd(color: AppColors.primary).copyWith(fontSize: 15),
+                    style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   const Text(
@@ -298,8 +299,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             content,
-            style: const TextStyle(
-              color: AppColors.onSurfaceVariant,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 13,
               height: 1.6,
             ),
