@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import '../../theme/app_text_styles.dart';
+import '../legal/terms_of_service_screen.dart';
+import '../legal/privacy_policy_screen.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -14,7 +15,7 @@ class AboutScreen extends StatelessWidget {
         backgroundColor: AppColors.surface,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.onSurface),
-        title: const Text('About GoChef'),
+        title: const Text('About GoChef', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: Center(
         child: Padding(
@@ -53,9 +54,9 @@ class AboutScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const Spacer(),
-              _buildLink('Terms of Service'),
+              _buildLink(context, 'Terms of Service', const TermsOfServiceScreen()),
               const SizedBox(height: 16),
-              _buildLink('Privacy Policy'),
+              _buildLink(context, 'Privacy Policy', const PrivacyPolicyScreen()),
               const SizedBox(height: 32),
               Text(
                 '© 2026 GoChef x The GRUB Next Door! All rights reserved.',
@@ -69,13 +70,16 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLink(String text) {
+  Widget _buildLink(BuildContext context, String text, Widget destination) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => destination));
+      },
       child: Text(
         text,
         style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(
           decoration: TextDecoration.underline,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
+import '../legal/terms_of_service_screen.dart';
+import '../legal/privacy_policy_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -133,11 +135,22 @@ class SettingsScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  _buildListTileNoLeading('Terms of Service', null, trailingIcon: Icons.open_in_new),
+                  _buildListTileNoLeading('Terms of Service', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()));
+                  }, trailingIcon: Icons.chevron_right),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTileNoLeading('Privacy Policy', null, trailingIcon: Icons.open_in_new),
+                  _buildListTileNoLeading('Privacy Policy', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()));
+                  }, trailingIcon: Icons.chevron_right),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTileNoLeading('Licenses', null, trailingIcon: Icons.chevron_right),
+                  _buildListTileNoLeading('Licenses', () {
+                    showLicensePage(
+                      context: context,
+                      applicationName: 'The GRUB Next Door!',
+                      applicationVersion: '1.0.0',
+                      applicationLegalese: '© 2026 GoChef Technologies. All rights reserved.',
+                    );
+                  }, trailingIcon: Icons.chevron_right),
                 ],
               ),
             ),

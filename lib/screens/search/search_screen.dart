@@ -11,6 +11,7 @@ import '../../models/kitchen_model.dart';
 import '../../models/promotion_model.dart';
 import '../kitchen/kitchen_profile_screen.dart';
 import 'search_results_screen.dart';
+import '../legal/terms_of_service_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -975,19 +976,38 @@ class _SearchScreenState extends State<SearchScreen> {
               _buildTermItem('2. Coin Redemption', 'GoChef coins can be applied as instant discounts on checkout or converted into special food perks.'),
               _buildTermItem('3. Voucher Expiry', 'Promotional vouchers expire within the specified timeframe from the issue date.'),
               _buildTermItem('4. GoChef PLUS', 'Membership privileges apply automatically at checkout for subscribed accounts.'),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.onPrimary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()));
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white38),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: const Text('Full Terms', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
                   ),
-                  child: const Text('Understood', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: const Text('Understood', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

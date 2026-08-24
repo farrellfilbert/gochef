@@ -7,6 +7,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import 'login_screen.dart';
+import '../legal/terms_of_service_screen.dart';
+import '../legal/privacy_policy_screen.dart';
 
 /// Sign Up Screen — replicates Sign Up.html exactly
 class SignUpScreen extends StatefulWidget {
@@ -618,43 +620,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Widget _buildPrivacyPolicy() {
     return Center(
-      child: Opacity(
-        opacity: 0.6,
-        child: Column(
-          children: [
-            Text(
-              'By signing up, you agree to our',
-              style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
+      child: Column(
+        children: [
+          Text(
+            'By signing up, you agree to our',
+            style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.8)),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()));
+                },
+                child: Text(
                   'Terms of Service',
                   style: AppTextStyles.labelSm(
-                    color: AppColors.onSurfaceVariant,
-                  ).copyWith(decoration: TextDecoration.underline),
+                    color: Colors.white,
+                  ).copyWith(decoration: TextDecoration.underline, fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  ' and ',
-                  style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
-                ),
-                Text(
+              ),
+              Text(
+                ' and ',
+                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.8)),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()));
+                },
+                child: Text(
                   'Privacy Policy',
                   style: AppTextStyles.labelSm(
-                    color: AppColors.onSurfaceVariant,
-                  ).copyWith(decoration: TextDecoration.underline),
+                    color: Colors.white,
+                  ).copyWith(decoration: TextDecoration.underline, fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  '.',
-                  style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+              Text(
+                '.',
+                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant.withValues(alpha: 0.8)),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
