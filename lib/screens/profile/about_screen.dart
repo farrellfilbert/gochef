@@ -32,12 +32,12 @@ class AboutScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Opacity(
-                opacity: 0.9,
+                opacity: 0.95,
                 child: Text(
-                  'The Grub Next Door',
+                  'The GRUB Next Door',
                   style: AppTextStyles.bodyMd(color: Colors.white).copyWith(
                     letterSpacing: 1.2,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
@@ -49,7 +49,7 @@ class AboutScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'The Grub Next Door connects you with the best private chefs, artisan home cooks, and boutique catering services right in your neighborhood. Enjoy authentic gourmet culinary experiences delivered fresh to your doorstep or booked for private dine-in.',
+                'GoChef connects foodies with at-home; chefs, vetted cooks, food trucks, street vendors & caterers to provide home cooked room service like dining options nearby, convenient & good just for you!',
                 style: AppTextStyles.bodyMd(color: Colors.white.withValues(alpha: 0.95)),
                 textAlign: TextAlign.center,
               ),
