@@ -115,6 +115,31 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
     }
   }
 
+  Future<void> _requestUberDelivery(String orderId) async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiService.requestUberDelivery(int.parse(orderId));
+      if (res != null && res['success'] == true) {
+         if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             const SnackBar(content: Text('Kurir Uber dalam perjalanan! 🚗'), backgroundColor: Colors.green),
+           );
+         }
+         _loadOrders();
+      } else {
+         if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text(res?['error'] ?? 'Gagal memanggil Uber'), backgroundColor: Colors.red),
+           );
+         }
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   String _getNextStatus(OrderModel order) {
     if (order.status == 'Pending') {
       return (order.orderType == 'dine_in' || (order.dineInDate?.isNotEmpty == true)) ? 'Scheduled' : 'Active';
@@ -211,13 +236,21 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                           final nextStatus = _getNextStatus(order);
                           
                           String primaryBtnText = '';
+                          VoidCallback? onPrimaryActionCallback;
+                          
                           if (nextStatus.isNotEmpty) {
                             if (order.status == 'Pending') {
                               primaryBtnText = (order.orderType == 'dine_in' || (order.dineInDate?.isNotEmpty == true)) ? 'Confirm Booking' : 'Accept Order';
+                              onPrimaryActionCallback = () => _updateOrderStatus(order.id, nextStatus);
                             } else if (order.status == 'Scheduled') {
                               primaryBtnText = 'Start Cooking Now'; // Manual override
+                              onPrimaryActionCallback = () => _updateOrderStatus(order.id, nextStatus);
+                            } else if (order.status == 'Ready' && order.orderType != 'dine_in') {
+                              primaryBtnText = 'Panggil Kurir Uber';
+                              onPrimaryActionCallback = () => _requestUberDelivery(order.id);
                             } else {
                               primaryBtnText = 'Mark $nextStatus';
+                              onPrimaryActionCallback = () => _updateOrderStatus(order.id, nextStatus);
                             }
                           }
 
@@ -227,7 +260,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                               order: order,
                               primaryActionText: primaryBtnText,
                               secondaryActionText: (order.status == 'Active' || order.status == 'Pending' || order.status == 'Scheduled') ? (order.status == 'Pending' ? 'Reject' : 'Cancel') : null,
-                              onPrimaryAction: nextStatus.isNotEmpty ? () => _updateOrderStatus(order.id, nextStatus) : null,
+                              onPrimaryAction: onPrimaryActionCallback,
                               onSecondaryAction: (order.status == 'Active' || order.status == 'Scheduled') ? () => _updateOrderStatus(order.id, 'Cancelled') : null,
                               onContactCustomer: order.userId.isNotEmpty ? () {
                                 Navigator.push(

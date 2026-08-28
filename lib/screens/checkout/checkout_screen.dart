@@ -8,6 +8,7 @@ import '../../services/api_service.dart';
 import '../../models/address_model.dart';
 import '../../models/cart_item_model.dart';
 import '../profile/address_selection_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final int kitchenId;
@@ -139,6 +140,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _recalculateTotal();
     } catch (e) {
       debugPrint('Error loading checkout: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+      if (!isDineIn && _primaryAddress != null) {
+        _fetchDeliveryQuote();
+      }
+    }
+  }
+
+  Future<void> _fetchDeliveryQuote() async {
+    if (isDineIn || _primaryAddress == null) return;
+    
+    setState(() => _isLoading = true);
+    
+    try {
+      final quote = await ApiService.getDeliveryQuote(
+        kitchenId: widget.kitchenId,
+        dropoffAddress: _primaryAddress!.address,
+        dropoffLat: 0.0, // Replace with actual lat/lng if needed
+        dropoffLng: 0.0,
+      );
+      
+      if (quote != null && quote['success'] == true && quote['quote'] != null) {
+        double newFee = _baseDeliveryFee;
+        final q = quote['quote'];
+        if (q['fee'] != null) {
+           newFee = (q['fee'] as num).toDouble();
+        } else if (q['quotes'] != null && (q['quotes'] as List).isNotEmpty) {
+           newFee = (q['quotes'][0]['fee'] as num).toDouble();
+        }
+        
+        setState(() {
+           _baseDeliveryFee = newFee;
+        });
+        _recalculateTotal();
+      }
+    } catch (e) {
+      debugPrint('Error fetching Uber quote: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -437,7 +475,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       orderNotes += ' | Voucher: ${_selectedVoucher!['code']} (${_selectedVoucher!['discount']})';
     }
 
-    final result = await ApiService.checkout(
+    final result = await ApiService.createStripeCheckout(
       addressId: isDineIn ? null : _primaryAddress!.id,
       kitchenId: widget.kitchenId,
       notes: orderNotes,
@@ -445,28 +483,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       dineInDate: selectedDate != null ? "${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}" : null,
       dineInTime: selectedTime != null ? "${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}" : null,
       promoCode: _selectedVoucher != null ? _selectedVoucher!['code'] : null,
+      deliveryFee: _baseDeliveryFee,
     );
 
     if (mounted) {
-      if (result != null && result['success'] == true) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OrderCompleteScreen(
-              orderId: result['order_id'] ?? 'Unknown',
-              kitchenId: result['kitchen_id']?.toString() ?? '',
-              kitchenName: result['kitchen_name'] ?? 'Unknown Kitchen',
-              totalAmount: _grandTotal,
-              itemsCount: result['items_count'] ?? 1,
-              kitchenAvatar: result['kitchen_avatar'] ?? '',
-            ),
-          ),
-        );
+      if (result != null && result['success'] == true && result['checkout_url'] != null) {
+        final url = Uri.parse(result['checkout_url']);
+        setState(() {
+          isOrdering = false;
+        });
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, webOnlyWindowName: '_self');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not launch payment page'), backgroundColor: AppColors.error),
+          );
+        }
       } else {
         setState(() {
           isOrdering = false;
         });
-        final errorMsg = (result != null && result['error'] != null) ? result['error'].toString() : 'Failed to place order';
+        final errorMsg = (result != null && result['error'] != null) ? result['error'].toString() : 'Failed to initialize payment';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMsg), backgroundColor: AppColors.error, duration: const Duration(seconds: 5)),
         );
@@ -584,6 +621,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         );
                         if (selected != null && selected is AddressModel) {
                           setState(() => _primaryAddress = selected);
+                          _fetchDeliveryQuote();
                         }
                       },
                       child: Text('Edit', style: AppTextStyles.labelMono(color: AppColors.primary)),
@@ -604,6 +642,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     );
                     if (selected != null && selected is AddressModel) {
                       setState(() => _primaryAddress = selected);
+                      _fetchDeliveryQuote();
                     }
                   },
                   child: Container(

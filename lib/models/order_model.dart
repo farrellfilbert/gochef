@@ -47,6 +47,8 @@ class OrderModel {
   final double discountAmount;
   final String? promoCode;
   final String deliveryAddress;
+  final String? uberTrackingUrl;
+  final String? uberDeliveryStatus;
   final List<OrderItemModel> items;
 
   OrderModel({
@@ -70,6 +72,8 @@ class OrderModel {
     this.discountAmount = 0.0,
     this.promoCode,
     this.deliveryAddress = '',
+    this.uberTrackingUrl,
+    this.uberDeliveryStatus,
     required this.items,
   });
 
@@ -117,6 +121,8 @@ class OrderModel {
       discountAmount: json['discount_amount'] != null ? double.tryParse(json['discount_amount'].toString()) ?? 0.0 : 0.0,
       promoCode: json['promo_code'],
       deliveryAddress: json['delivery_address']?.toString() ?? '',
+      uberTrackingUrl: json['uber_tracking_url'],
+      uberDeliveryStatus: json['uber_delivery_status'],
       items: parsedItems,
     );
   }

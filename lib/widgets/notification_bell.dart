@@ -5,8 +5,7 @@ import '../services/api_service.dart';
 import '../screens/notifications/notifications_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:js' as js;
+import '../utils/web_js.dart';
 
 class NotificationBell extends StatefulWidget {
   final Color iconColor;
@@ -45,7 +44,7 @@ class _NotificationBellState extends State<NotificationBell> {
         final newCount = (counts['unread_notifications'] as int?) ?? 0;
         // ONLY play sound when a NEW notification arrives while already on the screen (never on initial load)
         if (!isInitial && _prevUnreadCount != null && newCount > _prevUnreadCount! && kIsWeb) {
-          try { js.context.callMethod('goChefPlayNotification', []); } catch (_) {}
+          try { WebJs.callMethod('goChefPlayNotification', []); } catch (_) {}
         }
         setState(() {
           _prevUnreadCount = newCount;

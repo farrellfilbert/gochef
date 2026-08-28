@@ -5,8 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:js' as js;
+import '../utils/web_js.dart';
 
 class LocationResult {
   final LatLng coordinates;
@@ -32,7 +31,7 @@ class LocationService {
     final completer = Completer<LocationResult?>();
 
     try {
-      js.context.callMethod('goChefGetLocation', [
+      WebJs.callMethod('goChefGetLocation', [
         (dynamic latVal, dynamic lngVal, dynamic accVal) async {
           final lat = (latVal as num).toDouble();
           final lng = (lngVal as num).toDouble();

@@ -6,8 +6,7 @@ import '../../models/chat_model.dart';
 import '../../services/api_service.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:js' as js;
+import '../../utils/web_js.dart';
 
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
@@ -87,7 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (isPolling && newMessages.length > _lastMessageCount && kIsWeb) {
         final lastNew = newMessages.last;
         if (!lastNew.isMe) {
-          try { js.context.callMethod('goChefPlayMessage', []); } catch (_) {}
+          try { WebJs.callMethod('goChefPlayMessage', []); } catch (_) {}
         }
       }
 

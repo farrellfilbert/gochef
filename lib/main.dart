@@ -14,6 +14,7 @@ import 'screens/profile/user_profile_screen.dart';
 import 'services/api_service.dart';
 import 'screens/chef_dashboard/chef_main_navigation.dart';
 import 'screens/admin/admin_dashboard_screen.dart';
+import 'screens/checkout/payment_success_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +44,20 @@ class GoChefApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'GoChef Premium',
       theme: AppTheme.darkTheme,
+      onGenerateRoute: (settings) {
+        if (settings.name != null) {
+          final uri = Uri.parse(settings.name!);
+          if (uri.path == '/payment_success') {
+            final sessionId = uri.queryParameters['session_id'];
+            if (sessionId != null) {
+              return MaterialPageRoute(
+                builder: (context) => PaymentSuccessScreen(sessionId: sessionId),
+              );
+            }
+          }
+        }
+        return null; // Fallback to home/default behavior
+      },
       home: const AuthCheckScreen(),
     );
   }

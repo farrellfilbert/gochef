@@ -696,8 +696,52 @@ class ApiService {
   }
 
   // =============================================
-  // CHECKOUT
+  // CHECKOUT & UBER DELIVERY
   // =============================================
+
+  static Future<Map<String, dynamic>?> getDeliveryQuote({
+    required int kitchenId,
+    required String dropoffAddress,
+    required double dropoffLat,
+    required double dropoffLng,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/get_delivery_quote.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'kitchen_id': kitchenId,
+          'dropoff_address': dropoffAddress,
+          'dropoff_lat': dropoffLat,
+          'dropoff_lng': dropoffLng,
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (e) {
+      print('Error getting delivery quote: $e');
+    }
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> requestUberDelivery(int orderId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/request_uber_delivery.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'order_id': orderId}),
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (e) {
+      print('Error requesting Uber delivery: $e');
+    }
+    return null;
+  }
 
   static Future<Map<String, dynamic>?> checkout({
     int? addressId, 
@@ -732,6 +776,45 @@ class ApiService {
       }
     } catch (e) {
       print('Error during checkout: $e');
+    }
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> createStripeCheckout({
+    int? addressId, 
+    required int kitchenId, 
+    String notes = '',
+    String orderType = 'delivery',
+    String? dineInDate,
+    String? dineInTime,
+    String? promoCode,
+    double deliveryFee = 4.0,
+  }) async {
+    final userId = await getUserId();
+    if (userId == null) return null;
+    
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/create_stripe_checkout.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'user_id': int.parse(userId),
+          'kitchen_id': kitchenId,
+          'address_id': addressId,
+          'notes': notes,
+          'order_type': orderType,
+          'dine_in_date': dineInDate,
+          'dine_in_time': dineInTime,
+          'promo_code': promoCode,
+          'delivery_fee': deliveryFee,
+        }),
+      ).timeout(const Duration(seconds: 10));
+      
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (e) {
+      print('Error creating stripe checkout: $e');
     }
     return null;
   }

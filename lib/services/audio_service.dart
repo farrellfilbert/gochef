@@ -1,7 +1,7 @@
 // lib/services/audio_service.dart
 // Plays notification sounds using Web Audio API (synthesized, no audio files needed)
 import 'package:flutter/foundation.dart';
-import 'dart:js' as js;
+import '../utils/web_js.dart';
 
 class AudioService {
   static bool _unlocked = false;
@@ -16,7 +16,7 @@ class AudioService {
   static void playOrder() {
     if (!kIsWeb) return;
     try {
-      js.context.callMethod('goChefPlayOrder', []);
+      WebJs.callMethod('goChefPlayOrder', []);
     } catch (_) {}
   }
 
@@ -24,7 +24,7 @@ class AudioService {
   static void playNotification() {
     if (!kIsWeb) return;
     try {
-      js.context.callMethod('goChefPlayNotification', []);
+      WebJs.callMethod('goChefPlayNotification', []);
     } catch (_) {}
   }
 
@@ -32,7 +32,7 @@ class AudioService {
   static void playMessage() {
     if (!kIsWeb) return;
     try {
-      js.context.callMethod('goChefPlayMessage', []);
+      WebJs.callMethod('goChefPlayMessage', []);
     } catch (_) {}
   }
 }
