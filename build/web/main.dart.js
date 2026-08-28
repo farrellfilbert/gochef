@@ -32188,7 +32188,7 @@ uc:function uc(a,b){this.c=a
 this.a=b},
 M3:function M3(a,b){var _=this
 _.d=!0
-_.e="mastercard"
+_.e="stripe"
 _.r=_.f=!1
 _.x=_.w=null
 _.y=!0
@@ -117920,12 +117920,12 @@ n=m.ta(n,!1)}else n="Select Time"
 B.b.L(d,A.a([e,B.a6,A.z(A.a([s,B.ae,A.aa(A.b5(g,A.o(g,A.J(A.a([B.WA,B.X,A.d(n,g,g,g,g,A.n().$4$color$fontSize$fontWeight$height(h.x!=null?B.D:B.u,16,B.o,1.5).au(B.q),g,g,g)],o),B.w,B.e,B.c,0,B.k),B.i,g,g,new A.y(r,g,p,q,g,g,B.m),g,g,g,g,B.a3,g,g,g),B.y,!1,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,h.gaAo(),g,g,g,g,g,g,!1,B.N),1)],o),B.j,B.e,B.c,0,g,g)],o))}d.push(B.Z)
 d.push(A.d("Payment Method",g,g,g,g,A.ac().$4$color$fontSize$fontWeight$height(B.D,20,B.z,1.4),g,g,g))
 d.push(B.a6)
-e=h.e==="mastercard"?B.aX.q(0.1):B.a0.q(0.4)
+e=h.e==="stripe"?B.aX.q(0.1):B.a0.q(0.4)
 s=A.m(16)
-r=A.a8(h.e==="mastercard"?B.l:B.d.q(0.05),1)
+r=A.a8(h.e==="stripe"?B.l:B.d.q(0.05),1)
 q=A.o(g,B.W0,B.i,g,g,new A.y(B.d.q(0.1),g,g,A.m(8),g,g,B.m),g,g,g,g,B.b1,g,g,g)
-p=A.aa(A.J(A.a([A.d("Mastercard",g,g,g,g,A.n().$4$color$fontSize$fontWeight$height(B.D,16,B.o,1.5).au(B.q),g,g,g),A.d("\u2022\u2022\u2022\u2022 8829",g,g,g,g,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.u,12,B.r,1.3333333333333333,0.24),g,g,g)],o),B.w,B.e,B.c,0,B.k),1)
-n=h.e==="mastercard"
+p=A.aa(A.J(A.a([A.d("Credit/Debit Card",g,g,g,g,A.n().$4$color$fontSize$fontWeight$height(B.D,16,B.o,1.5).au(B.q),g,g,g),A.d("Powered by Stripe",g,g,g,g,A.n().$5$color$fontSize$fontWeight$height$letterSpacing(B.l,12,B.r,1.3333333333333333,0.24),g,g,g)],o),B.w,B.e,B.c,0,B.k),1)
+n=h.e==="stripe"
 m=A.a8(n?B.l:B.dW,2)
 n=n?A.bd(A.o(g,g,B.i,g,g,B.fk,g,10,g,g,g,g,g,10),g,g):g
 d.push(A.b5(g,A.o(g,A.z(A.a([q,B.aP,p,A.o(g,n,B.i,g,g,new A.y(g,g,m,g,g,g,B.a_),g,20,g,g,g,g,g,20)],o),B.j,B.e,B.c,0,g,g),B.i,g,g,new A.y(e,g,r,s,g,g,B.m),g,g,g,g,B.a3,g,g,g),B.y,!1,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,new A.aIO(h),g,g,g,g,g,g,!1,B.N))
@@ -118197,7 +118197,7 @@ $0(){var s=this.a
 return s.B(new A.aIx(s))},
 $S:0}
 A.aIx.prototype={
-$0(){return this.a.e="mastercard"},
+$0(){return this.a.e="stripe"},
 $S:0}
 A.aIP.prototype={
 $0(){var s=this.a
