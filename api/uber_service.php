@@ -48,8 +48,8 @@ class UberService {
         
         // Payload Sesuai Standar Uber Direct
         $payload = [
-            'pickup_address' => json_encode($pickupAddress),
-            'dropoff_address' => json_encode($dropoffAddress)
+            'pickup_address' => $pickupAddress,
+            'dropoff_address' => $dropoffAddress
         ];
 
         $ch = curl_init($url);
@@ -84,8 +84,8 @@ class UberService {
         $url = "https://api.uber.com/v1/customers/" . UBER_CUSTOMER_ID . "/deliveries";
         
         $payload = [
-            'pickup_address' => json_encode($pickupAddress),
-            'dropoff_address' => json_encode($dropoffAddress),
+            'pickup_address' => $pickupAddress,
+            'dropoff_address' => $dropoffAddress,
             'manifest_items' => $manifestItems,
             'external_store_id' => 'gochef_kitchen', // Opsional, bisa disesuaikan
             'deliverable_action' => 'deliverable_action_meet_at_door',
