@@ -73,5 +73,44 @@ class UberService {
             return ['success' => false, 'error' => $data['message'] ?? 'Gagal mendapatkan quote dari Uber.'];
         }
     }
+
+    // Fungsi untuk meminta kurir Uber (Create Delivery)
+    public static function createDelivery($pickupAddress, $dropoffAddress, $manifestItems, $orderId) {
+        $token = self::getAccessToken();
+        if (!$token) {
+            return ['success' => false, 'error' => 'Gagal mendapatkan token Uber.'];
+        }
+
+        $url = "https://api.uber.com/v1/customers/" . UBER_CUSTOMER_ID . "/deliveries";
+        
+        $payload = [
+            'pickup_address' => json_encode($pickupAddress),
+            'dropoff_address' => json_encode($dropoffAddress),
+            'manifest_items' => $manifestItems,
+            'external_store_id' => 'gochef_kitchen', // Opsional, bisa disesuaikan
+            'deliverable_action' => 'deliverable_action_meet_at_door',
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $token,
+            'Content-Type: application/json'
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $data = json_decode($response, true);
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            return ['success' => true, 'data' => $data];
+        } else {
+            return ['success' => false, 'error' => $data['message'] ?? 'Gagal memanggil kurir Uber.'];
+        }
+    }
 }
 ?>
