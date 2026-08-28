@@ -41,8 +41,7 @@ try {
     $kitchen = $stmt->fetch();
     
     if (!$kitchen) {
-        // Fallback ke users kalau chef tidak ada di kitchens
-        $stmt = $pdo->prepare("SELECT address FROM users WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT location as address FROM kitchens WHERE user_id = ?");
         $stmt->execute([$order['kitchen_id']]);
         $kitchen = $stmt->fetch();
     }

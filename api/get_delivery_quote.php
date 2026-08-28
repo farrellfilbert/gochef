@@ -15,9 +15,9 @@ $customerAddressStr = $input['dropoff_address'] ?? null;
 $customerLat = $input['dropoff_lat'] ?? null;
 $customerLng = $input['dropoff_lng'] ?? null;
 
-if (!$kitchenId || !$customerAddressStr || !$customerLat || !$customerLng) {
+if (!$kitchenId || empty($customerAddressStr)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Parameter tidak lengkap (kitchen_id, dropoff_address, dropoff_lat, dropoff_lng)']);
+    echo json_encode(['success' => false, 'error' => 'Parameter tidak lengkap (kitchen_id, dropoff_address)']);
     exit;
 }
 
@@ -29,8 +29,8 @@ try {
     $kitchen = $stmt->fetch();
     
     if (!$kitchen) {
-        // Fallback jika pakai tabel users
-        $stmt = $pdo->prepare("SELECT name, address, phone, latitude, longitude FROM users WHERE id = ?");
+        // Fallback jika id ternyata user_id dari chef
+        $stmt = $pdo->prepare("SELECT name, location as address, latitude, longitude FROM kitchens WHERE user_id = ?");
         $stmt->execute([$kitchenId]);
         $kitchen = $stmt->fetch();
     }
