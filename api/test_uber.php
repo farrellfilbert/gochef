@@ -2,9 +2,7 @@
 require_once 'db_connect.php';
 require_once 'uber_service.php';
 
-$kitchenId = 1;
-$stmt = $pdo->prepare("SELECT k.name, k.location as address, u.phone, k.latitude, k.longitude FROM kitchens k LEFT JOIN users u ON k.user_id = u.id WHERE k.id = ?");
-$stmt->execute([$kitchenId]);
+$stmt = $pdo->query("SELECT k.id, k.name, k.location as address, u.phone, k.latitude, k.longitude FROM kitchens k LEFT JOIN users u ON k.user_id = u.id LIMIT 1");
 $kitchen = $stmt->fetch();
 
 if (!$kitchen) {
