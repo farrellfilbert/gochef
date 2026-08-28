@@ -24,7 +24,7 @@ if (!$kitchenId || !$customerAddressStr || !$customerLat || !$customerLng) {
 try {
     // 1. Ambil data dapur dari database
     // Sesuaikan query dengan struktur tabel Anda, misalnya tabel kitchens atau users
-    $stmt = $pdo->prepare("SELECT name, address, phone, latitude, longitude FROM kitchens WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT k.name, k.location as address, u.phone, k.latitude, k.longitude FROM kitchens k LEFT JOIN users u ON k.user_id = u.id WHERE k.id = ?");
     $stmt->execute([$kitchenId]);
     $kitchen = $stmt->fetch();
     

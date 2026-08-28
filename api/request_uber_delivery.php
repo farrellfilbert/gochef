@@ -36,7 +36,7 @@ try {
     }
 
     // 2. Ambil alamat Kitchen
-    $stmt = $pdo->prepare("SELECT address FROM kitchens WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT location as address FROM kitchens WHERE id = ?");
     $stmt->execute([$order['kitchen_id']]);
     $kitchen = $stmt->fetch();
     
