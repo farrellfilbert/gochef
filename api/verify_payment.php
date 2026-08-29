@@ -29,8 +29,15 @@ if ($method === 'POST') {
             $payment_status = $session['payment_status']; // 'paid', 'unpaid', or 'no_payment_required'
 
             if ($payment_status === 'paid') {
-                // Get order to find kitchen_id and user_id
-                $stmt = $pdo->prepare("SELECT user_id, kitchen_id, kitchen_name, order_type, dine_in_date FROM orders WHERE id = ?");
+                // Get order to find kitchen_id and user_id, and other details for UI
+                $stmt = $pdo->prepare("
+                    SELECT o.user_id, o.kitchen_id, o.kitchen_name, o.order_type, o.dine_in_date, o.total_amount,
+                           (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as items_count,
+                           k.profile_image as kitchen_avatar
+                    FROM orders o
+                    LEFT JOIN kitchens k ON (k.id = o.kitchen_id OR k.user_id = o.kitchen_id)
+                    WHERE o.id = ?
+                ");
                 $stmt->execute([$order_id]);
                 $order = $stmt->fetch();
 
@@ -59,7 +66,16 @@ if ($method === 'POST') {
                         // Initiate Uber Delivery here if it's delivery?
                         // For now, they can accept it via admin panel, or we can trigger request_uber_delivery.php asynchronously.
                         
-                        echo json_encode(['success' => true, 'order_id' => $order_id, 'status' => 'paid']);
+                        echo json_encode([
+                            'success' => true, 
+                            'order_id' => $order_id, 
+                            'status' => 'paid',
+                            'kitchen_id' => $order['kitchen_id'],
+                            'kitchen_name' => $order['kitchen_name'],
+                            'total_amount' => $order['total_amount'],
+                            'items_count' => $order['items_count'],
+                            'kitchen_avatar' => $order['kitchen_avatar']
+                        ]);
                     } else {
                         echo json_encode(['success' => true, 'message' => 'Order already processed']);
                     }

@@ -726,7 +726,7 @@ class ApiService {
     return null;
   }
 
-  static Future<Map<String, dynamic>?> requestUberDelivery(int orderId) async {
+  static Future<Map<String, dynamic>?> requestUberDelivery(String orderId) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/request_uber_delivery.php'),

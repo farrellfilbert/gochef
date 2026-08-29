@@ -118,7 +118,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   Future<void> _requestUberDelivery(String orderId) async {
     setState(() => _isLoading = true);
     try {
-      final res = await ApiService.requestUberDelivery(int.parse(orderId));
+      final res = await ApiService.requestUberDelivery(orderId);
       if (res != null && res['success'] == true) {
          if (mounted) {
            ScaffoldMessenger.of(context).showSnackBar(
@@ -246,7 +246,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                               primaryBtnText = 'Start Cooking Now'; // Manual override
                               onPrimaryActionCallback = () => _updateOrderStatus(order.id, nextStatus);
                             } else if (order.status == 'Ready' && order.orderType != 'dine_in') {
-                              primaryBtnText = 'Panggil Kurir Uber';
+                              primaryBtnText = 'Request Uber Delivery';
                               onPrimaryActionCallback = () => _requestUberDelivery(order.id);
                             } else {
                               primaryBtnText = 'Mark $nextStatus';
