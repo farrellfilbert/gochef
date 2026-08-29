@@ -40,5 +40,21 @@ if ($method === 'GET') {
     $stmt = $pdo->prepare("DELETE FROM addresses WHERE id = ?");
     $stmt->execute([$id]);
     echo json_encode(['success' => true]);
+
+} elseif ($method === 'PUT') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $id = intval($input['id'] ?? 0);
+    $label = $input['label'] ?? '';
+    $address = $input['address'] ?? '';
+
+    if (!$id || !$address) {
+        echo json_encode(['success' => false, 'error' => 'id and address required']);
+        exit;
+    }
+
+    $stmt = $pdo->prepare("UPDATE addresses SET label = ?, address = ? WHERE id = ?");
+    $stmt->execute([$label, $address, $id]);
+    
+    echo json_encode(['success' => true]);
 }
 ?>

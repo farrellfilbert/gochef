@@ -1087,6 +1087,27 @@ class ApiService {
     }
   }
 
+  static Future<bool> updateAddress(int id, String address, String label) async {
+      try {
+        final userId = await getUserId();
+        if (userId == null) return false;
+        
+        final response = await http.put(
+          Uri.parse('$baseUrl/addresses.php'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'id': id,
+            'label': label,
+            'address': address,
+          }),
+        );
+        return response.statusCode == 200;
+      } catch (e) {
+        print('Error updating address: $e');
+        return false;
+      }
+  }
+
   static Future<String?> uploadImageBase64(String base64Str) async {
     try {
       final url = Uri.parse('$baseUrl/upload.php');

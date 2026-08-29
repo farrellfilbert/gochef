@@ -161,6 +161,95 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     );
   }
 
+  void _editAddress(AddressModel address) {
+    final labelController = TextEditingController(text: address.label);
+    final addressController = TextEditingController(text: address.address);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text('Edit Address', style: AppTextStyles.headlineMd(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: labelController,
+                decoration: InputDecoration(
+                  labelText: 'Label (e.g., Home, Office)',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                ),
+                style: const TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: addressController,
+                decoration: InputDecoration(
+                  labelText: 'Full Address',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                ),
+                maxLines: 3,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (addressController.text.isNotEmpty) {
+                  Navigator.pop(context);
+                  setState(() => _isLoading = true);
+                  final success = await ApiService.updateAddress(
+                    address.id,
+                    addressController.text,
+                    labelController.text.isEmpty ? 'Home' : labelController.text,
+                  );
+                  if (success) {
+                    await _loadAddresses();
+                    if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alamat berhasil diupdate', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green));
+                    }
+                  } else {
+                    setState(() => _isLoading = false);
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: const Text('Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -177,13 +266,22 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
           ),
           child: TextField(
             decoration: InputDecoration(
-              hintText: 'Search location',
+              hintText: 'Cari lokasi',
               hintStyle: const TextStyle(color: Colors.white70),
               prefixIcon: const Icon(Icons.search, color: Colors.white),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fitur pencarian lokasi segera hadir!')));
+                },
+              ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 10),
             ),
             style: const TextStyle(color: Colors.white),
+            onSubmitted: (val) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fitur pencarian lokasi segera hadir!')));
+            },
           ),
         ),
         actions: [
@@ -421,7 +519,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                       IconButton(
                                         icon: const Icon(Icons.edit, color: Colors.white70, size: 18),
                                         onPressed: () {
-                                          // Edit functionality
+                                          _editAddress(address);
                                         },
                                       ),
                                     ],
