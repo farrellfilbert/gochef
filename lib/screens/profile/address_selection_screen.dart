@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -23,6 +25,7 @@ class AddressSelectionScreen extends StatefulWidget {
 
 class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   final MapController _mapController = MapController();
+  final TextEditingController _searchController = TextEditingController();
   List<AddressModel> _addresses = [];
   bool _isLoading = true;
   AddressModel? _selectedAddress;
@@ -250,6 +253,73 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     );
   }
 
+  Future<void> _searchLocation(String query) async {
+    if (query.isEmpty) return;
+    
+    setState(() => _isLoading = true);
+    try {
+      final url = Uri.parse('https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(query)}&format=json&limit=5');
+      final response = await http.get(url, headers: {'User-Agent': 'GoChefApp'});
+      
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
+        if (data.isNotEmpty) {
+          if (mounted) {
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: AppColors.surface,
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+              builder: (context) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text('Pilih Hasil Pencarian', style: AppTextStyles.headlineMd(color: Colors.white)),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          final item = data[index];
+                          return ListTile(
+                            leading: const Icon(Icons.location_on, color: Colors.white70),
+                            title: Text(item['display_name'] ?? '', style: const TextStyle(color: Colors.white)),
+                            onTap: () {
+                              Navigator.pop(context);
+                              final lat = double.parse(item['lat'].toString());
+                              final lon = double.parse(item['lon'].toString());
+                              final newPos = LatLng(lat, lon);
+                              setState(() {
+                                _baseLocation = newPos;
+                              });
+                              _mapController.move(newPos, 15.0);
+                              _addNewAddress(latLng: newPos);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lokasi tidak ditemukan', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mencari lokasi', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -265,6 +335,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
+            controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Cari lokasi',
               hintStyle: const TextStyle(color: Colors.white70),
@@ -272,7 +343,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
               suffixIcon: IconButton(
                 icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fitur pencarian lokasi segera hadir!')));
+                  _searchLocation(_searchController.text);
                 },
               ),
               border: InputBorder.none,
@@ -280,7 +351,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
             ),
             style: const TextStyle(color: Colors.white),
             onSubmitted: (val) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fitur pencarian lokasi segera hadir!')));
+              _searchLocation(val);
             },
           ),
         ),
