@@ -79,9 +79,23 @@
     window.onerror = function(msg, url, line, col, error) {
       var loader = document.getElementById('app-loader');
       if (loader) loader.remove();
+      var detail = '';
+      if (error) {
+        detail += '<p style="color:#ffaa00;">Error: ' + (error.message || error.toString()) + '</p>';
+        if (error.stack) detail += '<pre style="color:#ccc; white-space:pre-wrap; font-size:11px; max-height:400px; overflow:auto;">' + error.stack + '</pre>';
+      }
       document.body.innerHTML += '<div style="color:red; background:#0F172A; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; overflow:auto; padding:20px; box-sizing:border-box; font-family:monospace;">' + 
-        '<h3 style="color:#ff6b6b;">GoChef Error</h3><p>' + msg + '</p><p style="color:#888;">URL: ' + url + '</p><p style="color:#888;">Line: ' + line + '</p></div>';
+        '<h3 style="color:#ff6b6b;">GoChef Error</h3><p>' + msg + '</p>' + detail + '<p style="color:#888;">URL: ' + url + '</p><p style="color:#888;">Line: ' + line + ', Col: ' + col + '</p>' +
+        '<p style="color:#888;">Page: ' + window.location.href + '</p></div>';
     };
+    window.addEventListener('unhandledrejection', function(e) {
+      var loader = document.getElementById('app-loader');
+      if (loader) loader.remove();
+      var reason = e.reason ? (e.reason.message || e.reason.stack || e.reason.toString()) : 'Unknown promise rejection';
+      document.body.innerHTML += '<div style="color:red; background:#0F172A; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; overflow:auto; padding:20px; box-sizing:border-box; font-family:monospace;">' + 
+        '<h3 style="color:#ff6b6b;">GoChef Promise Error</h3><pre style="color:#ffaa00; white-space:pre-wrap;">' + reason + '</pre>' +
+        '<p style="color:#888;">Page: ' + window.location.href + '</p></div>';
+    });
     // Safety fallback: hide loader after 8 seconds no matter what
     setTimeout(function() {
       var loader = document.getElementById('app-loader');
