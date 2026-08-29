@@ -32,6 +32,23 @@ void main() {
       ),
     );
   }
+
+  // Catch all UI errors and show them on screen instead of a blank white screen
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      color: Colors.red,
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            details.exceptionAsString() + '\n\n' + (details.stack?.toString() ?? ''),
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+        ),
+      ),
+    );
+  };
+
   runApp(const GoChefApp());
 }
 
