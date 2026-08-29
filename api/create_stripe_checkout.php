@@ -186,8 +186,8 @@ if ($method === 'POST') {
         $stripe_data = [
             'payment_method_types' => ['card'],
             'mode' => 'payment',
-            'success_url' => $domain_url . '/payment_success?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => $domain_url . '/checkout?canceled=true',
+            'success_url' => $domain_url . '/#/payment_success?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => $domain_url . '/#/checkout?cancel=true',
             'client_reference_id' => $orderId,
         ];
 
