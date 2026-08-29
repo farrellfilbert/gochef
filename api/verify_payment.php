@@ -33,7 +33,7 @@ if ($method === 'POST') {
                 $stmt = $pdo->prepare("
                     SELECT o.user_id, o.kitchen_id, o.kitchen_name, o.order_type, o.dine_in_date, o.total_amount,
                            (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as items_count,
-                           k.profile_image as kitchen_avatar
+                           k.avatar as kitchen_avatar
                     FROM orders o
                     LEFT JOIN kitchens k ON (k.id = o.kitchen_id OR k.user_id = o.kitchen_id)
                     WHERE o.id = ?
