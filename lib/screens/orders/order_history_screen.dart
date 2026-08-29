@@ -139,8 +139,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 final orders = snapshot.data!;
                 List<OrderModel> filteredOrders = orders;
                 if (_selectedFilter != 0) {
-                  final filterMap = {1: 'Active', 2: 'Scheduled', 3: 'Completed', 4: 'Cancelled'};
-                  filteredOrders = orders.where((o) => o.status == filterMap[_selectedFilter]).toList();
+                  filteredOrders = orders.where((o) {
+                    if (_selectedFilter == 1) {
+                      return ['pending_payment', 'Active', 'Preparing', 'Ready', 'on_the_way'].contains(o.status);
+                    } else if (_selectedFilter == 2) {
+                      return o.status == 'Scheduled' || (o.status == 'Active' && o.orderType != 'dine_in');
+                    } else if (_selectedFilter == 3) {
+                      return ['Completed', 'Delivered', 'delivered'].contains(o.status);
+                    } else if (_selectedFilter == 4) {
+                      return o.status == 'Cancelled';
+                    }
+                    return true;
+                  }).toList();
                 }
 
                 if (filteredOrders.isEmpty) {
@@ -150,7 +160,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 return Column(
                   children: filteredOrders.map((order) {
                     final itemsStr = order.items.isNotEmpty 
-                        ? '${order.items[0].name} + ${order.itemsCount - 1 > 0 ? (order.itemsCount - 1).toString() + ' items' : ''}'
+                        ? (order.itemsCount > 1 
+                           ? '${order.items[0].name} + ${order.itemsCount - 1} items'
+                           : order.items[0].name)
                         : '${order.itemsCount} items';
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 24),
@@ -348,20 +360,27 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(price, style: AppTextStyles.headlineMd(color: Colors.white)),
-              Row(
-                children: [
-                  if (onChat != null)
-                    IconButton(
-                      icon: const Icon(Icons.chat_bubble_outline),
-                      color: AppColors.primary,
-                      onPressed: onChat,
-                    ),
-                  if (onRate != null)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: TextButton.icon(
+              const SizedBox(width: 16),
+              Expanded(
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    if (onChat != null)
+                      IconButton(
+                        icon: const Icon(Icons.chat_bubble_outline),
+                        color: AppColors.primary,
+                        onPressed: onChat,
+                        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                        padding: EdgeInsets.zero,
+                      ),
+                    if (onRate != null)
+                      TextButton.icon(
                         onPressed: onRate,
                         icon: const Icon(Icons.star, color: Colors.amber, size: 16),
                         label: const Text(
@@ -372,35 +391,42 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           foregroundColor: Colors.amber,
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                       ),
-                    ),
-                  ElevatedButton(
-                    onPressed: onDetails,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      foregroundColor: AppColors.onSurfaceVariant,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-                    ),
-                    child: Text(isDelivered ? 'Details' : 'Support', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: onReorder,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isDelivered ? AppColors.primaryContainer : AppColors.surfaceContainerHigh,
-                      foregroundColor: isDelivered ? Colors.white : AppColors.onSurface,
-                      elevation: isDelivered ? 8 : 0,
-                      shadowColor: isDelivered ? AppColors.primaryContainer.withValues(alpha: 0.5) : Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
-                        side: isDelivered ? BorderSide.none : BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                    ElevatedButton(
+                      onPressed: onDetails,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: AppColors.onSurfaceVariant,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
                       ),
+                      child: Text(isDelivered ? 'Details' : 'Support', style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
-                    child: Text(isDelivered ? 'Reorder' : 'Try Again', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ],
+                    ElevatedButton(
+                      onPressed: onReorder,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isDelivered ? AppColors.primaryContainer : AppColors.surfaceContainerHigh,
+                        foregroundColor: isDelivered ? Colors.white : AppColors.onSurface,
+                        elevation: isDelivered ? 8 : 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shadowColor: isDelivered ? AppColors.primaryContainer.withValues(alpha: 0.5) : Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(32),
+                          side: isDelivered ? BorderSide.none : BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+                        ),
+                      ),
+                      child: Text(isDelivered ? 'Reorder' : 'Try Again', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
               )
             ],
           )
