@@ -19,6 +19,7 @@ if ($method === 'POST') {
     $promo_code = $input['promo_code'] ?? null;
 
     if (!$user_id || !$kitchen_id) {
+        file_put_contents('checkout_error.log', date('Y-m-d H:i:s') . " - Missing IDs: user=$user_id, kitchen=$kitchen_id\n", FILE_APPEND);
         echo json_encode(['success' => false, 'error' => 'user_id and kitchen_id required']);
         exit;
     }
@@ -37,6 +38,7 @@ if ($method === 'POST') {
         $cartItems = $stmt->fetchAll();
 
         if (empty($cartItems)) {
+            file_put_contents('checkout_error.log', date('Y-m-d H:i:s') . " - Empty Cart for user=$user_id, kitchen=$kitchen_id\n", FILE_APPEND);
             echo json_encode(['success' => false, 'error' => 'Cart is empty for this kitchen']);
             exit;
         }
@@ -209,11 +211,14 @@ if ($method === 'POST') {
             // Delete the pending order since Stripe failed to create session
             $pdo->prepare("DELETE FROM orders WHERE id = ?")->execute([$orderId]);
             $pdo->prepare("DELETE FROM order_items WHERE order_id = ?")->execute([$orderId]);
+            file_put_contents('checkout_error.log', date('Y-m-d H:i:s') . " - Stripe Error: " . $response . "\n", FILE_APPEND);
             echo json_encode(['success' => false, 'error' => 'Failed to create Stripe session', 'stripe_resp' => $response]);
         }
 
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        $errorMsg = $e->getMessage();
+        file_put_contents('checkout_error.log', date('Y-m-d H:i:s') . " - Exception: " . $errorMsg . "\n", FILE_APPEND);
+        echo json_encode(['success' => false, 'error' => $errorMsg]);
     }
 }
 ?>
