@@ -20,12 +20,12 @@ if (!$orderId) {
 
 try {
     // 1. Ambil data order dari database (asumsi tabel orders)
-    $stmt = $pdo->prepare("SELECT o.*, u.address AS dropoff_address FROM orders o JOIN users u ON o.user_id = u.id WHERE o.id = ?");
+    $stmt = $pdo->prepare("SELECT o.*, o.delivery_address AS dropoff_address FROM orders o WHERE o.id = ?");
     $stmt->execute([$orderId]);
     $order = $stmt->fetch();
     
     if (!$order) {
-        http_response_code(404);
+        http_response_code(200);
         echo json_encode(['success' => false, 'error' => 'Order tidak ditemukan']);
         exit;
     }
@@ -75,12 +75,12 @@ try {
             'tracking_url' => $trackingUrl
         ]);
     } else {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => $deliveryResult['error']]);
+        http_response_code(200);
+        echo json_encode(['success' => false, 'error' => 'Uber API Error: ' . ($deliveryResult['error'] ?? 'Unknown error')]);
     }
 
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    http_response_code(200);
+    echo json_encode(['success' => false, 'error' => 'Server Error: ' . $e->getMessage()]);
 }
 ?>
