@@ -18,6 +18,8 @@ class PaymentSuccessScreen extends StatefulWidget {
 class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
   bool _isVerifying = true;
   String _message = 'Verifying your payment...';
+  int _retryCount = 0;
+  static const int _maxRetries = 3;
 
   @override
   void initState() {
@@ -26,17 +28,31 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
   }
 
   Future<void> _verifyPayment() async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiService.baseUrl}/verify_payment.php'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'session_id': widget.sessionId}),
-      ).timeout(const Duration(seconds: 15));
+    for (int attempt = 0; attempt <= _maxRetries; attempt++) {
+      if (!mounted) return;
+      
+      if (attempt > 0) {
+        setState(() {
+          _retryCount = attempt;
+          _message = 'Retrying verification (attempt ${attempt + 1}/${_maxRetries + 1})...';
+        });
+        // Wait before retry
+        await Future.delayed(Duration(seconds: attempt * 2));
+        if (!mounted) return;
+      }
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true) {
-          if (mounted) {
+      try {
+        final response = await http.post(
+          Uri.parse('${ApiService.baseUrl}/verify_payment.php'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({'session_id': widget.sessionId}),
+        ).timeout(const Duration(seconds: 20));
+
+        if (!mounted) return;
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (data['success'] == true) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -50,25 +66,41 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                 ),
               ),
             );
+            return; // Success — exit the retry loop
+          } else {
+            // Payment not successful according to Stripe/server
+            if (attempt == _maxRetries) {
+              setState(() {
+                _message = data['error'] ?? 'Payment verification failed.';
+                _isVerifying = false;
+              });
+              return;
+            }
+            // Otherwise retry
+            continue;
           }
-          return;
         } else {
+          if (attempt == _maxRetries) {
+            setState(() {
+              _message = 'Server error (${response.statusCode}) during verification.';
+              _isVerifying = false;
+            });
+            return;
+          }
+          continue;
+        }
+      } catch (e) {
+        if (attempt == _maxRetries) {
+          if (!mounted) return;
           setState(() {
-            _message = data['error'] ?? 'Payment verification failed.';
+            _message = 'Network error: ${e.toString().length > 100 ? e.toString().substring(0, 100) : e.toString()}';
             _isVerifying = false;
           });
+          return;
         }
-      } else {
-        setState(() {
-          _message = 'Server error during verification.';
-          _isVerifying = false;
-        });
+        // Otherwise retry
+        continue;
       }
-    } catch (e) {
-      setState(() {
-        _message = 'Network error during verification.';
-        _isVerifying = false;
-      });
     }
   }
 
@@ -83,47 +115,75 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
         automaticallyImplyLeading: !_isVerifying,
       ),
       body: Center(
-        child: _isVerifying
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(color: AppColors.primary),
-                  const SizedBox(height: 24),
-                  Text(
-                    _message,
-                    style: AppTextStyles.bodyMd(color: AppColors.onSurface),
-                  ),
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, color: AppColors.error, size: 64),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Payment Failed',
-                    style: AppTextStyles.headlineMd(color: AppColors.error),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _message,
-                    style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: _isVerifying
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(color: AppColors.primary),
+                    const SizedBox(height: 24),
+                    Text(
+                      _message,
+                      style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+                      textAlign: TextAlign.center,
                     ),
-                    child: const Text('Return to Home'),
-                  ),
-                ],
-              ),
+                    if (_retryCount > 0) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Please wait...',
+                        style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                      ),
+                    ],
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: AppColors.error, size: 64),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Payment Failed',
+                      style: AppTextStyles.headlineMd(color: AppColors.error),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _message,
+                      style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _isVerifying = true;
+                          _retryCount = 0;
+                          _message = 'Verifying your payment...';
+                        });
+                        _verifyPayment();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryContainer,
+                        foregroundColor: AppColors.onPrimaryContainer,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      ),
+                      child: const Text('Try Again'),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      ),
+                      child: const Text('Return to Home'),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }

@@ -1,0 +1,1 @@
+﻿<?php $res = file_get_contents('https://thegrubnextdoor.com/api/request_uber_delivery.php', false, stream_context_create(['http'=>['method'=>'POST','header'=>'Content-type: application/json','content'=>json_encode(['order_id'=>'ORD-2026-9715'])]])); echo $res; ?>
