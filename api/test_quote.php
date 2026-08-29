@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 
 require_once 'uber_service.php';
 
-$quoteResult = UberService::getDeliveryQuote('123 Main St, New York, NY 10001', '456 Elm St, New York, NY 10001');
+$quoteResult = UberService::getDeliveryQuote('555 California St, San Francisco, CA 94104', '1 Market St, San Francisco, CA 94105');
 
 echo json_encode($quoteResult);
 ?>
