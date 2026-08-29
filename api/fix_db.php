@@ -1,5 +1,5 @@
 <?php
-require_once 'api/db_connect.php';
+require_once 'db_connect.php';
 
 try {
     $pdo->exec("ALTER TABLE orders ADD COLUMN order_type VARCHAR(50) DEFAULT 'delivery'");
