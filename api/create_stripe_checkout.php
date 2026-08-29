@@ -114,6 +114,7 @@ if ($method === 'POST') {
                         'name' => 'Delivery Fee',
                     ],
                     'unit_amount' => intval($deliveryFee * 100),
+                ],
                 'quantity' => 1,
             ];
         }
