@@ -30,8 +30,10 @@ try {
         exit;
     }
 
-    if ($order['status'] !== 'preparing' && $order['status'] !== 'ready') {
-        echo json_encode(['success' => false, 'error' => 'Status order belum siap untuk dikirim.']);
+    $status = strtolower($order['status']);
+    if ($status !== 'preparing' && $status !== 'ready') {
+        http_response_code(200);
+        echo json_encode(['success' => false, 'error' => 'Status order belum siap untuk dikirim. (Status saat ini: ' . $order['status'] . ')']);
         exit;
     }
 
