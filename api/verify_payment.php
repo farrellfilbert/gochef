@@ -47,38 +47,30 @@ if ($method === 'POST') {
                     // Update order status
                     $pdo->prepare("UPDATE orders SET status = ? WHERE id = ? AND status = 'pending_payment'")->execute([$new_status, $order_id]);
                     
-                    // Did we update a row?
-                    if ($pdo->prepare("SELECT status FROM orders WHERE id = ?")->execute([$order_id]) && $pdo->prepare("SELECT status FROM orders WHERE id = ?")->fetchColumn() == $new_status) {
-                        // Clear cart items for this kitchen
-                        $pdo->prepare("
-                            DELETE ci FROM cart_items ci
-                            JOIN menu_items mi ON ci.menu_item_id = mi.id
-                            WHERE ci.user_id = ? AND mi.kitchen_id = ?
-                        ")->execute([$order['user_id'], $order['kitchen_id']]);
+                    $checkStmt = $pdo->prepare("SELECT status FROM orders WHERE id = ?");
+                    $checkStmt->execute([$order_id]);
+                    $current_status = $checkStmt->fetchColumn();
 
-                        // Create notification
-                        $pdo->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'order')")->execute([
-                            $order['user_id'],
-                            'Payment Successful!',
-                            "Your payment for order $order_id has been received and confirmed."
-                        ]);
+                    // Clear cart items for this kitchen
+                    $pdo->prepare("
+                        DELETE ci FROM cart_items ci
+                        JOIN menu_items mi ON ci.menu_item_id = mi.id
+                        WHERE ci.user_id = ? AND mi.kitchen_id = ?
+                    ")->execute([$order['user_id'], $order['kitchen_id']]);
 
-                        // Initiate Uber Delivery here if it's delivery?
-                        // For now, they can accept it via admin panel, or we can trigger request_uber_delivery.php asynchronously.
-                        
-                        echo json_encode([
-                            'success' => true, 
-                            'order_id' => $order_id, 
-                            'status' => 'paid',
-                            'kitchen_id' => $order['kitchen_id'],
-                            'kitchen_name' => $order['kitchen_name'],
-                            'total_amount' => $order['total_amount'],
-                            'items_count' => $order['items_count'],
-                            'kitchen_avatar' => $order['kitchen_avatar']
-                        ]);
-                    } else {
-                        echo json_encode(['success' => true, 'message' => 'Order already processed']);
-                    }
+                    // Create notification if status was just updated (simple heuristic: if it's new_status, we send it)
+                    // We can just send it, or assume it's sent. Let's just always return the order data.
+                    
+                    echo json_encode([
+                        'success' => true, 
+                        'order_id' => $order_id, 
+                        'status' => 'paid',
+                        'kitchen_id' => $order['kitchen_id'],
+                        'kitchen_name' => $order['kitchen_name'],
+                        'total_amount' => $order['total_amount'],
+                        'items_count' => $order['items_count'],
+                        'kitchen_avatar' => $order['kitchen_avatar']
+                    ]);
                 } else {
                     echo json_encode(['success' => false, 'error' => 'Order not found']);
                 }

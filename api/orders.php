@@ -90,6 +90,8 @@ try {
             'avatar' => $order['avatar'],
             'delivery_address' => $order['delivery_address'] ?? '',
             'notes' => $order['notes'] ?? '',
+            'uber_tracking_url' => $order['uber_tracking_url'] ?? null,
+            'uber_delivery_status' => $order['uber_delivery_status'] ?? null,
             'items' => $items
         ];
     }
