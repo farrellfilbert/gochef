@@ -13,8 +13,8 @@ define('STRIPE_WEBHOOK_SECRET', 'whsec_..._isi_disini'); // Diperlukan nanti saa
 // KREDENSIAL UBER DIRECT (TEST MODE)
 // ==========================================
 define('UBER_CUSTOMER_ID', 'ddf74731-c0ad-5a6a-a899-62f9ee9ee393');
-define('UBER_CLIENT_ID', 'jmjGCSlzbifIXAHT-DihFnCvQmJar4aB');
-define('UBER_CLIENT_SECRET', 'wOOGgjwxDnGto7TkYg_YApqBE3vLvUwLUqJIFpKt');
+define('UBER_CLIENT_ID', 'jmjGCSIzbifIXAHT-DihFnCvQmJar4aB');
+define('UBER_CLIENT_SECRET', 'wO0GgjwxDnGto7TkYg_YApqBE3vLvUwLUqJlFpKt');
 
 // Set ke true untuk menggunakan Sandbox/Test Mode, false untuk Production
 define('IS_TEST_MODE', true);
