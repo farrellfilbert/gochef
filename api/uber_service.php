@@ -84,11 +84,14 @@ class UberService {
         $url = "https://api.uber.com/v1/customers/" . UBER_CUSTOMER_ID . "/deliveries";
         
         $payload = [
+            'pickup_name' => 'GoChef Kitchen',
             'pickup_address' => $pickupAddress,
+            'pickup_phone_number' => '+15555555555',
+            'dropoff_name' => 'Customer',
             'dropoff_address' => $dropoffAddress,
+            'dropoff_phone_number' => '+15555555555',
             'manifest_items' => $manifestItems,
-            'external_store_id' => 'gochef_kitchen', // Opsional, bisa disesuaikan
-            'deliverable_action' => 'deliverable_action_meet_at_door',
+            'external_store_id' => 'gochef_kitchen',
         ];
 
         $ch = curl_init($url);
@@ -109,7 +112,7 @@ class UberService {
         if ($httpCode >= 200 && $httpCode < 300) {
             return ['success' => true, 'data' => $data];
         } else {
-            return ['success' => false, 'error' => $data['message'] ?? 'Gagal memanggil kurir Uber.'];
+            return ['success' => false, 'error' => json_encode($data)];
         }
     }
 }
