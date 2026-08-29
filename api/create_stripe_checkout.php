@@ -181,7 +181,7 @@ if ($method === 'POST') {
 
         // Create Stripe Checkout Session
         // Note: Replace with actual domain
-        $domain_url = 'https://thegrubnextdoor.com/#';
+        $domain_url = 'https://thegrubnextdoor.com';
         
         $stripe_data = [
             'payment_method_types' => ['card'],
