@@ -6,9 +6,7 @@ import 'package:go_chef_app/services/api_service.dart';
 import 'package:go_chef_app/services/support_helper.dart';
 import 'package:go_chef_app/main.dart';
 import 'order_review_screen.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'dart:math';
+import 'package:go_chef_app/models/order_model.dart';
 import 'package:go_chef_app/models/order_model.dart';
 import '../../widgets/rate_order_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -48,11 +46,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   String _dineInDate = '';
   String? _uberTrackingUrl;
   Timer? _timer;
-  
-// Add these variables:
-  final MapController _mapController = MapController();
-  final LatLng _kitchenLocation = const LatLng(-6.3687, 106.8329); // Dummy kitchen loc
-  LatLng _driverLocation = const LatLng(-6.3687, 106.8329); // Starts at kitchen
 
   @override
   void initState() {
@@ -60,7 +53,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     _currentStatus = widget.initialStatus;
     _fetchOrderDetails();
     _startPolling();
-    _startDriverSimulation();
   }
 
   Future<void> _fetchOrderDetails() async {
@@ -134,24 +126,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     }
   }
 
-  void _startDriverSimulation() {
-    // Dummy simulation: driver moves slightly every second if status is Completed
-    Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      if (_currentStatus == 'Completed') {
-        setState(() {
-          _driverLocation = LatLng(
-            _driverLocation.latitude + (Random().nextDouble() - 0.5) * 0.0005,
-            _driverLocation.longitude + (Random().nextDouble() - 0.5) * 0.0005,
-          );
-        });
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     bool isOutForDelivery = ['on_the_way', 'delivered', 'Completed'].contains(_currentStatus);
@@ -199,163 +173,84 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         padding: const EdgeInsets.only(bottom: 120),
         child: Column(
           children: [
-            // Live Map Section
-            SizedBox(
-              height: 397,
+            // Timeline & Status Section
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
               width: double.infinity,
-              child: Stack(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.surface,
+                    AppColors.background,
+                  ],
+                ),
+              ),
+              child: Column(
                 children: [
-                  Positioned.fill(
-                    child: FlutterMap(
-                      mapController: _mapController,
-                      options: MapOptions(
-                        initialCenter: _kitchenLocation,
-                        initialZoom: 15.0,
-                        minZoom: 3.0,
-                        maxZoom: 19.0,
-                        interactionOptions: const InteractionOptions(
-                          flags: InteractiveFlag.drag |
-                              InteractiveFlag.pinchZoom |
-                              InteractiveFlag.scrollWheelZoom |
-                              InteractiveFlag.doubleTapZoom,
-                        ),
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-                          subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
-                          userAgentPackageName: 'com.astroboomin.gochef',
-                        ),
-                        TileLayer(
-                          urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',
-                          subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
-                          userAgentPackageName: 'com.astroboomin.gochef',
-                        ),
-                        MarkerLayer(
-                          markers: [
-                            Marker(
-                              point: _kitchenLocation,
-                              width: 40,
-                              height: 40,
-                              child: Container(
-                                decoration: const BoxDecoration(
-                                  color: AppColors.primary,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.restaurant, color: Colors.white, size: 20),
-                              ),
-                            ),
-                            if (isOutForDelivery)
-                              Marker(
-                                point: _driverLocation,
-                                width: 40,
-                                height: 40,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.green,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 2),
-                                  ),
-                                  child: const Icon(Icons.electric_moped, color: Colors.white, size: 20),
-                                ),
-                              ),
-                          ],
-                        ),
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryContainer,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryContainer.withValues(alpha: 0.4),
+                          blurRadius: 30,
+                          spreadRadius: 10,
+                        )
                       ],
                     ),
-                  ),
-
-                  // Floating Zoom In / Zoom Out Controls
-                  Positioned(
-                    right: 16,
-                    top: 16,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0D111A).withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.4),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                              onTap: () {
-                                final currentZoom = _mapController.camera.zoom;
-                                if (currentZoom < 19.0) {
-                                  _mapController.move(_mapController.camera.center, (currentZoom + 1).clamp(3.0, 19.0));
-                                }
-                              },
-                              child: const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Icon(Icons.add, color: Colors.white, size: 20),
-                              ),
-                            ),
-                          ),
-                          Container(width: 28, height: 1, color: Colors.white12),
-                          Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-                              onTap: () {
-                                final currentZoom = _mapController.camera.zoom;
-                                if (currentZoom > 3.0) {
-                                  _mapController.move(_mapController.camera.center, (currentZoom - 1).clamp(3.0, 19.0));
-                                }
-                              },
-                              child: const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Icon(Icons.remove, color: Colors.white, size: 20),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: Icon(
+                      _currentStatus == 'Completed' ? Icons.check_circle
+                          : (isOutForDelivery ? Icons.delivery_dining : Icons.restaurant),
+                      color: AppColors.onPrimaryContainer,
+                      size: 50,
                     ),
                   ),
-                  if (isOutForDelivery)
-                    Positioned(
-                      bottom: 24,
-                      left: 20,
-                      right: 20,
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0D111A).withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('ESTIMATED ARRIVAL', style: AppTextStyles.labelMono(color: const Color(0xFFFF80AB))),
-                                Text('12 mins', style: AppTextStyles.displayLgMobile(color: Colors.white).copyWith(fontSize: 32)),
-                              ],
-                            ),
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.delivery_dining, color: Colors.white),
-                            )
-                          ],
-                        ),
+                  const SizedBox(height: 24),
+                  Text(
+                    _currentStatus.toUpperCase(),
+                    style: AppTextStyles.headlineLgMobile(color: AppColors.primary),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _currentStatus == 'pending_payment' ? 'Waiting for payment confirmation...'
+                    : _currentStatus == 'Active' ? 'The kitchen is preparing your order.'
+                    : _currentStatus == 'on_the_way' ? 'Your order is on the way!'
+                    : _currentStatus == 'Completed' ? 'Order delivered. Enjoy your meal!'
+                    : 'Status: $_currentStatus',
+                    style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                    textAlign: TextAlign.center,
+                  ),
+                  
+                  if (_uberTrackingUrl != null && _uberTrackingUrl!.isNotEmpty && !['Completed'].contains(_currentStatus)) ...[
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        final Uri url = Uri.parse(_uberTrackingUrl!);
+                        if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                           if (mounted) {
+                             ScaffoldMessenger.of(context).showSnackBar(
+                               const SnackBar(content: Text('Could not open Uber Tracking URL')),
+                             );
+                           }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                        elevation: 8,
+                        shadowColor: AppColors.primary.withValues(alpha: 0.5),
                       ),
+                      icon: const Icon(Icons.map, size: 24),
+                      label: Text('Track Live via Uber', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
                     ),
+                  ],
                 ],
               ),
             ),
@@ -814,3 +709,4 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     );
   }
 }
+

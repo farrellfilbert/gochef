@@ -123,10 +123,10 @@ class OrderCompleteScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 
-                Text('Order Placed!', style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface)),
+                Text('Payment Successful!', style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface)),
                 const SizedBox(height: 8),
                 Text(
-                  'Your gourmet experience is being prepared.',
+                  'Your order has been placed and is being prepared.',
                   style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
                   textAlign: TextAlign.center,
                 ),
