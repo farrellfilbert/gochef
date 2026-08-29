@@ -1,4 +1,5 @@
 <?php
+file_put_contents('checkout_error.log', date('Y-m-d H:i:s') . " - API HIT!\n", FILE_APPEND);
 require_once 'db_connect.php';
 require_once 'config.php';
 
