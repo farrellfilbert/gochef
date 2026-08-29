@@ -47,7 +47,7 @@ class GoChefApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         if (settings.name != null) {
           final uri = Uri.parse(settings.name!);
-          if (uri.path == '/payment_success') {
+          if (uri.path == '/payment_success' || uri.path == '/payment_success/') {
             final sessionId = uri.queryParameters['session_id'];
             if (sessionId != null) {
               return MaterialPageRoute(
@@ -56,7 +56,8 @@ class GoChefApp extends StatelessWidget {
             }
           }
         }
-        return null; // Fallback to home/default behavior
+        // Fallback to home/default behavior to avoid crashing on unknown routes
+        return MaterialPageRoute(builder: (context) => const AuthCheckScreen());
       },
       home: const AuthCheckScreen(),
     );
