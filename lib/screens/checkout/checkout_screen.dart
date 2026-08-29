@@ -495,6 +495,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       dineInTime: selectedTime != null ? "${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}" : null,
       promoCode: _selectedVoucher != null ? _selectedVoucher!['code'] : null,
       deliveryFee: _baseDeliveryFee,
+      serviceFee: _serviceFee,
     );
 
     if (mounted) {

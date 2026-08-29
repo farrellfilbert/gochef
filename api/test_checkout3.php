@@ -4,7 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 $_SERVER['REQUEST_METHOD'] = 'POST';
-$input = '{"user_id": 1, "kitchen_id": 1, "order_type": "delivery", "dine_in_date": "2026-08-30", "dine_in_time": "12:00", "promo_code": "", "delivery_fee": 4.0}';
+$input = '{"user_id": 1, "kitchen_id": 1, "order_type": "delivery", "dine_in_date": "2026-08-30", "dine_in_time": "12:00", "promo_code": "", "delivery_fee": 4.0, "service_fee": 2.50}';
 
 function custom_file_get_contents($filename) {
     global $input;

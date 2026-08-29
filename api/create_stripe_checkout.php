@@ -114,6 +114,21 @@ if ($method === 'POST') {
                         'name' => 'Delivery Fee',
                     ],
                     'unit_amount' => intval($deliveryFee * 100),
+                'quantity' => 1,
+            ];
+        }
+
+        // Add Service Fee if applicable
+        $serviceFee = floatval($input['service_fee'] ?? 0.00);
+        if ($serviceFee > 0) {
+            $total += $serviceFee;
+            $line_items[] = [
+                'price_data' => [
+                    'currency' => 'usd',
+                    'product_data' => [
+                        'name' => 'Service Fee',
+                    ],
+                    'unit_amount' => intval($serviceFee * 100),
                 ],
                 'quantity' => 1,
             ];

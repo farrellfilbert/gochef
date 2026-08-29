@@ -34528,12 +34528,12 @@ break
 case 1:return A.v(q,r)
 case 2:return A.u(o.at(-1),r)}})
 return A.w($async$aeL,r)},
-SY(a,b,c,d,e,f,g,h){return A.bpk(a,b,c,d,e,f,g,h)},
-bpk(a,b,c,d,e,f,a0,a1){var s=0,r=A.x(t.nA),q,p=2,o=[],n,m,l,k,j,i,h,g
-var $async$SY=A.t(function(a2,a3){if(a2===1){o.push(a3)
+SY(a,b,c,d,e,f,g,h,i){return A.bpk(a,b,c,d,e,f,g,h,i)},
+bpk(a,b,c,d,e,f,a0,a1,a2){var s=0,r=A.x(t.nA),q,p=2,o=[],n,m,l,k,j,i,h,g
+var $async$SY=A.t(function(a3,a4){if(a3===1){o.push(a4)
 s=p}for(;;)switch(s){case 0:s=3
 return A.j(A.e4(),$async$SY)
-case 3:h=a3
+case 3:h=a4
 if(h==null){q=null
 s=1
 break}p=5
@@ -34541,8 +34541,8 @@ l=A.bn(A.c2()+"/create_stripe_checkout.php",0,null)
 k=t.N
 j=A.a1(["Content-Type","application/json"],k,k)
 s=8
-return A.j(A.dW(l,B.J.e8(A.a1(["user_id",A.fi(h,null),"kitchen_id",e,"address_id",a,"notes",f,"order_type",a0,"dine_in_date",c,"dine_in_time",d,"promo_code",a1,"delivery_fee",b],k,t.X)),j).cN(0,B.b5),$async$SY)
-case 8:n=a3
+return A.j(A.dW(l,B.J.e8(A.a1(["user_id",A.fi(h,null),"kitchen_id",e,"address_id",a,"notes",f,"order_type",a0,"dine_in_date",c,"dine_in_time",d,"promo_code",a1,"delivery_fee",b,"service_fee",a2],k,t.X)),j).cN(0,B.b5),$async$SY)
+case 8:n=a4
 if(n.b===200){l=n
 l=B.J.aq(0,A.bM(A.bK(l.e)).aq(0,l.w))
 q=l
@@ -117848,7 +117848,7 @@ j=j!=null?B.f.dk(B.p.k(j.a),2,"0")+":"+B.f.dk(B.p.k(j.b),2,"0"):null
 i=p.CW
 i=i!=null?J.I(i,"code"):null
 s=12
-return A.j(A.SY(e,p.at,k,j,l,m,f,i),$async$r7)
+return A.j(A.SY(e,p.at,k,j,l,m,f,i,p.ax),$async$r7)
 case 12:h=b
 if(p.c!=null){f=h!=null
 if(f){e=J.ai(h)

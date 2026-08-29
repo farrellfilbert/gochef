@@ -789,6 +789,7 @@ class ApiService {
     String? dineInTime,
     String? promoCode,
     double deliveryFee = 4.0,
+    double serviceFee = 2.50,
   }) async {
     final userId = await getUserId();
     if (userId == null) return null;
@@ -807,6 +808,7 @@ class ApiService {
           'dine_in_time': dineInTime,
           'promo_code': promoCode,
           'delivery_fee': deliveryFee,
+          'service_fee': serviceFee,
         }),
       ).timeout(const Duration(seconds: 10));
       
