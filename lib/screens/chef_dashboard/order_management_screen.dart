@@ -122,14 +122,14 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
       if (res != null && res['success'] == true) {
          if (mounted) {
            ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Kurir Uber dalam perjalanan! 🚗'), backgroundColor: Colors.green),
+             const SnackBar(content: Text('Uber Courier is on the way! 🚗'), backgroundColor: Colors.green),
            );
          }
          _loadOrders();
       } else {
          if (mounted) {
            ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text(res?['error'] ?? 'Gagal memanggil Uber'), backgroundColor: Colors.red),
+             SnackBar(content: Text(res?['error'] ?? 'Failed to call Uber'), backgroundColor: Colors.red),
            );
          }
       }
