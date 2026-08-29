@@ -35,8 +35,13 @@ if (!window._flutter) {
 }
 _flutter.buildConfig = {"engineRevision":"42d3d75a56efe1a2e9902f52dc8006099c45d937","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js"},{}]};
 
+
+// Add timestamp to bypass cache
+_flutter.buildConfig.mainJsPath = _flutter.buildConfig.mainJsPath + "?v=" + Date.now();
+
 _flutter.loader.load({
-  serviceWorkerSettings: {
-    serviceWorkerVersion: "1244687255" /* Flutter's service worker is deprecated and will be removed in a future Flutter release. */
+  onEntrypointLoaded: async function(engineInitializer) {
+    const appRunner = await engineInitializer.initializeEngine();
+    await appRunner.runApp();
   }
 });
