@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
@@ -20,7 +21,7 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   bool isAsap = true;
-  String selectedPayment = 'mastercard'; // 'mastercard', 'apple', 'google'
+  String selectedPayment = 'stripe'; // 'stripe', 'apple', 'google'
   bool isOrdering = false;
   
   // Dine-in fields
@@ -441,25 +442,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // ==========================================
   // PLACE ORDER
   // ==========================================
+  Future<void> _showErrorDialog(String title, String message) async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _placeOrder() async {
     if (!isDineIn && _primaryAddress == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add a delivery address first'), backgroundColor: AppColors.error),
-      );
+      await _showErrorDialog('Address Required', 'Please add or select a delivery address first.');
       return;
     }
     
     if (isDineIn && (selectedDate == null || selectedTime == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select Date and Time for Dine-in'), backgroundColor: AppColors.error),
-      );
+      await _showErrorDialog('Date & Time Required', 'Please select a Date and Time for Dine-in.');
       return;
     }
 
     if (!isDineIn && !isAsap && (selectedDate == null || selectedTime == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select Date and Time for your scheduled delivery'), backgroundColor: AppColors.error),
-      );
+      await _showErrorDialog('Date & Time Required', 'Please select a Date and Time for your scheduled delivery.');
       return;
     }
 
@@ -492,21 +503,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         setState(() {
           isOrdering = false;
         });
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url, webOnlyWindowName: '_self');
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not launch payment page'), backgroundColor: AppColors.error),
+        
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const AlertDialog(
+              content: Row(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 20),
+                  Text('Redirecting to Stripe...'),
+                ],
+              ),
+            ),
           );
+        }
+
+        try {
+          html.window.location.href = url.toString();
+        } catch (e) {
+          if (mounted) {
+            Navigator.pop(context); // Close loading dialog
+            _showErrorDialog('Navigation Error', 'Could not launch payment page: $e');
+          }
         }
       } else {
         setState(() {
           isOrdering = false;
         });
-        final errorMsg = (result != null && result['error'] != null) ? result['error'].toString() : 'Failed to initialize payment';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg), backgroundColor: AppColors.error, duration: const Duration(seconds: 5)),
-        );
+        final errorMsg = (result != null && result['error'] != null) ? result['error'].toString() : 'Failed to initialize payment from server.';
+        _showErrorDialog('Payment Failed', errorMsg);
       }
     }
   }
@@ -814,18 +841,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ],
                 
                 const SizedBox(height: 24),
-                // Payment Method
                 Text('Payment Method', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
                 const SizedBox(height: 12),
                 GestureDetector(
-                  onTap: () => setState(() => selectedPayment = 'mastercard'),
+                  onTap: () => setState(() => selectedPayment = 'stripe'),
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: selectedPayment == 'mastercard' ? AppColors.primaryContainer.withValues(alpha: 0.1) : AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+                      color: selectedPayment == 'stripe' ? AppColors.primaryContainer.withValues(alpha: 0.1) : AppColors.surfaceContainerLow.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: selectedPayment == 'mastercard' ? AppColors.primary : Colors.white.withValues(alpha: 0.05),
+                        color: selectedPayment == 'stripe' ? AppColors.primary : Colors.white.withValues(alpha: 0.05),
                       ),
                     ),
                     child: Row(
@@ -843,8 +869,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Mastercard', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
-                              Text('•••• 8829', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                              Text('Credit/Debit Card', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
+                              Text('Powered by Stripe', style: AppTextStyles.labelSm(color: AppColors.primary)),
                             ],
                           ),
                         ),
@@ -854,11 +880,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: selectedPayment == 'mastercard' ? AppColors.primary : AppColors.outline,
+                              color: selectedPayment == 'stripe' ? AppColors.primary : AppColors.outline,
                               width: 2,
                             ),
                           ),
-                          child: selectedPayment == 'mastercard'
+                          child: selectedPayment == 'stripe'
                               ? Center(
                                   child: Container(
                                     width: 10,
