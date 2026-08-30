@@ -19,10 +19,9 @@ import 'screens/checkout/payment_success_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Disable runtime font fetching on web — prevents hang if Google Fonts CDN is slow
-  if (kIsWeb) {
-    GoogleFonts.config.allowRuntimeFetching = false;
-  }
+  // Allow Google Fonts to fetch at runtime (needed for Karla, etc.)
+  // Previously disabled, but this crashes when fonts aren't bundled in assets
+  GoogleFonts.config.allowRuntimeFetching = true;
   
   if (!kIsWeb) {
     SystemChrome.setSystemUIOverlayStyle(
