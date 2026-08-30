@@ -166,9 +166,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         double newFee = _baseDeliveryFee;
         final q = quote['quote'];
         if (q['fee'] != null) {
-           newFee = (q['fee'] as num).toDouble();
+           newFee = double.tryParse(q['fee'].toString()) ?? _baseDeliveryFee;
         } else if (q['quotes'] != null && (q['quotes'] as List).isNotEmpty) {
-           newFee = (q['quotes'][0]['fee'] as num).toDouble();
+           newFee = double.tryParse(q['quotes'][0]['fee']?.toString() ?? '') ?? _baseDeliveryFee;
         }
         
         setState(() {
@@ -189,7 +189,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (_selectedVoucher != null) {
       final type = _selectedVoucher!['discountType'] ?? 'percent';
-      final val = (_selectedVoucher!['discountValue'] as num?)?.toDouble() ?? 0.0;
+      final val = double.tryParse(_selectedVoucher!['discountValue']?.toString() ?? '') ?? 0.0;
 
       if (type == 'percent') {
         discount = _subtotal * (val / 100.0);

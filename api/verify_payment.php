@@ -67,9 +67,9 @@ if ($method === 'POST') {
                         'status' => 'paid',
                         'kitchen_id' => $order['kitchen_id'],
                         'kitchen_name' => $order['kitchen_name'],
-                        'total_amount' => $order['total_amount'],
-                        'items_count' => $order['items_count'],
-                        'kitchen_avatar' => $order['kitchen_avatar']
+                        'total_amount' => (float)$order['total_amount'],
+                        'items_count' => (int)$order['items_count'],
+                        'kitchen_avatar' => $order['kitchen_avatar'] ?? ''
                     ]);
                 } else {
                     echo json_encode(['success' => false, 'error' => 'Order not found']);

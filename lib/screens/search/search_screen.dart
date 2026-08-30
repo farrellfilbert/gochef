@@ -251,7 +251,7 @@ class _SearchScreenState extends State<SearchScreen> {
       'expiresIn': '7 Days',
       'category': 'Exclusive Offer',
       'discountType': offer['discountType'] ?? 'percent',
-      'discountValue': (offer['discountValue'] as num?)?.toDouble() ?? 0.0,
+      'discountValue': double.tryParse(offer['discountValue']?.toString() ?? '') ?? 0.0,
     };
 
     setState(() {

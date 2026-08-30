@@ -44,7 +44,8 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
           final data = snapshot.data;
-          final revenue = data?['revenue'] != null ? '\$${(data!['revenue'] as num).toStringAsFixed(2)}' : '\$0.00';
+          final revVal = double.tryParse(data?['revenue']?.toString() ?? '');
+          final revenue = revVal != null ? '\$${revVal.toStringAsFixed(2)}' : '\$0.00';
           
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),

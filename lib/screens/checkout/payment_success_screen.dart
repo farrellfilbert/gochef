@@ -57,12 +57,12 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => OrderCompleteScreen(
-                  orderId: data['order_id'] ?? 'Unknown',
+                  orderId: data['order_id']?.toString() ?? 'Unknown',
                   kitchenId: data['kitchen_id']?.toString() ?? '',
-                  kitchenName: data['kitchen_name'] ?? 'Unknown Kitchen',
-                  totalAmount: (data['total_amount'] as num?)?.toDouble() ?? 0.0,
-                  itemsCount: data['items_count'] ?? 1,
-                  kitchenAvatar: data['kitchen_avatar'] ?? '',
+                  kitchenName: data['kitchen_name']?.toString() ?? 'Unknown Kitchen',
+                  totalAmount: double.tryParse(data['total_amount']?.toString() ?? '') ?? 0.0,
+                  itemsCount: int.tryParse(data['items_count']?.toString() ?? '') ?? 1,
+                  kitchenAvatar: data['kitchen_avatar']?.toString() ?? '',
                 ),
               ),
             );

@@ -80,11 +80,14 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
                 
                 final data = snapshot.data;
                 final todaysOrders = data?['todays_orders']?.toString() ?? '0';
-                final revenue = data?['revenue'] != null ? '\$${(data!['revenue'] as num).toStringAsFixed(2)}' : '\$0.00';
-                final monthly = data?['monthly'] != null ? '\$${(data!['monthly'] as num).toStringAsFixed(2)}' : '\$0.00';
+                final revVal = double.tryParse(data?['revenue']?.toString() ?? '');
+                final revenue = revVal != null ? '\$${revVal.toStringAsFixed(2)}' : '\$0.00';
+                final monthlyVal = double.tryParse(data?['monthly']?.toString() ?? '');
+                final monthly = monthlyVal != null ? '\$${monthlyVal.toStringAsFixed(2)}' : '\$0.00';
                 final totalOrders = data?['total_orders']?.toString() ?? '0';
 
-                final sevenDaySales = data?['seven_day_sales'] != null ? '\$${(data!['seven_day_sales'] as num).toStringAsFixed(2)}' : '\$0.00';
+                final sevenDayVal = double.tryParse(data?['seven_day_sales']?.toString() ?? '');
+                final sevenDaySales = sevenDayVal != null ? '\$${sevenDayVal.toStringAsFixed(2)}' : '\$0.00';
                 final sevenDayOrders = data?['seven_day_orders']?.toString() ?? '0';
 
                 final List rawDaily = data?['daily_performance'] as List? ?? [];
@@ -92,7 +95,7 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
 
                 double maxSale = 1.0;
                 for (var d in dailyList) {
-                  final sale = (d['sales'] as num?)?.toDouble() ?? 0.0;
+                  final sale = double.tryParse(d['sales']?.toString() ?? '') ?? 0.0;
                   if (sale > maxSale) maxSale = sale;
                 }
 
@@ -144,7 +147,7 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: dailyList.map((dayData) {
                                 final label = dayData['day']?.toString() ?? '';
-                                final sales = (dayData['sales'] as num?)?.toDouble() ?? 0.0;
+                                final sales = double.tryParse(dayData['sales']?.toString() ?? '') ?? 0.0;
                                 final isToday = dayData['is_today'] == true;
                                 final heightPct = (sales / maxSale) * 65.0 + 10.0;
 
