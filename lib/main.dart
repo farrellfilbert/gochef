@@ -168,6 +168,27 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if URL has Stripe payment return parameters
+    final baseQuery = Uri.base.queryParameters;
+    final hasPaymentParams = baseQuery.containsKey('payment_intent') || 
+                             baseQuery.containsKey('order_id') || 
+                             baseQuery.containsKey('session_id') ||
+                             baseQuery.containsKey('payment_intent_client_secret');
+
+    if (hasPaymentParams) {
+      final sessionId = baseQuery['session_id'];
+      final paymentIntentId = baseQuery['payment_intent'] ?? 
+                              baseQuery['payment_intent_id'];
+      final orderId = baseQuery['order_id'];
+      if (sessionId != null || paymentIntentId != null || orderId != null) {
+        return PaymentSuccessScreen(
+          sessionId: sessionId,
+          paymentIntentId: paymentIntentId,
+          orderId: orderId,
+        );
+      }
+    }
+
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: AppColors.midnight,
