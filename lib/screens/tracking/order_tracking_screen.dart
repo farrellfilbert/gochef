@@ -211,169 +211,171 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // 1. IN-APP INTERACTIVE DELIVERY MAP VIEW
-          SizedBox(
-            height: 280,
-            width: double.infinity,
-            child: Stack(
-              children: [
-                FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: LatLng(
-                      (_kitchenLocation.latitude + _customerLocation.latitude) / 2,
-                      (_kitchenLocation.longitude + _customerLocation.longitude) / 2,
+      body: SafeArea(
+        bottom: true,
+        child: Column(
+          children: [
+            // 1. IN-APP INTERACTIVE DELIVERY MAP VIEW
+            SizedBox(
+              height: MediaQuery.of(context).size.height > 750 ? 240 : 200,
+              width: double.infinity,
+              child: Stack(
+                children: [
+                  FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: LatLng(
+                        (_kitchenLocation.latitude + _customerLocation.latitude) / 2,
+                        (_kitchenLocation.longitude + _customerLocation.longitude) / 2,
+                      ),
+                      initialZoom: 13.0,
+                      minZoom: 5.0,
+                      maxZoom: 18.0,
+                      interactionOptions: const InteractionOptions(
+                        flags: InteractiveFlag.drag |
+                            InteractiveFlag.pinchZoom |
+                            InteractiveFlag.doubleTapZoom,
+                      ),
                     ),
-                    initialZoom: 13.0,
-                    minZoom: 5.0,
-                    maxZoom: 18.0,
-                    interactionOptions: const InteractionOptions(
-                      flags: InteractiveFlag.drag |
-                          InteractiveFlag.pinchZoom |
-                          InteractiveFlag.doubleTapZoom,
-                    ),
-                  ),
-                  children: [
-                    // Satellite + Road Tiles Layer
-                    TileLayer(
-                      urlTemplate: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-                      subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
-                      userAgentPackageName: 'com.astroboomin.gochef',
-                    ),
-                    TileLayer(
-                      urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',
-                      subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
-                      userAgentPackageName: 'com.astroboomin.gochef',
-                    ),
+                    children: [
+                      // Satellite + Road Tiles Layer
+                      TileLayer(
+                        urlTemplate: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+                        subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                        userAgentPackageName: 'com.astroboomin.gochef',
+                      ),
+                      TileLayer(
+                        urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',
+                        subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                        userAgentPackageName: 'com.astroboomin.gochef',
+                      ),
 
-                    // Neon Fuchsia Route Polyline
-                    PolylineLayer(
-                      polylines: [
-                        // Soft glow line
-                        Polyline(
-                          points: [
-                            _kitchenLocation,
-                            LatLng(
-                              (_kitchenLocation.latitude * 0.6) + (_customerLocation.latitude * 0.4),
-                              (_kitchenLocation.longitude * 0.4) + (_customerLocation.longitude * 0.6),
-                            ),
-                            _customerLocation,
-                          ],
-                          strokeWidth: 6.0,
-                          color: Colors.white.withValues(alpha: 0.25),
-                        ),
-                        // Main clean white route path line
-                        Polyline(
-                          points: [
-                            _kitchenLocation,
-                            LatLng(
-                              (_kitchenLocation.latitude * 0.6) + (_customerLocation.latitude * 0.4),
-                              (_kitchenLocation.longitude * 0.4) + (_customerLocation.longitude * 0.6),
-                            ),
-                            _customerLocation,
-                          ],
-                          strokeWidth: 3.5,
-                          color: Colors.white,
-                        ),
-                      ],
-                    ),
-
-                    // Markers (Kitchen, Customer, Live Courier)
-                    MarkerLayer(
-                      markers: [
-                        // 1. Kitchen Marker
-                        Marker(
-                          point: _kitchenLocation,
-                          width: 80,
-                          height: 80,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2.5),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.5),
-                                      blurRadius: 8,
-                                    ),
-                                  ],
-                                ),
-                                child: CircleAvatar(
-                                  radius: 16,
-                                  backgroundImage: NetworkImage(widget.kitchenAvatar.isNotEmpty ? widget.kitchenAvatar : 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=100'),
-                                  backgroundColor: AppColors.surfaceContainer,
-                                ),
+                      // Route Polyline
+                      PolylineLayer(
+                        polylines: [
+                          // Soft glow line
+                          Polyline(
+                            points: [
+                              _kitchenLocation,
+                              LatLng(
+                                (_kitchenLocation.latitude * 0.6) + (_customerLocation.latitude * 0.4),
+                                (_kitchenLocation.longitude * 0.4) + (_customerLocation.longitude * 0.6),
                               ),
-                              const SizedBox(height: 2),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface.withValues(alpha: 0.95),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: Colors.white24),
-                                ),
-                                child: const Text(
-                                  '🍳 Kitchen',
-                                  style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                                ),
-                              ),
+                              _customerLocation,
                             ],
+                            strokeWidth: 6.0,
+                            color: Colors.white.withValues(alpha: 0.25),
                           ),
-                        ),
-
-                        // 2. Customer Destination Marker
-                        Marker(
-                          point: _customerLocation,
-                          width: 80,
-                          height: 80,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2.5),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF10B981).withValues(alpha: 0.5),
-                                      blurRadius: 8,
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(Icons.home, color: Colors.white, size: 18),
+                          // Main clean white route path line
+                          Polyline(
+                            points: [
+                              _kitchenLocation,
+                              LatLng(
+                                (_kitchenLocation.latitude * 0.6) + (_customerLocation.latitude * 0.4),
+                                (_kitchenLocation.longitude * 0.4) + (_customerLocation.longitude * 0.6),
                               ),
-                              const SizedBox(height: 2),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface.withValues(alpha: 0.95),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
-                                ),
-                                child: const Text(
-                                  '📍 Dropoff',
-                                  style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                                ),
-                              ),
+                              _customerLocation,
                             ],
+                            strokeWidth: 3.5,
+                            color: Colors.white,
                           ),
-                        ),
+                        ],
+                      ),
 
-                        // 3. Live Courier / Driver Marker
-                        if (isOutForDelivery)
+                      // Markers (Kitchen, Customer, Live Courier)
+                      MarkerLayer(
+                        markers: [
+                          // 1. Kitchen Marker
                           Marker(
-                            point: _courierLocation,
+                            point: _kitchenLocation,
                             width: 80,
                             height: 80,
                             child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2.5),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.5),
+                                        blurRadius: 8,
+                                      ),
+                                    ],
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 16,
+                                    backgroundImage: NetworkImage(widget.kitchenAvatar.isNotEmpty ? widget.kitchenAvatar : 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=100'),
+                                    backgroundColor: AppColors.surfaceContainer,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface.withValues(alpha: 0.95),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: Colors.white24),
+                                  ),
+                                  child: const Text(
+                                    '🍳 Kitchen',
+                                    style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // 2. Customer Destination Marker
+                          Marker(
+                            point: _customerLocation,
+                            width: 80,
+                            height: 80,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2.5),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF10B981).withValues(alpha: 0.5),
+                                        blurRadius: 8,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(Icons.home, color: Colors.white, size: 18),
+                                ),
+                                const SizedBox(height: 2),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface.withValues(alpha: 0.95),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+                                  ),
+                                  child: const Text(
+                                    '📍 Dropoff',
+                                    style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // 3. Live Courier / Driver Marker
+                          if (isOutForDelivery)
+                            Marker(
+                              point: _courierLocation,
+                              width: 80,
+                              height: 80,
+                              child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Stack(
@@ -517,7 +519,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           // 2. SCROLLABLE DETAILS SECTION
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 60),
               child: Column(
                 children: [
                   // Status Header Card
@@ -974,8 +977,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildFallbackImage() {
     return Container(
