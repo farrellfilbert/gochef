@@ -248,8 +248,8 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
                                     },
                                     child: Text(
                                       'Forgot Password?',
-                                      style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(
-                                        fontWeight: FontWeight.w600,
+                                      style: AppTextStyles.labelSm(color: Colors.white).copyWith(
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
@@ -298,7 +298,7 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
                                     },
                                     child: Text(
                                       'Register as a Chef',
-                                      style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
+                                      style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ],

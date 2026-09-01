@@ -604,20 +604,22 @@ class _LoginScreenState extends State<LoginScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.smartphone,
                 size: 18,
-                color: AppColors.primary,
+                color: Colors.white,
               ),
               const SizedBox(width: 8),
               Text(
                 'Login with Phone',
-                style: AppTextStyles.labelMono(color: AppColors.primary),
+                style: AppTextStyles.labelMono(color: Colors.white).copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         // Sign Up link
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -637,7 +639,7 @@ class _LoginScreenState extends State<LoginScreen>
               },
               child: Text(
                 'Sign Up',
-                style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(
+                style: AppTextStyles.bodyMd(color: Colors.white).copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -664,7 +666,7 @@ class _LoginScreenState extends State<LoginScreen>
               },
               child: Text(
                 'Login as Chef',
-                style: AppTextStyles.bodyMd(color: AppColors.primary).copyWith(
+                style: AppTextStyles.bodyMd(color: Colors.white).copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -711,8 +713,8 @@ class _LoginScreenState extends State<LoginScreen>
             },
             child: Text(
               'Forgot Password?',
-              style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(
-                fontWeight: FontWeight.w600,
+              style: AppTextStyles.labelSm(color: Colors.white).copyWith(
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
