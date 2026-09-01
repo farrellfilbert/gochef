@@ -796,7 +796,7 @@ class ApiService {
     
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/create_stripe_checkout.php'),
+        Uri.parse('$baseUrl/create_stripe_payment_intent.php'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'user_id': int.parse(userId),
@@ -810,13 +810,13 @@ class ApiService {
           'delivery_fee': deliveryFee,
           'service_fee': serviceFee,
         }),
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 15));
       
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
     } catch (e) {
-      print('Error creating stripe checkout: $e');
+      print('Error creating stripe payment intent: $e');
     }
     return null;
   }

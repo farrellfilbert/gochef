@@ -499,8 +499,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
 
     if (mounted) {
-      if (result != null && result['success'] == true && result['checkout_url'] != null) {
-        final url = Uri.parse(result['checkout_url']);
+      final payUrl = result?['checkout_url'] ?? result?['pay_url'];
+      if (result != null && result['success'] == true && payUrl != null) {
+        final url = Uri.parse(payUrl);
         setState(() {
           isOrdering = false;
         });
@@ -514,7 +515,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(width: 20),
-                  Text('Redirecting to Stripe...'),
+                  Text('Opening Secure Payment...'),
                 ],
               ),
             ),

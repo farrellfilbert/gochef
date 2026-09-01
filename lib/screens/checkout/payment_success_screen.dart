@@ -7,9 +7,16 @@ import 'order_complete_screen.dart';
 import '../../services/api_service.dart';
 
 class PaymentSuccessScreen extends StatefulWidget {
-  final String sessionId;
+  final String? sessionId;
+  final String? paymentIntentId;
+  final String? orderId;
 
-  const PaymentSuccessScreen({super.key, required this.sessionId});
+  const PaymentSuccessScreen({
+    super.key,
+    this.sessionId,
+    this.paymentIntentId,
+    this.orderId,
+  });
 
   @override
   State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();
@@ -45,7 +52,11 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
         final response = await http.post(
           Uri.parse('${ApiService.baseUrl}/verify_payment.php'),
           headers: {'Content-Type': 'application/json'},
-          body: json.encode({'session_id': widget.sessionId}),
+          body: json.encode({
+            'session_id': widget.sessionId ?? '',
+            'payment_intent_id': widget.paymentIntentId ?? '',
+            'order_id': widget.orderId ?? '',
+          }),
         ).timeout(const Duration(seconds: 20));
 
         if (!mounted) return;

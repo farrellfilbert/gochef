@@ -63,11 +63,17 @@ class GoChefApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         if (settings.name != null) {
           final uri = Uri.parse(settings.name!);
-          if (uri.path == '/payment_success' || uri.path == '/payment_success/') {
+          if (uri.path == '/payment_success' || uri.path == '/payment_success/' || uri.path.contains('payment_success')) {
             final sessionId = uri.queryParameters['session_id'];
-            if (sessionId != null) {
+            final paymentIntentId = uri.queryParameters['payment_intent'] ?? uri.queryParameters['payment_intent_id'];
+            final orderId = uri.queryParameters['order_id'];
+            if (sessionId != null || paymentIntentId != null || orderId != null) {
               return MaterialPageRoute(
-                builder: (context) => PaymentSuccessScreen(sessionId: sessionId),
+                builder: (context) => PaymentSuccessScreen(
+                  sessionId: sessionId,
+                  paymentIntentId: paymentIntentId,
+                  orderId: orderId,
+                ),
               );
             }
           }
