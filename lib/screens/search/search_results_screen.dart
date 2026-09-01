@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
@@ -45,6 +46,20 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   }
 
   Future<void> _performSearch(String query) async {
+    final cleanQuery = query.trim();
+    if (cleanQuery.isNotEmpty) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final list = prefs.getStringList('recent_searches') ?? [];
+        list.removeWhere((item) => item.toLowerCase() == cleanQuery.toLowerCase());
+        list.insert(0, cleanQuery);
+        if (list.length > 8) {
+          list.removeRange(8, list.length);
+        }
+        await prefs.setStringList('recent_searches', list);
+      } catch (_) {}
+    }
+
     setState(() => _isLoading = true);
     try {
       final results = await ApiService.search(query);
