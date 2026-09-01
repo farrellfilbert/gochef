@@ -5,6 +5,7 @@ import '../../services/api_service.dart';
 import '../../models/notification_model.dart';
 import '../../models/order_model.dart';
 import '../chat/chat_screen.dart';
+import '../tracking/order_tracking_screen.dart';
 import 'package:intl/intl.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -51,11 +52,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
       final allNotifs = results[2] as Map<String, dynamic>;
 
       if (mounted) {
+        final activeList = allOrders.where((o) => o.status != 'Completed' && o.status != 'Cancelled').toList();
+        activeList.sort((a, b) {
+          if (a.rawDate != null && b.rawDate != null) {
+            return b.rawDate!.compareTo(a.rawDate!);
+          }
+          return b.date.compareTo(a.date);
+        });
+
+        final promoList = (allNotifs['data'] as List? ?? []).map((n) => NotificationModel.fromJson(n)).toList();
+        promoList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
         setState(() {
           _currentUserId = userId;
-          _activeOrders = allOrders.where((o) => o.status != 'Completed' && o.status != 'Cancelled').toList();
+          _activeOrders = activeList;
           _chats = allChats;
-          _promos = (allNotifs['data'] as List? ?? []).map((n) => NotificationModel.fromJson(n)).toList();
+          _promos = promoList;
           _isLoading = false;
         });
         // Auto mark all read on open so bell badge clears properly
@@ -170,31 +182,49 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
             Text('ACTIVE ORDERS', style: AppTextStyles.labelMono(color: const Color(0xFFFF80AB))),
             const SizedBox(height: 10),
             ..._activeOrders.map((order) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(order.kitchenName, style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
-                        Text('Order #${order.id}', style: AppTextStyles.labelSm(color: AppColors.primary)),
-                      ],
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderTrackingScreen(
+                        orderId: order.id,
+                        kitchenId: order.kitchenId,
+                        kitchenName: order.kitchenName,
+                        totalAmount: order.totalAmount,
+                        itemsCount: order.itemsCount,
+                        kitchenAvatar: order.avatar.isNotEmpty ? order.avatar : 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500',
+                        initialStatus: order.status,
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    _buildOrderTracker(order.status),
-                    const SizedBox(height: 16),
-                    Center(
-                      child: Text('Expected arrival: in 30 mins', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                    )
-                  ],
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(order.kitchenName, style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
+                          Text('Order #${order.id}', style: AppTextStyles.labelSm(color: AppColors.primary)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildOrderTracker(order.status),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Text('Expected arrival: in 30 mins', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                      )
+                    ],
+                  ),
                 ),
               );
             }),

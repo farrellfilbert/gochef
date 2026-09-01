@@ -18,6 +18,10 @@ try {
         exit();
     }
     
+    try {
+        $pdo->exec("ALTER TABLE orders ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+    } catch (Exception $e) {}
+
     $orders = [];
     
     if ($kitchen_id) {
@@ -27,7 +31,7 @@ try {
             LEFT JOIN users u ON o.user_id = u.id 
             LEFT JOIN kitchens k ON o.kitchen_id = k.id
             WHERE o.kitchen_id = ? 
-            ORDER BY o.id DESC
+            ORDER BY o.order_date DESC, o.created_at DESC, o.id DESC
         ");
         $stmt->execute([$kitchen_id]);
         $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -45,7 +49,7 @@ try {
                 LEFT JOIN users u ON o.user_id = u.id 
                 LEFT JOIN kitchens k ON o.kitchen_id = k.id
                 WHERE o.kitchen_id = ? OR o.user_id = ?
-                ORDER BY o.id DESC
+                ORDER BY o.order_date DESC, o.created_at DESC, o.id DESC
             ");
             $stmt->execute([$chefKitchenId, $user_id]);
         } else {
@@ -55,7 +59,7 @@ try {
                 LEFT JOIN users u ON o.user_id = u.id 
                 LEFT JOIN kitchens k ON o.kitchen_id = k.id
                 WHERE o.user_id = ? 
-                ORDER BY o.id DESC
+                ORDER BY o.order_date DESC, o.created_at DESC, o.id DESC
             ");
             $stmt->execute([$user_id]);
         }

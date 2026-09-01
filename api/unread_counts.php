@@ -35,21 +35,25 @@ try {
         $stmt2->execute([$user_id, $kitchen['id']]);
 
         // Chef pending / active incoming orders
-        $ordStmt = $pdo->prepare("SELECT COUNT(*) as pending_count, MAX(id) as max_id FROM orders WHERE kitchen_id = ? AND status IN ('Pending', 'Active')");
+        $ordStmt = $pdo->prepare("SELECT COUNT(*) as pending_count FROM orders WHERE kitchen_id = ? AND status IN ('Pending', 'Active')");
         $ordStmt->execute([$kitchen['id']]);
-        $ordData = $ordStmt->fetch(PDO::FETCH_ASSOC);
-        $pending_orders = intval($ordData['pending_count'] ?? 0);
-        $latest_order_id = $ordData['max_id'];
+        $pending_orders = intval($ordStmt->fetchColumn() ?? 0);
 
-        if ($latest_order_id) {
-            $latestStmt = $pdo->prepare("SELECT o.id, o.total_amount, o.status, u.name as customer_name FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = ?");
-            $latestStmt->execute([$latest_order_id]);
-            $latestOrd = $latestStmt->fetch(PDO::FETCH_ASSOC);
-            if ($latestOrd) {
-                $latest_order_total = floatval($latestOrd['total_amount']);
-                $latest_customer_name = $latestOrd['customer_name'] ?? 'Customer';
-                $latest_order_status = $latestOrd['status'] ?? 'Pending';
-            }
+        $latestStmt = $pdo->prepare("
+            SELECT o.id, o.total_amount, o.status, u.name as customer_name 
+            FROM orders o 
+            LEFT JOIN users u ON o.user_id = u.id 
+            WHERE o.kitchen_id = ? AND o.status IN ('Pending', 'Active')
+            ORDER BY o.order_date DESC, o.created_at DESC, o.id DESC 
+            LIMIT 1
+        ");
+        $latestStmt->execute([$kitchen['id']]);
+        $latestOrd = $latestStmt->fetch(PDO::FETCH_ASSOC);
+        if ($latestOrd) {
+            $latest_order_id = $latestOrd['id'];
+            $latest_order_total = floatval($latestOrd['total_amount']);
+            $latest_customer_name = $latestOrd['customer_name'] ?? 'Customer';
+            $latest_order_status = $latestOrd['status'] ?? 'Pending';
         }
     } else {
         $stmt2 = $pdo->prepare("SELECT COUNT(*) FROM chat_messages WHERE receiver_id = ? AND is_read = 0");

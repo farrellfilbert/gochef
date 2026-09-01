@@ -49,6 +49,7 @@ class OrderModel {
   final String deliveryAddress;
   final String? uberTrackingUrl;
   final String? uberDeliveryStatus;
+  final DateTime? rawDate;
   final List<OrderItemModel> items;
 
   OrderModel({
@@ -74,6 +75,7 @@ class OrderModel {
     this.deliveryAddress = '',
     this.uberTrackingUrl,
     this.uberDeliveryStatus,
+    this.rawDate,
     required this.items,
   });
 
@@ -81,17 +83,23 @@ class OrderModel {
     var itemsList = json['items'] as List? ?? [];
     List<OrderItemModel> parsedItems = itemsList.map((i) => OrderItemModel.fromJson(i)).toList();
     
-    String dateStr = json['date'] ?? '';
+    String rawDateStr = json['date'] ?? json['order_date'] ?? json['created_at'] ?? '';
+    String dateStr = rawDateStr;
+    DateTime? parsedDate;
     try {
-      if (dateStr.contains('T')) {
-        final utcDate = DateTime.parse(dateStr);
-        final localDate = utcDate.toLocal();
+      if (rawDateStr.contains('T')) {
+        parsedDate = DateTime.parse(rawDateStr).toLocal();
+      } else if (rawDateStr.isNotEmpty) {
+        parsedDate = DateTime.tryParse(rawDateStr)?.toLocal();
+      }
+
+      if (parsedDate != null) {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        final month = months[localDate.month - 1];
-        final day = localDate.day.toString().padLeft(2, '0');
-        final year = localDate.year;
-        final hour = localDate.hour.toString().padLeft(2, '0');
-        final minute = localDate.minute.toString().padLeft(2, '0');
+        final month = months[parsedDate.month - 1];
+        final day = parsedDate.day.toString().padLeft(2, '0');
+        final year = parsedDate.year;
+        final hour = parsedDate.hour.toString().padLeft(2, '0');
+        final minute = parsedDate.minute.toString().padLeft(2, '0');
         dateStr = '$month $day, $year - $hour:$minute';
       }
     } catch (e) {}
@@ -106,6 +114,7 @@ class OrderModel {
       kitchenUserId: json['kitchen_user_id']?.toString() ?? '',
       kitchenName: json['kitchen_name'] ?? '',
       date: dateStr,
+      rawDate: parsedDate,
       status: json['status'] ?? 'Completed',
       totalAmount: json['total_amount'] != null 
           ? double.tryParse(json['total_amount'].toString()) ?? 0.0 
