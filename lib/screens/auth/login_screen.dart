@@ -10,6 +10,7 @@ import '../../services/api_service.dart';
 import 'login_phone_otp_screen.dart';
 import 'sign_up_screen.dart';
 import 'chef_login_screen.dart';
+import 'forgot_password_screen.dart';
 import '../chef_dashboard/chef_main_navigation.dart';
 import '../admin/admin_dashboard_screen.dart';
 
@@ -689,10 +690,33 @@ class _LoginScreenState extends State<LoginScreen>
 
   Widget _buildPasswordLabel() {
     return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Text(
-        'Password',
-        style: AppTextStyles.labelMono(color: AppColors.onSurfaceVariant),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Password',
+            style: AppTextStyles.labelMono(color: AppColors.onSurfaceVariant),
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ForgotPasswordScreen(
+                    initialEmail: _emailController.text.trim(),
+                  ),
+                ),
+              );
+            },
+            child: Text(
+              'Forgot Password?',
+              style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

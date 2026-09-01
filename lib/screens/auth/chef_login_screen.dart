@@ -7,6 +7,7 @@ import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../chef_dashboard/chef_main_navigation.dart';
 import 'chef_register_screen.dart';
+import 'forgot_password_screen.dart';
 
 class ChefLoginScreen extends StatefulWidget {
   const ChefLoginScreen({super.key});
@@ -227,9 +228,32 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
                               const SizedBox(height: 8),
                               _buildTextField(_emailController, 'chef@urbangourmet.com', Icons.person_outline),
                               const SizedBox(height: 16),
-                              Text(
-                                'Password',
-                                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Password',
+                                    style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ForgotPasswordScreen(
+                                            initialEmail: _emailController.text.trim(),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      'Forgot Password?',
+                                      style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 8),
                               _buildTextField(
