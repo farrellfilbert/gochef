@@ -10,10 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
-$orderId = $input['order_id'] ?? null;
+$orderId = $input['order_id'] ?? $_POST['order_id'] ?? $_GET['order_id'] ?? null;
 
 if (!$orderId) {
-    http_response_code(400);
+    http_response_code(200);
     echo json_encode(['success' => false, 'error' => 'Order ID dibutuhkan']);
     exit;
 }
@@ -31,7 +31,7 @@ try {
     }
 
     $status = strtolower($order['status']);
-    if ($status !== 'preparing' && $status !== 'ready') {
+    if ($status !== 'preparing' && $status !== 'ready' && $status !== 'active' && $status !== 'confirmed') {
         http_response_code(200);
         echo json_encode(['success' => false, 'error' => 'Status order belum siap untuk dikirim. (Status saat ini: ' . $order['status'] . ')']);
         exit;
