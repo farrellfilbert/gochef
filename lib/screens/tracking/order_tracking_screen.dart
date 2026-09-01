@@ -8,7 +8,7 @@ import 'package:go_chef_app/services/api_service.dart';
 import 'package:go_chef_app/services/support_helper.dart';
 import 'package:go_chef_app/main.dart';
 import 'order_review_screen.dart';
-import 'dart:html' as html;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:go_chef_app/models/order_model.dart';
 import '../../widgets/rate_order_dialog.dart';
 
@@ -489,7 +489,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       child: InkWell(
                         onTap: () {
                           if (_uberTrackingUrl != null && _uberTrackingUrl!.isNotEmpty) {
-                            html.window.open(_uberTrackingUrl!, '_blank');
+                            launchUrl(Uri.parse(_uberTrackingUrl!), mode: LaunchMode.externalApplication);
                           }
                         },
                         borderRadius: BorderRadius.circular(20),

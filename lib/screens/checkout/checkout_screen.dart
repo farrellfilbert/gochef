@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
@@ -523,7 +522,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
 
         try {
-          html.window.location.href = url.toString();
+          await launchUrl(url, mode: LaunchMode.externalApplication);
         } catch (e) {
           if (mounted) {
             Navigator.pop(context); // Close loading dialog

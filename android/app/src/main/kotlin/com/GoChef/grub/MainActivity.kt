@@ -1,4 +1,4 @@
-package com.example.go_chef_app
+package com.GoChef.grub
 
 import io.flutter.embedding.android.FlutterActivity
 
