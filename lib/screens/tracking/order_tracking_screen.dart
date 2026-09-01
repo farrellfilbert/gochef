@@ -455,7 +455,11 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          isOutForDelivery ? 'Est. Arrival: 15-20 mins' : 'Live Tracking Map',
+                          _currentStatus == 'on_the_way' ? '🛵 Est. Arrival: 15-20 mins'
+                          : _currentStatus == 'Preparing' ? '🍳 Cooking: ~15 mins'
+                          : _currentStatus == 'Active' ? '👨‍🍳 Chef Accepted'
+                          : _currentStatus == 'Pending' ? '⏳ Waiting for Chef'
+                          : isOutForDelivery ? 'Est. Arrival: 15-20 mins' : 'Live Tracking Map',
                           style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -541,7 +545,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                   ),
                                   child: Icon(
                                     _currentStatus == 'Completed' ? Icons.check_circle
-                                        : (isOutForDelivery ? Icons.delivery_dining : Icons.restaurant),
+                                        : (isOutForDelivery ? Icons.delivery_dining : (_currentStatus == 'Pending' ? Icons.hourglass_top : Icons.restaurant)),
                                     color: AppColors.primary,
                                     size: 24,
                                   ),
@@ -551,14 +555,24 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      _currentStatus.toUpperCase(),
+                                      _currentStatus == 'pending_payment' ? 'PENDING PAYMENT'
+                                      : _currentStatus == 'Pending' ? 'WAITING FOR CHEF'
+                                      : _currentStatus == 'Active' ? 'ORDER ACCEPTED'
+                                      : _currentStatus == 'Preparing' ? 'PREPARING FOOD'
+                                      : _currentStatus == 'Ready' ? 'FOOD READY'
+                                      : _currentStatus == 'on_the_way' ? 'OUT FOR DELIVERY'
+                                      : (_currentStatus == 'Completed' || _currentStatus == 'delivered') ? 'DELIVERED'
+                                      : _currentStatus.toUpperCase(),
                                       style: AppTextStyles.headlineMd(color: AppColors.primary).copyWith(fontSize: 16),
                                     ),
                                     Text(
-                                      _currentStatus == 'pending_payment' ? 'Waiting for payment...'
-                                      : _currentStatus == 'Active' ? 'Kitchen is preparing your meal.'
-                                      : _currentStatus == 'on_the_way' ? 'Courier is delivering your meal.'
-                                      : _currentStatus == 'Completed' ? 'Delivered! Enjoy your food.'
+                                      _currentStatus == 'pending_payment' ? 'Waiting for payment confirmation...'
+                                      : _currentStatus == 'Pending' ? 'Waiting for the chef to accept your order.'
+                                      : _currentStatus == 'Active' ? 'The chef has accepted your order.'
+                                      : _currentStatus == 'Preparing' ? 'The chef is cooking and preparing your meal.'
+                                      : _currentStatus == 'Ready' ? 'Food is ready and waiting for courier pickup.'
+                                      : _currentStatus == 'on_the_way' ? 'Courier is delivering your meal!'
+                                      : (_currentStatus == 'Completed' || _currentStatus == 'delivered') ? 'Delivered! Enjoy your food.'
                                       : 'Status: $_currentStatus',
                                       style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
                                     ),
@@ -691,65 +705,99 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       children: [
                         Text('Order Timeline', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
                         const SizedBox(height: 24),
+
+                        // Step 1: Order Placed
                         _buildTimelineStep(
                           time: '',
-                          title: 'Order Confirmed',
-                          desc: _orderType == 'dine_in' ? 'Booking received by kitchen.' : 'Your gourmet selection is confirmed.',
-                          status: _currentStatus == 'Cancelled' ? 'active' : (['Scheduled', 'Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus) ? 'done' : 'active'),
+                          title: 'Order Placed',
+                          desc: ['Pending', 'Active', 'Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus)
+                              ? 'Payment received. Order sent to kitchen.'
+                              : 'Order created.',
+                          status: ['Pending', 'Active', 'Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus) ? 'done' : 'active',
                         ),
+
                         if (_currentStatus != 'Cancelled') ...[
                           if (_orderType == 'dine_in') ...[
                             _buildTimelineLine(dim: !['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus)),
                             _buildTimelineStep(
                               time: '',
-                              title: 'Waiting for Schedule',
-                              desc: 'Your booking is scheduled.',
-                              status: ['Active', 'Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus) ? 'done' : (_currentStatus == 'Scheduled' ? 'active' : 'upcoming'),
+                              title: 'Chef Confirmation',
+                              desc: ['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus)
+                                  ? 'Chef has confirmed and accepted your table booking.'
+                                  : 'Waiting for Chef to accept your booking.',
+                              status: ['Active', 'Preparing', 'Ready', 'Completed'].contains(_currentStatus)
+                                  ? 'done'
+                                  : (_currentStatus == 'Pending' ? 'active' : 'upcoming'),
                             ),
-                            _buildTimelineLine(dim: !['Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus)),
+                            _buildTimelineLine(dim: !['Preparing', 'Ready', 'Completed'].contains(_currentStatus)),
                             _buildTimelineStep(
                               time: '',
                               title: 'Chef is Preparing',
                               desc: 'Chef is preparing your table and meal.',
-                              status: ['Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus) ? 'done' : ((['Active', 'Preparing'].contains(_currentStatus)) ? 'active' : 'upcoming'),
+                              status: ['Ready', 'Completed'].contains(_currentStatus) ? 'done' : ((['Active', 'Preparing'].contains(_currentStatus)) ? 'active' : 'upcoming'),
                             ),
-                            _buildTimelineLine(dim: !['Completed', 'delivered', 'on_the_way'].contains(_currentStatus)),
+                            _buildTimelineLine(dim: !['Completed'].contains(_currentStatus)),
                             _buildTimelineStep(
                               time: '',
                               title: 'Ready to Eat',
                               desc: 'Your table and food are ready!',
-                              status: ['Completed', 'delivered', 'on_the_way'].contains(_currentStatus) ? 'active' : 'upcoming',
+                              status: ['Completed'].contains(_currentStatus) ? 'active' : 'upcoming',
                             ),
                           ] else ...[
-                            if (_dineInDate.isNotEmpty) ...[
-                              _buildTimelineLine(dim: !['Active', 'Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus)),
-                              _buildTimelineStep(
-                                time: '',
-                                title: 'Waiting for Schedule',
-                                desc: 'Your delivery is scheduled.',
-                                status: ['Active', 'Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus) ? 'done' : (_currentStatus == 'Scheduled' ? 'active' : 'upcoming'),
-                              ),
-                            ],
+                            // 1 -> 2: Chef Acceptance
+                            _buildTimelineLine(dim: !['Active', 'Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus)),
+                            _buildTimelineStep(
+                              time: '',
+                              title: 'Chef Confirmation',
+                              desc: ['Active', 'Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus)
+                                  ? 'Chef has accepted your order.'
+                                  : 'Waiting for Chef ${widget.kitchenName} to accept the order.',
+                              status: ['Active', 'Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus)
+                                  ? 'done'
+                                  : (_currentStatus == 'Pending' ? 'active' : 'upcoming'),
+                            ),
+
+                            // 2 -> 3: Chef Cooking / Preparing
                             _buildTimelineLine(dim: !['Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus)),
                             _buildTimelineStep(
                               time: '',
                               title: 'Chef is Preparing',
-                              desc: 'Artisan plating in progress at the kitchen.',
-                              status: ['Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus) ? 'done' : ((['Preparing', 'Active'].contains(_currentStatus) && _currentStatus != 'Scheduled') ? 'active' : 'upcoming'),
+                              desc: ['Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus)
+                                  ? 'Food cooked and packed.'
+                                  : (_currentStatus == 'Preparing'
+                                      ? 'Artisan cooking & plating in progress.'
+                                      : (_currentStatus == 'Active' ? 'Order accepted. Chef will start cooking shortly.' : 'Waiting for kitchen preparation.')),
+                              status: ['Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus)
+                                  ? 'done'
+                                  : (_currentStatus == 'Preparing' ? 'active' : 'upcoming'),
                             ),
+
+                            // 3 -> 4: Food Ready & Waiting for Courier
                             _buildTimelineLine(dim: !['Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus)),
                             _buildTimelineStep(
                               time: '',
-                              title: 'Waiting for Driver',
-                              desc: 'Order is ready and waiting for Uber courier pickup.',
-                              status: ['on_the_way', 'delivered', 'Completed'].contains(_currentStatus) ? 'done' : (_currentStatus == 'Ready' ? 'active' : 'upcoming'),
+                              title: 'Waiting for Courier',
+                              desc: ['on_the_way', 'delivered', 'Completed'].contains(_currentStatus)
+                                  ? 'Uber courier picked up your order.'
+                                  : (_currentStatus == 'Ready' ? 'Food is ready & waiting for Uber courier pickup.' : 'Courier will be dispatched when food is ready.'),
+                              status: ['on_the_way', 'delivered', 'Completed'].contains(_currentStatus)
+                                  ? 'done'
+                                  : (_currentStatus == 'Ready' ? 'active' : 'upcoming'),
                             ),
+
+                            // 4 -> 5: Out for Delivery
                             _buildTimelineLine(dim: !['on_the_way', 'delivered', 'Completed'].contains(_currentStatus)),
                             _buildTimelineStep(
                               time: '',
                               title: 'Out for Delivery',
-                              desc: 'Your food is on the way with Uber courier!',
-                              status: ['on_the_way', 'delivered', 'Completed'].contains(_currentStatus) ? 'active' : 'upcoming',
+                              desc: ['delivered', 'Completed'].contains(_currentStatus)
+                                  ? 'Order delivered to your address.'
+                                  : (_currentStatus == 'on_the_way'
+                                      ? 'Your food is on the way with Uber courier!'
+                                      : 'Courier delivery updates will appear here.'),
+                              status: ['delivered', 'Completed'].contains(_currentStatus)
+                                  ? 'done'
+                                  : (_currentStatus == 'on_the_way' ? 'active' : 'upcoming'),
                             ),
                           ],
                         ],

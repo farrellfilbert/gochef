@@ -100,9 +100,10 @@ if ($method === 'POST') {
             $order = $stmt->fetch();
 
             if ($order) {
-                $new_status = ($order['order_type'] === 'dine_in' || !empty($order['dine_in_date'])) ? 'Pending' : 'Active';
+                // New orders always start as 'Pending' so the chef can review & accept them
+                $new_status = 'Pending';
 
-                // Update order status to Active/Pending
+                // Update order status to Pending
                 $pdo->prepare("UPDATE orders SET status = ? WHERE id = ? AND (status = 'pending_payment' OR status = 'Pending')")->execute([$new_status, $order_id]);
                 
                 // Clear cart items for this kitchen

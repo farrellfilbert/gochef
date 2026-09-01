@@ -88,7 +88,7 @@ if ($method === 'POST') {
         // Get kitchen name (from first item)
         $kitchenName = $cartItems[0]['kitchen_name'] ?? 'Kitchen';
         $kitchenAvatar = $cartItems[0]['kitchen_avatar'] ?? $cartItems[0]['image'] ?? 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500';
-        $status = ($order_type === 'dine_in' || !empty($dine_in_date)) ? 'Pending' : 'Active';
+        $status = 'Pending';
 
         // Ensure orders table has all columns
         try {
