@@ -171,9 +171,9 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
               });
             },
             backgroundColor: AppColors.surface,
-            selectedItemColor: AppColors.primary,
+            selectedItemColor: Colors.white,
             unselectedItemColor: Colors.white60,
-            selectedLabelStyle: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
+            selectedLabelStyle: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
             unselectedLabelStyle: AppTextStyles.labelSm(color: Colors.white60).copyWith(fontWeight: FontWeight.w500),
             type: BottomNavigationBarType.fixed,
             elevation: 0,
