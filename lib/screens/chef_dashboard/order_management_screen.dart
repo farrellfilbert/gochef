@@ -362,7 +362,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                     ),
                     child: Text(
                       '\$${order.totalAmount.toStringAsFixed(2)}',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                   ),
                 ],
