@@ -406,7 +406,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
                       ),
-                      child: Text(isDelivered ? 'Details' : 'Support', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      child: Text(isDelivered ? 'Details' : 'Track', style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
                     ElevatedButton(
                       onPressed: onReorder,
@@ -420,7 +420,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         shadowColor: isDelivered ? AppColors.primaryContainer.withValues(alpha: 0.5) : Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(32),
-                          side: isDelivered ? BorderSide.none : BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
                         ),
                       ),
                       child: Text(isDelivered ? 'Reorder' : 'Try Again', style: const TextStyle(fontWeight: FontWeight.bold)),
