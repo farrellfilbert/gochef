@@ -8,9 +8,9 @@ import 'package:go_chef_app/services/api_service.dart';
 import 'package:go_chef_app/services/support_helper.dart';
 import 'package:go_chef_app/main.dart';
 import 'order_review_screen.dart';
+import 'dart:html' as html;
 import 'package:go_chef_app/models/order_model.dart';
 import '../../widgets/rate_order_dialog.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
   final String orderId;
@@ -471,14 +471,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () async {
-                          final Uri url = Uri.parse(_uberTrackingUrl!);
-                          if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Could not open Uber Tracking URL')),
-                              );
-                            }
+                        onTap: () {
+                          if (_uberTrackingUrl != null && _uberTrackingUrl!.isNotEmpty) {
+                            html.window.open(_uberTrackingUrl!, '_blank');
                           }
                         },
                         borderRadius: BorderRadius.circular(20),

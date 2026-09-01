@@ -61,12 +61,21 @@ class GoChefApp extends StatelessWidget {
       title: 'GoChef Premium',
       theme: AppTheme.darkTheme,
       onGenerateRoute: (settings) {
+        final baseQuery = Uri.base.queryParameters;
+        final hasPaymentParams = baseQuery.containsKey('payment_intent') || 
+                                 baseQuery.containsKey('order_id') || 
+                                 baseQuery.containsKey('session_id') ||
+                                 baseQuery.containsKey('payment_intent_client_secret');
+
         if (settings.name != null) {
           final uri = Uri.parse(settings.name!);
-          if (uri.path == '/payment_success' || uri.path == '/payment_success/' || uri.path.contains('payment_success')) {
-            final sessionId = uri.queryParameters['session_id'];
-            final paymentIntentId = uri.queryParameters['payment_intent'] ?? uri.queryParameters['payment_intent_id'];
-            final orderId = uri.queryParameters['order_id'];
+          if (uri.path.contains('payment_success') || (hasPaymentParams && (uri.path == '/' || uri.path.isEmpty))) {
+            final sessionId = uri.queryParameters['session_id'] ?? baseQuery['session_id'];
+            final paymentIntentId = uri.queryParameters['payment_intent'] ?? 
+                                    uri.queryParameters['payment_intent_id'] ?? 
+                                    baseQuery['payment_intent'] ?? 
+                                    baseQuery['payment_intent_id'];
+            final orderId = uri.queryParameters['order_id'] ?? baseQuery['order_id'];
             if (sessionId != null || paymentIntentId != null || orderId != null) {
               return MaterialPageRoute(
                 builder: (context) => PaymentSuccessScreen(
