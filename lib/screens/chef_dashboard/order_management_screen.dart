@@ -312,8 +312,8 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                    child: const Icon(Icons.receipt_long, color: AppColors.primary, size: 20),
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    child: const Icon(Icons.receipt_long, color: Colors.white, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Column(
@@ -345,11 +345,11 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
+                          color: Colors.white.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                          border: Border.all(color: Colors.white24),
                         ),
-                        child: const Icon(Icons.chat_bubble_outline, color: AppColors.primary, size: 18),
+                        child: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
                       ),
                     ),
                   if (onContactCustomer != null) const SizedBox(width: 10),
@@ -406,11 +406,11 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                           margin: const EdgeInsets.only(top: 2),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.15),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+                            border: Border.all(color: Colors.white24),
                           ),
-                          child: Text('$qty', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                          child: Text('$qty', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -481,7 +481,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.qr_code_2, color: AppColors.primary, size: 18),
+                        const Icon(Icons.qr_code_2, color: Colors.white, size: 18),
                         const SizedBox(width: 6),
                         Text(
                           'Resi: GC-${order.id.padLeft(6, "0")}',
@@ -497,14 +497,14 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+                        border: Border.all(color: Colors.white24),
                       ),
                       child: Text(
                         order.orderType == 'dine_in' ? 'Dine-In Booking' : 'ASAP Delivery',
                         style: const TextStyle(
-                          color: AppColors.primary,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 10,
                         ),
@@ -543,7 +543,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.location_on_outlined, color: AppColors.primary, size: 15),
+                      const Icon(Icons.location_on_outlined, color: Colors.white70, size: 15),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
