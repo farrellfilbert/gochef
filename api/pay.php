@@ -207,9 +207,45 @@ if (!$clientSecret) {
             color: var(--primary);
         }
 
-        #payment-element {
+        .element-container {
+            position: relative;
             margin-bottom: 24px;
-            min-height: 180px;
+            min-height: 160px;
+        }
+
+        #payment-element {
+            width: 100%;
+        }
+
+        .element-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: var(--surface-color);
+            z-index: 5;
+            transition: opacity 0.3s ease;
+        }
+
+        .element-spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid rgba(235, 30, 140, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .element-loading span {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
 
         #payment-error-message {
@@ -291,26 +327,6 @@ if (!$clientSecret) {
             color: #34D399;
         }
 
-        .skeleton-loader {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            padding: 10px 0;
-        }
-
-        .skeleton-line {
-            height: 48px;
-            background: linear-gradient(90deg, #181b25 25%, #262a34 50%, #181b25 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 10px;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
         @media (max-width: 480px) {
             .payment-header, .payment-body {
                 padding-left: 20px;
@@ -349,11 +365,12 @@ if (!$clientSecret) {
                 Payment Details
             </div>
             <form id="payment-form">
-                <div id="payment-element">
-                    <div class="skeleton-loader" id="payment-skeleton">
-                        <div class="skeleton-line"></div>
-                        <div class="skeleton-line"></div>
+                <div class="element-container">
+                    <div class="element-loading" id="element-loader">
+                        <div class="element-spinner"></div>
+                        <span>Loading secure card inputs...</span>
                     </div>
+                    <div id="payment-element"></div>
                 </div>
                 <div id="payment-error-message"></div>
                 <button id="submit-btn" class="submit-pay-button" type="submit">
@@ -419,19 +436,33 @@ if (!$clientSecret) {
 
         const elements = stripe.elements({
             clientSecret: clientSecret,
-            appearance: appearance
+            appearance: appearance,
+            loader: 'auto'
         });
 
-        const paymentElement = elements.create('payment', {
-            layout: 'tabs'
-        });
+        const paymentElement = elements.create('payment');
 
         paymentElement.mount('#payment-element');
 
+        const loader = document.getElementById('element-loader');
         paymentElement.on('ready', () => {
-            const skeleton = document.getElementById('payment-skeleton');
-            if (skeleton) skeleton.style.display = 'none';
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 300);
+            }
         });
+
+        paymentElement.on('loaderror', (event) => {
+            if (loader) loader.style.display = 'none';
+            showError("Failed to load payment component: " + (event.error ? event.error.message : 'Unknown error'));
+        });
+
+        setTimeout(() => {
+            if (loader && loader.style.display !== 'none') {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 300);
+            }
+        }, 3000);
 
         const form = document.getElementById('payment-form');
         const submitBtn = document.getElementById('submit-btn');
@@ -455,7 +486,7 @@ if (!$clientSecret) {
                 if (error.type === "card_error" || error.type === "validation_error") {
                     showError(error.message);
                 } else {
-                    showError("An unexpected error occurred. Please try again.");
+                    showError(error.message || "An unexpected error occurred. Please try again.");
                 }
                 setLoading(false);
             }

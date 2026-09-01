@@ -137,26 +137,24 @@ if ($method === 'POST') {
             $itemStmt->execute([$orderId, $item['name'], $optionsString, $item['quantity'], $finalPrice]);
         }
 
-        // Amount in cents for Stripe (e.g. 26.88 -> 2688)
+        // Amount in cents for Stripe (e.g. 27.96 -> 2796)
         $amountInCents = intval(round($total * 100));
 
-        // Call Stripe PaymentIntents API
-        $postFields = [
-            'amount' => $amountInCents,
-            'currency' => 'usd',
-            'automatic_payment_methods[enabled]' => 'true',
-            'description' => "GoChef Order $orderId from $kitchenName",
-            'metadata[order_id]' => $orderId,
-            'metadata[user_id]' => strval($user_id),
-            'metadata[kitchen_id]' => strval($kitchen_id),
-            'metadata[kitchen_name]' => $kitchenName,
-        ];
+        // Call Stripe PaymentIntents API with card explicitly enabled for instant loading
+        $postData = "amount=" . urlencode($amountInCents) . "&";
+        $postData .= "currency=usd&";
+        $postData .= "payment_method_types[0]=card&";
+        $postData .= "description=" . urlencode("GoChef Order $orderId from $kitchenName") . "&";
+        $postData .= "metadata[order_id]=" . urlencode($orderId) . "&";
+        $postData .= "metadata[user_id]=" . urlencode(strval($user_id)) . "&";
+        $postData .= "metadata[kitchen_id]=" . urlencode(strval($kitchen_id)) . "&";
+        $postData .= "metadata[kitchen_name]=" . urlencode($kitchenName);
 
         $ch = curl_init('https://api.stripe.com/v1/payment_intents');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postFields));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
         curl_setopt($ch, CURLOPT_USERPWD, STRIPE_SECRET_KEY . ':');
 
         $response = curl_exec($ch);
