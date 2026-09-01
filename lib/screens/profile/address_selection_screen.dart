@@ -33,6 +33,17 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   // Base location (defaults to Jakarta, updated by GPS)
   LatLng _baseLocation = const LatLng(-6.200000, 106.816666);
   bool _hasRealLocation = false;
+  bool _isMapReady = false;
+
+  void _safeMove(LatLng target, double zoom) {
+    if (_isMapReady) {
+      try {
+        _mapController.move(target, zoom);
+      } catch (e) {
+        debugPrint('Address selection map move ignored: $e');
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -293,7 +304,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                               setState(() {
                                 _baseLocation = newPos;
                               });
-                              _mapController.move(newPos, 15.0);
+                              _safeMove(newPos, 15.0);
                               _addNewAddress(latLng: newPos);
                             },
                           );
@@ -394,6 +405,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                         options: MapOptions(
                           initialCenter: _baseLocation,
                           initialZoom: 15.0,
+                          onMapReady: () {
+                            _isMapReady = true;
+                          },
                           onTap: (tapPosition, point) {
                             setState(() {
                               _baseLocation = point;

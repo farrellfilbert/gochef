@@ -34,7 +34,18 @@ class _KitchenLocationPickerDialogState extends State<KitchenLocationPickerDialo
   late String _address;
   bool _isSearching = false;
   bool _isSaving = false;
+  bool _isMapReady = false;
   List<Map<String, dynamic>> _searchResults = [];
+
+  void _safeMove(LatLng target, double zoom) {
+    if (_isMapReady) {
+      try {
+        _mapController.move(target, zoom);
+      } catch (e) {
+        debugPrint('Kitchen location picker map move ignored: $e');
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -49,6 +60,7 @@ class _KitchenLocationPickerDialogState extends State<KitchenLocationPickerDialo
 
   @override
   void dispose() {
+    _isMapReady = false;
     _searchController.dispose();
     super.dispose();
   }
@@ -100,7 +112,7 @@ class _KitchenLocationPickerDialogState extends State<KitchenLocationPickerDialo
             _searchController.text = loc.address!;
           }
         });
-        _mapController.move(_selectedLocation, 15.0);
+        _safeMove(_selectedLocation, 15.0);
       }
     } catch (_) {}
   }
@@ -199,9 +211,10 @@ class _KitchenLocationPickerDialogState extends State<KitchenLocationPickerDialo
                           'Set Kitchen Map Pin',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
                         ),
+                        SizedBox(height: 2),
                         Text(
-                          'Tap or drag anywhere to place your kitchen pin',
-                          style: TextStyle(color: Colors.white60, fontSize: 11),
+                          'Tap the map or search address to place pin',
+                          style: TextStyle(color: Colors.white60, fontSize: 12),
                         ),
                       ],
                     ),
@@ -215,9 +228,9 @@ class _KitchenLocationPickerDialogState extends State<KitchenLocationPickerDialo
             ),
             const Divider(color: Colors.white12, height: 1),
 
-            // Search & GPS Bar
+            // Search Bar & GPS Button
             Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Row(
                 children: [
                   Expanded(
@@ -231,19 +244,29 @@ class _KitchenLocationPickerDialogState extends State<KitchenLocationPickerDialo
                         controller: _searchController,
                         style: const TextStyle(color: Colors.white, fontSize: 13),
                         decoration: InputDecoration(
-                          hintText: 'Search street, city, or zip code...',
-                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-                          prefixIcon: const Icon(Icons.search, color: Colors.white60, size: 18),
+                          hintText: 'Search address or landmark...',
+                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                          prefixIcon: const Icon(Icons.search, color: Colors.white54, size: 20),
                           suffixIcon: _isSearching
-                              ? const SizedBox(width: 16, height: 16, child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)))
-                              : IconButton(
-                                  icon: const Icon(Icons.arrow_forward, color: AppColors.primary, size: 18),
-                                  onPressed: () => _searchAddress(_searchController.text),
-                                ),
+                              ? const Padding(
+                                  padding: EdgeInsets.all(12),
+                                  child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)),
+                                )
+                              : (_searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear, color: Colors.white54, size: 18),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() => _searchResults = []);
+                                      },
+                                    )
+                                  : null),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        onSubmitted: _searchAddress,
+                        onChanged: (val) {
+                          _searchAddress(val);
+                        },
                       ),
                     ),
                   ),
@@ -291,7 +314,7 @@ class _KitchenLocationPickerDialogState extends State<KitchenLocationPickerDialo
                           _searchController.text = item['display_name'];
                           _searchResults.clear();
                         });
-                        _mapController.move(_selectedLocation, 15.0);
+                        _safeMove(_selectedLocation, 15.0);
                       },
                     );
                   },
@@ -309,6 +332,9 @@ class _KitchenLocationPickerDialogState extends State<KitchenLocationPickerDialo
                       options: MapOptions(
                         initialCenter: _selectedLocation,
                         initialZoom: 14.5,
+                        onMapReady: () {
+                          _isMapReady = true;
+                        },
                         onTap: (tapPosition, point) {
                           setState(() {
                             _selectedLocation = point;

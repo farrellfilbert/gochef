@@ -164,10 +164,18 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     }
   }
 
+  bool _isMapReady = false;
+
   void _fitMapBounds() {
-    final centerLat = (_kitchenLocation.latitude + _customerLocation.latitude) / 2;
-    final centerLng = (_kitchenLocation.longitude + _customerLocation.longitude) / 2;
-    _mapController.move(LatLng(centerLat, centerLng), 13.0);
+    if (_isMapReady) {
+      try {
+        final centerLat = (_kitchenLocation.latitude + _customerLocation.latitude) / 2;
+        final centerLng = (_kitchenLocation.longitude + _customerLocation.longitude) / 2;
+        _mapController.move(LatLng(centerLat, centerLng), 13.0);
+      } catch (e) {
+        debugPrint('Tracking map move ignored: $e');
+      }
+    }
   }
 
   @override
@@ -231,6 +239,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       initialZoom: 13.0,
                       minZoom: 5.0,
                       maxZoom: 18.0,
+                      onMapReady: () {
+                        _isMapReady = true;
+                      },
                       interactionOptions: const InteractionOptions(
                         flags: InteractiveFlag.drag |
                             InteractiveFlag.pinchZoom |

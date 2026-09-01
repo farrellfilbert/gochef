@@ -56,6 +56,7 @@ class _MapScreenState extends State<MapScreen> {
   // Store coordinates so they remain permanently fixed
   final Map<int, LatLng> _kitchenLocations = {};
   final Distance _distanceCalculator = const Distance();
+  bool _isMapReady = false;
 
   @override
   void initState() {
@@ -63,11 +64,21 @@ class _MapScreenState extends State<MapScreen> {
     _initLocationAndFetch();
   }
 
+  void _safeMove(LatLng target, double zoom) {
+    if (_isMapReady) {
+      try {
+        _mapController.move(target, zoom);
+      } catch (e) {
+        debugPrint('Map safeMove ignored: $e');
+      }
+    }
+  }
+
   Future<void> _initLocationAndFetch() async {
     // 1. Fetch kitchens from API first
     await _fetchKitchens();
 
-    // 2. Center map over the chefs cluster initially
+    // 2. Center map over the chefs cluster initially if map is ready
     _focusOnChefs();
 
     // 3. Request fresh Real GPS location in parallel
@@ -83,9 +94,10 @@ class _MapScreenState extends State<MapScreen> {
         totalLng += loc.longitude;
       });
       final center = LatLng(totalLat / _kitchenLocations.length, totalLng / _kitchenLocations.length);
-      _mapController.move(center, 12.5);
+      _baseLocation = center;
+      _safeMove(center, 12.5);
     } else {
-      _mapController.move(const LatLng(34.1722, -118.3765), 12.5);
+      _safeMove(const LatLng(34.1722, -118.3765), 12.5);
     }
   }
 
@@ -104,7 +116,7 @@ class _MapScreenState extends State<MapScreen> {
         });
 
         if (flyToLocation) {
-          _mapController.move(_baseLocation, 14.0);
+          _safeMove(_baseLocation, 14.0);
         }
 
         if (showFeedback && mounted) {
@@ -289,6 +301,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
+    _isMapReady = false;
     _searchController.dispose();
     _debounceTimer?.cancel();
     super.dispose();
@@ -329,7 +342,7 @@ class _MapScreenState extends State<MapScreen> {
       _hasRealLocation = true;
     });
 
-    _mapController.move(_baseLocation, 12.8);
+    _safeMove(_baseLocation, 12.8);
     FocusScope.of(context).unfocus();
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -371,6 +384,10 @@ class _MapScreenState extends State<MapScreen> {
                     initialZoom: 12.5,
                     minZoom: 3.0,
                     maxZoom: 19.0,
+                    onMapReady: () {
+                      _isMapReady = true;
+                      _focusOnChefs();
+                    },
                     interactionOptions: const InteractionOptions(
                       flags: InteractiveFlag.drag |
                           InteractiveFlag.pinchZoom |
@@ -692,9 +709,11 @@ class _MapScreenState extends State<MapScreen> {
                           child: InkWell(
                             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                             onTap: () {
-                              final currentZoom = _mapController.camera.zoom;
-                              if (currentZoom < 19.0) {
-                                _mapController.move(_mapController.camera.center, (currentZoom + 1).clamp(3.0, 19.0));
+                              if (_isMapReady) {
+                                final currentZoom = _mapController.camera.zoom;
+                                if (currentZoom < 19.0) {
+                                  _safeMove(_mapController.camera.center, (currentZoom + 1).clamp(3.0, 19.0));
+                                }
                               }
                             },
                             child: const Padding(
@@ -713,9 +732,11 @@ class _MapScreenState extends State<MapScreen> {
                           child: InkWell(
                             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
                             onTap: () {
-                              final currentZoom = _mapController.camera.zoom;
-                              if (currentZoom > 3.0) {
-                                _mapController.move(_mapController.camera.center, (currentZoom - 1).clamp(3.0, 19.0));
+                              if (_isMapReady) {
+                                final currentZoom = _mapController.camera.zoom;
+                                if (currentZoom > 3.0) {
+                                  _safeMove(_mapController.camera.center, (currentZoom - 1).clamp(3.0, 19.0));
+                                }
                               }
                             },
                             child: const Padding(
