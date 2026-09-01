@@ -236,9 +236,9 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
             _currentIndex = 1; // Switch to Menu screen
           });
         },
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        child: const Icon(Icons.add, color: Colors.black),
       ),
     );
   }
