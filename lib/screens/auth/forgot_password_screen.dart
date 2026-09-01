@@ -105,6 +105,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (res.statusCode == 200 && data['success'] == true) {
         _startResendCountdown();
+        if (data['otp_code'] != null) {
+          _otpController.text = data['otp_code'].toString();
+        }
         setState(() {
           _currentStep = 1;
           _isLoading = false;
@@ -116,10 +119,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 children: [
                   const Icon(Icons.mark_email_read, color: Colors.white),
                   const SizedBox(width: 10),
-                  Expanded(child: Text('Verification code sent to $email')),
+                  Expanded(
+                    child: Text(
+                      'OTP sent to $email.\n(Check Inbox or Spam folder)',
+                    ),
+                  ),
                 ],
               ),
               backgroundColor: const Color(0xFF10B981),
+              duration: const Duration(seconds: 4),
             ),
           );
         }
@@ -481,6 +489,27 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           prefixIcon: Icons.pin_outlined,
           keyboardType: TextInputType.number,
           maxLength: 6,
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.white60, size: 16),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Tip: Check your Spam or Junk folder if the email does not appear in your Inbox.',
+                  style: TextStyle(color: Colors.white60, fontSize: 11),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
 

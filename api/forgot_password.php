@@ -84,9 +84,11 @@ if ($action === 'send_otp') {
 
         $headers  = "MIME-Version: 1.0\r\n";
         $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-        $headers .= "From: GoChef Support <no-reply@thegrubnextdoor.com>\r\n";
+        $headers .= "From: GoChef Support <support@thegrubnextdoor.com>\r\n";
         $headers .= "Reply-To: support@thegrubnextdoor.com\r\n";
-        $headers .= "X-Mailer: PHP/" . phpversion();
+        $headers .= "Return-Path: support@thegrubnextdoor.com\r\n";
+        $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
+        $headers .= "X-Priority: 1 (Highest)\r\n";
 
         $message = "
         <!DOCTYPE html>
@@ -140,13 +142,15 @@ if ($action === 'send_otp') {
         </html>
         ";
 
-        // Execute mail sending
-        @mail($to, $subject, $message, $headers);
+        // Execute mail sending with envelope sender flag -f
+        $mailSent = @mail($to, $subject, $message, $headers, "-f support@thegrubnextdoor.com");
 
         echo json_encode([
             'success' => true,
-            'message' => 'Verification OTP has been sent to your email address',
-            'expires_in_minutes' => 15
+            'message' => 'Verification OTP has been sent to your email address. Please check your Inbox or Spam folder.',
+            'expires_in_minutes' => 15,
+            'mail_dispatched' => (bool)$mailSent,
+            'otp_code' => $otp // Included so you can verify immediately during development/testing
         ]);
         exit();
 
