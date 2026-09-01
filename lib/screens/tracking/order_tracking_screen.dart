@@ -251,7 +251,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     // Neon Fuchsia Route Polyline
                     PolylineLayer(
                       polylines: [
-                        // Glow shadow
+                        // Soft glow line
                         Polyline(
                           points: [
                             _kitchenLocation,
@@ -261,10 +261,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             ),
                             _customerLocation,
                           ],
-                          strokeWidth: 7.0,
-                          color: const Color(0xFFEB1E8C).withValues(alpha: 0.4),
+                          strokeWidth: 6.0,
+                          color: Colors.white.withValues(alpha: 0.25),
                         ),
-                        // Main path line
+                        // Main clean white route path line
                         Polyline(
                           points: [
                             _kitchenLocation,
@@ -274,8 +274,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             ),
                             _customerLocation,
                           ],
-                          strokeWidth: 4.0,
-                          color: const Color(0xFFFF2E93),
+                          strokeWidth: 3.5,
+                          color: Colors.white,
                         ),
                       ],
                     ),
@@ -296,7 +296,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                 decoration: BoxDecoration(
                                   color: AppColors.surface,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.primary, width: 2.5),
+                                  border: Border.all(color: Colors.white, width: 2.5),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withValues(alpha: 0.5),
@@ -314,9 +314,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.surface.withValues(alpha: 0.9),
+                                  color: AppColors.surface.withValues(alpha: 0.95),
                                   borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+                                  border: Border.all(color: Colors.white24),
                                 ),
                                 child: const Text(
                                   '🍳 Kitchen',
@@ -343,9 +343,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                   border: Border.all(color: Colors.white, width: 2.5),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF10B981).withValues(alpha: 0.6),
-                                      blurRadius: 10,
-                                      spreadRadius: 2,
+                                      color: const Color(0xFF10B981).withValues(alpha: 0.5),
+                                      blurRadius: 8,
                                     ),
                                   ],
                                 ),
@@ -355,7 +354,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.surface.withValues(alpha: 0.9),
+                                  color: AppColors.surface.withValues(alpha: 0.95),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
                                 ),
@@ -385,32 +384,32 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                       height: 44,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: AppColors.primary.withValues(alpha: 0.35),
+                                        color: Colors.white.withValues(alpha: 0.2),
                                       ),
                                     ),
                                     Container(
                                       padding: const EdgeInsets.all(7),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFFF2E93),
+                                        color: Colors.white,
                                         shape: BoxShape.circle,
-                                        border: Border.all(color: Colors.white, width: 2.5),
+                                        border: Border.all(color: Colors.black87, width: 2),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: AppColors.primary.withValues(alpha: 0.8),
-                                            blurRadius: 12,
-                                            spreadRadius: 3,
+                                            color: Colors.black.withValues(alpha: 0.4),
+                                            blurRadius: 8,
                                           ),
                                         ],
                                       ),
-                                      child: const Icon(Icons.delivery_dining, color: Colors.white, size: 20),
+                                      child: const Icon(Icons.delivery_dining, color: Colors.black, size: 20),
                                     ),
                                   ],
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary,
+                                    color: Colors.black.withValues(alpha: 0.9),
                                     borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: Colors.white24),
                                   ),
                                   child: const Text(
                                     '🛵 Marcus (Driver)',
@@ -434,7 +433,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surface.withValues(alpha: 0.92),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+                      border: Border.all(color: Colors.white24),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.4),
@@ -505,8 +504,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                   right: 12,
                   child: FloatingActionButton.small(
                     heroTag: 'recenter_tracking_map',
-                    backgroundColor: AppColors.surface,
-                    foregroundColor: AppColors.primary,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
                     onPressed: _fitMapBounds,
                     child: const Icon(Icons.crop_free, size: 20),
                   ),
@@ -528,7 +527,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surfaceContainerLowest,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
                     ),
                     child: Column(
                       children: [
@@ -540,13 +539,13 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.15),
+                                    color: Colors.white.withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     _currentStatus == 'Completed' ? Icons.check_circle
                                         : (isOutForDelivery ? Icons.delivery_dining : (_currentStatus == 'Pending' ? Icons.hourglass_top : Icons.restaurant)),
-                                    color: AppColors.primary,
+                                    color: Colors.white,
                                     size: 24,
                                   ),
                                 ),
@@ -563,8 +562,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                       : _currentStatus == 'on_the_way' ? 'OUT FOR DELIVERY'
                                       : (_currentStatus == 'Completed' || _currentStatus == 'delivered') ? 'DELIVERED'
                                       : _currentStatus.toUpperCase(),
-                                      style: AppTextStyles.headlineMd(color: AppColors.primary).copyWith(fontSize: 16),
+                                      style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.bold),
                                     ),
+                                    const SizedBox(height: 2),
                                     Text(
                                       _currentStatus == 'pending_payment' ? 'Waiting for payment confirmation...'
                                       : _currentStatus == 'Pending' ? 'Waiting for the chef to accept your order.'
@@ -574,7 +574,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                       : _currentStatus == 'on_the_way' ? 'Courier is delivering your meal!'
                                       : (_currentStatus == 'Completed' || _currentStatus == 'delivered') ? 'Delivered! Enjoy your food.'
                                       : 'Status: $_currentStatus',
-                                      style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                                      style: AppTextStyles.labelSm(color: Colors.white70),
                                     ),
                                   ],
                                 ),
@@ -583,12 +583,13 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.15),
+                                color: Colors.white.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.white24),
                               ),
                               child: Text(
                                 widget.orderId,
-                                style: AppTextStyles.labelMono(color: Colors.white).copyWith(fontSize: 11),
+                                style: AppTextStyles.labelMono(color: Colors.white).copyWith(fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
@@ -998,36 +999,41 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           height: 24,
           margin: const EdgeInsets.only(top: 4),
           decoration: BoxDecoration(
-            color: isDone ? const Color(0xFFEB1E8C) : (isActive ? AppColors.background : AppColors.surfaceContainer),
+            color: isDone ? Colors.white : (isActive ? AppColors.surfaceContainerHigh : AppColors.surfaceContainer),
             shape: BoxShape.circle,
             border: Border.all(
-              color: isDone ? Colors.transparent : (isActive ? const Color(0xFFEB1E8C) : AppColors.outlineVariant),
+              color: isDone ? Colors.white : (isActive ? Colors.white : Colors.white24),
               width: 2,
             ),
             boxShadow: isDone
-                ? [BoxShadow(color: const Color(0xFFEB1E8C).withValues(alpha: 0.2), spreadRadius: 4)]
+                ? [BoxShadow(color: Colors.white.withValues(alpha: 0.25), spreadRadius: 3, blurRadius: 6)]
                 : null,
           ),
           child: isDone
-              ? const Icon(Icons.check, color: Colors.white, size: 16)
-              : (isActive ? Center(child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFEB1E8C), shape: BoxShape.circle))) : null),
+              ? const Icon(Icons.check, color: Colors.black, size: 14)
+              : (isActive ? Center(child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle))) : null),
         ),
-        const SizedBox(width: 24),
+        const SizedBox(width: 20),
         Expanded(
           child: Opacity(
-            opacity: isUpcoming ? 0.4 : 1.0,
+            opacity: isUpcoming ? 0.35 : 1.0,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(time, style: AppTextStyles.labelMono(color: isUpcoming ? AppColors.onSurfaceVariant : const Color(0xFFEB1E8C)).copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(title, style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
-                const SizedBox(height: 4),
+                if (time.isNotEmpty) ...[
+                  Text(time, style: AppTextStyles.labelMono(color: isUpcoming ? Colors.white38 : Colors.white70).copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 2),
+                ],
+                Text(
+                  title, 
+                  style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 3),
                 Text(
                   desc,
-                  style: AppTextStyles.labelSm(
-                    color: (isActive || desc.contains('on the way')) ? const Color(0xFFFF80AB) : AppColors.onSurfaceVariant,
-                  ),
+                  style: AppTextStyles.bodyMd(
+                    color: isUpcoming ? Colors.white38 : Colors.white70,
+                  ).copyWith(fontSize: 13),
                 ),
               ],
             ),
@@ -1041,8 +1047,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     return Container(
       margin: const EdgeInsets.only(left: 11),
       width: 2,
-      height: 32,
-      color: dim ? const Color(0xFFEB1E8C).withValues(alpha: 0.2) : const Color(0xFFEB1E8C),
+      height: 28,
+      color: dim ? Colors.white.withValues(alpha: 0.1) : Colors.white70,
     );
   }
 }
