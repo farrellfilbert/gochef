@@ -1,5 +1,5 @@
 <?php
-// build/web/pay.php - GoChef Custom Branded Payment Page
+// web/pay.php - GoChef Custom Branded Payment Page
 require_once __DIR__ . '/api/config.php';
 
 $clientSecret = $_GET['client_secret'] ?? '';
