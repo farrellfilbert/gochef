@@ -6,7 +6,7 @@
 // KREDENSIAL STRIPE (TEST MODE)
 // ==========================================
 define('STRIPE_SECRET_KEY', 'sk_test_51U9P2v8YXAY4tUXHave0VcTpWmwNN9KrjY6bqPR84j2eaAs8HemvfpLiBfMjGGEeTnLHc7PFwIj5PJL4FWYLNmxf00VC3wGGOR');
-define('STRIPE_PUBLISHABLE_KEY', 'pk_test_51U9P2v8YXAY4tUXHxughm2BURbxwjvVFQ0db3LUemEumaUSgVUIXC017NgHDkVB1GFvfFnruQSP3jmakGGZ1BiQR00Em9eGPCt');
+define('STRIPE_PUBLISHABLE_KEY', 'pk_test_51U9P2v8YXAY4tUXHxughm2BURbxwjvVFQOdb3LUemEumaUSgVUIXCO17NgHDkVB1GFvfFnrUQSP3jmakGGZ1BiQR00Em9eGPCt');
 define('STRIPE_WEBHOOK_SECRET', 'whsec_..._isi_disini'); // Diperlukan nanti saat setup webhook
 
 // ==========================================
