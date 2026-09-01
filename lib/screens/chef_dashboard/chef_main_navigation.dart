@@ -171,9 +171,9 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
               });
             },
             backgroundColor: AppColors.surface,
-            selectedItemColor: Colors.white,
+            selectedItemColor: AppColors.primary,
             unselectedItemColor: Colors.white60,
-            selectedLabelStyle: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+            selectedLabelStyle: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.bold),
             unselectedLabelStyle: AppTextStyles.labelSm(color: Colors.white60).copyWith(fontWeight: FontWeight.w500),
             type: BottomNavigationBarType.fixed,
             elevation: 0,
@@ -236,9 +236,10 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
             _currentIndex = 1; // Switch to Menu screen
           });
         },
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        child: const Icon(Icons.add, color: Colors.black),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 6,
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
     );
   }
