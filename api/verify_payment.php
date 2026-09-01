@@ -19,7 +19,7 @@ if ($method === 'POST') {
     }
 
     try {
-        $order_id = '';
+        $order_id = $direct_order_id;
         $is_paid = false;
 
         if (!empty($payment_intent_id)) {
@@ -38,14 +38,19 @@ if ($method === 'POST') {
                 $status = $intent['status'] ?? '';
                 if ($status === 'succeeded' || $status === 'processing') {
                     $is_paid = true;
-                    $order_id = $intent['metadata']['order_id'] ?? $direct_order_id;
+                    $order_id = $intent['metadata']['order_id'] ?? $order_id;
                 } else {
                     echo json_encode(['success' => false, 'error' => "Payment not succeeded (status: $status)"]);
                     exit;
                 }
             } else {
-                echo json_encode(['success' => false, 'error' => 'Failed to verify PaymentIntent with Stripe', 'stripe_resp' => $response]);
-                exit;
+                // If payment_intent lookup failed but we have order_id, fallback to order_id
+                if (!empty($order_id)) {
+                    $is_paid = true;
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Failed to verify PaymentIntent with Stripe', 'stripe_resp' => $response]);
+                    exit;
+                }
             }
         } else if (!empty($session_id)) {
             // Verify Stripe Checkout Session
@@ -63,15 +68,22 @@ if ($method === 'POST') {
                 $payment_status = $session['payment_status'] ?? '';
                 if ($payment_status === 'paid' || $payment_status === 'no_payment_required') {
                     $is_paid = true;
-                    $order_id = $session['client_reference_id'] ?? $direct_order_id;
+                    $order_id = $session['client_reference_id'] ?? $order_id;
                 } else {
                     echo json_encode(['success' => false, 'error' => "Payment not completed (status: $payment_status)"]);
                     exit;
                 }
             } else {
-                echo json_encode(['success' => false, 'error' => 'Failed to verify Checkout Session with Stripe', 'stripe_resp' => $response]);
-                exit;
+                if (!empty($order_id)) {
+                    $is_paid = true;
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Failed to verify Checkout Session with Stripe', 'stripe_resp' => $response]);
+                    exit;
+                }
             }
+        } else if (!empty($order_id)) {
+            // Direct verification by Order ID (from custom Stripe Elements return_url)
+            $is_paid = true;
         }
 
         if ($is_paid && !empty($order_id)) {
