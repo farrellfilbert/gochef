@@ -494,7 +494,7 @@ class _LoginScreenState extends State<LoginScreen>
       padding: const EdgeInsets.only(left: 4),
       child: Text(
         'Email Address',
-        style: AppTextStyles.labelMono(color: AppColors.onSurfaceVariant),
+        style: AppTextStyles.labelMono(color: Colors.white70),
       ),
     );
   }
@@ -509,13 +509,13 @@ class _LoginScreenState extends State<LoginScreen>
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: _emailFocusNode.hasFocus
-                ? AppColors.primary
+                ? Colors.white
                 : AppColors.outlineVariant.withValues(alpha: 0.5),
           ),
           boxShadow: _emailFocusNode.hasFocus
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.2),
+                    color: Colors.white.withValues(alpha: 0.15),
                     blurRadius: 8,
                   ),
                 ]
@@ -525,18 +525,16 @@ class _LoginScreenState extends State<LoginScreen>
           controller: _emailController,
           focusNode: _emailFocusNode,
           keyboardType: TextInputType.emailAddress,
-          style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+          style: AppTextStyles.bodyMd(color: Colors.white),
           decoration: InputDecoration(
             hintText: 'chef@gochef.com',
             hintStyle: AppTextStyles.bodyMd(
-              color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
+              color: Colors.white38,
             ),
-            prefixIcon: Icon(
+            prefixIcon: const Icon(
               Icons.mail_outlined,
               size: 20,
-              color: _emailFocusNode.hasFocus
-                  ? AppColors.primary
-                  : AppColors.onSurfaceVariant,
+              color: Colors.white,
             ),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
@@ -626,7 +624,7 @@ class _LoginScreenState extends State<LoginScreen>
           children: [
             Text(
               "Don't have an account? ",
-              style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+              style: AppTextStyles.bodyMd(color: Colors.white70),
             ),
             GestureDetector(
               onTap: () {
@@ -653,7 +651,7 @@ class _LoginScreenState extends State<LoginScreen>
           children: [
             Text(
               "Are you a chef? ",
-              style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+              style: AppTextStyles.bodyMd(color: Colors.white70),
             ),
             GestureDetector(
               onTap: () {
@@ -698,7 +696,7 @@ class _LoginScreenState extends State<LoginScreen>
         children: [
           Text(
             'Password',
-            style: AppTextStyles.labelMono(color: AppColors.onSurfaceVariant),
+            style: AppTextStyles.labelMono(color: Colors.white70),
           ),
           GestureDetector(
             onTap: () {
@@ -733,13 +731,13 @@ class _LoginScreenState extends State<LoginScreen>
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: _passwordFocusNode.hasFocus
-                ? AppColors.primary
+                ? Colors.white
                 : AppColors.outlineVariant.withValues(alpha: 0.5),
           ),
           boxShadow: _passwordFocusNode.hasFocus
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.2),
+                    color: Colors.white.withValues(alpha: 0.15),
                     blurRadius: 8,
                   ),
                 ]
@@ -749,28 +747,24 @@ class _LoginScreenState extends State<LoginScreen>
           controller: _passwordController,
           focusNode: _passwordFocusNode,
           obscureText: _obscurePassword,
-          style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+          style: AppTextStyles.bodyMd(color: Colors.white),
           decoration: InputDecoration(
             hintText: '••••••••',
             hintStyle: AppTextStyles.bodyMd(
-              color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
+              color: Colors.white38,
             ),
-            prefixIcon: Icon(
+            prefixIcon: const Icon(
               Icons.lock_outline,
               size: 20,
-              color: _passwordFocusNode.hasFocus
-                  ? AppColors.primary
-                  : AppColors.onSurfaceVariant,
+              color: Colors.white,
             ),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                 size: 20,
-                color: AppColors.onSurfaceVariant,
+                color: Colors.white70,
               ),
-              onPressed: () {
-                setState(() => _obscurePassword = !_obscurePassword);
-              },
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(

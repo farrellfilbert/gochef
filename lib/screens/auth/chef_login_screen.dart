@@ -223,7 +223,7 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
                               const SizedBox(height: 32),
                               Text(
                                 'Email or Phone Number',
-                                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                                style: AppTextStyles.labelSm(color: Colors.white70),
                               ),
                               const SizedBox(height: 8),
                               _buildTextField(_emailController, 'chef@urbangourmet.com', Icons.person_outline),
@@ -233,7 +233,7 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
                                 children: [
                                   Text(
                                     'Password',
-                                    style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                                    style: AppTextStyles.labelSm(color: Colors.white70),
                                   ),
                                   GestureDetector(
                                     onTap: () {
@@ -270,38 +270,65 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
                                   decoration: BoxDecoration(
                                     gradient: AppColors.magentaGloss,
                                     borderRadius: BorderRadius.circular(9999),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.primary.withValues(alpha: 0.3),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
                                   child: MaterialButton(
                                     onPressed: _isLoading ? null : _onLogin,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
-                                    child: Text(
-                                      'Sign In',
-                                      style: AppTextStyles.headlineMd(color: AppColors.onPrimaryFixed),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(9999),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          _isLoading ? 'Loading...' : 'Login as Chef',
+                                          style: AppTextStyles.headlineMd(color: Colors.white),
+                                        ),
+                                        if (!_isLoading) ...[
+                                          const SizedBox(width: 8),
+                                          const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                                        ],
+                                      ],
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 24),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "New to the platform? ",
-                                    style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                              const SizedBox(height: 32),
+                              Center(
+                                child: GestureDetector(
+                                  onTap: () => Navigator.pop(context),
+                                  child: Text(
+                                    'Back to Customer Login',
+                                    style: AppTextStyles.bodyMd(color: Colors.white).copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                  GestureDetector(
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Center(
+                                  child: GestureDetector(
                                     onTap: () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => const ChefRegisterScreen()),
+                                        MaterialPageRoute(
+                                          builder: (context) => const ChefRegisterScreen(),
+                                        ),
                                       );
                                     },
                                     child: Text(
-                                      'Register as a Chef',
-                                      style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+                                      "Don't have a chef account? Register as a Chef",
+                                      style: AppTextStyles.bodyMd(color: Colors.white).copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
-                                ],
                               ),
                             ],
                           ),
@@ -328,14 +355,14 @@ class _ChefLoginScreenState extends State<ChefLoginScreen> {
       child: TextField(
         controller: controller,
         obscureText: isPassword ? _obscurePassword : false,
-        style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+        style: AppTextStyles.bodyMd(color: Colors.white),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant.withValues(alpha: 0.4)),
-          prefixIcon: Icon(icon, size: 20, color: AppColors.onSurfaceVariant),
+          hintStyle: AppTextStyles.bodyMd(color: Colors.white38),
+          prefixIcon: Icon(icon, size: 20, color: Colors.white),
           suffixIcon: isPassword
               ? IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: AppColors.onSurfaceVariant),
+                  icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: Colors.white70),
                   onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                 )
               : null,
