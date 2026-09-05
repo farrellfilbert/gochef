@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="/">
+  <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -77,24 +77,31 @@
   </div>
   <script>
     window.onerror = function(msg, url, line, col, error) {
-      var loader = document.getElementById('app-loader');
-      if (loader) loader.remove();
-      var detail = '';
-      if (error) {
-        detail += '<p style="color:#ffaa00;">Error: ' + (error.message || error.toString()) + '</p>';
-        if (error.stack) detail += '<pre style="color:#ccc; white-space:pre-wrap; font-size:11px; max-height:400px; overflow:auto;">' + error.stack + '</pre>';
+      // Ignore third-party browser extension errors
+      if (url && (url.includes('chrome-extension://') || url.includes('moz-extension://') || url.includes('safari-extension://'))) {
+        return;
       }
-      document.body.innerHTML += '<div style="color:red; background:#0F172A; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; overflow:auto; padding:20px; box-sizing:border-box; font-family:monospace;">' + 
-        '<h3 style="color:#ff6b6b;">GoChef Error</h3><p>' + msg + '</p>' + detail + '<p style="color:#888;">URL: ' + url + '</p><p style="color:#888;">Line: ' + line + ', Col: ' + col + '</p>' +
-        '<p style="color:#888;">Page: ' + window.location.href + '</p></div>';
+      var msgStr = (msg || '').toString();
+      if (msgStr.includes('extension') || msgStr.includes('Talisman') || msgStr.includes('MetaMask')) {
+        return;
+      }
+      console.error('GoChef Error:', msg, url, line, col, error);
     };
     window.addEventListener('unhandledrejection', function(e) {
-      var loader = document.getElementById('app-loader');
-      if (loader) loader.remove();
-      var reason = e.reason ? (e.reason.message || e.reason.stack || e.reason.toString()) : 'Unknown promise rejection';
-      document.body.innerHTML += '<div style="color:red; background:#0F172A; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; overflow:auto; padding:20px; box-sizing:border-box; font-family:monospace;">' + 
-        '<h3 style="color:#ff6b6b;">GoChef Promise Error</h3><pre style="color:#ffaa00; white-space:pre-wrap;">' + reason + '</pre>' +
-        '<p style="color:#888;">Page: ' + window.location.href + '</p></div>';
+      var reason = e.reason ? (e.reason.message || e.reason.stack || e.reason.toString()) : '';
+      // Ignore third-party browser extensions (Talisman, MetaMask, Phantom, etc.)
+      if (
+        reason.includes('Talisman') ||
+        reason.includes('extension') ||
+        reason.includes('MetaMask') ||
+        reason.includes('chrome-extension://') ||
+        reason.includes('moz-extension://') ||
+        (e.reason && e.reason.stack && (e.reason.stack.includes('chrome-extension://') || e.reason.stack.includes('moz-extension://')))
+      ) {
+        console.warn('Ignored browser extension promise rejection:', reason);
+        return;
+      }
+      console.error('GoChef Promise Error:', reason);
     });
     // Safety fallback: hide loader after 8 seconds no matter what
     setTimeout(function() {
