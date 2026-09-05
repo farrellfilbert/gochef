@@ -9,6 +9,8 @@ import '../../models/address_model.dart';
 import '../../models/cart_item_model.dart';
 import '../profile/address_selection_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart';
+import '../../utils/web_js.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final int kitchenId;
@@ -522,11 +524,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
 
         try {
-          await launchUrl(url, mode: LaunchMode.externalApplication);
+          if (kIsWeb) {
+            WebJs.openUrl(payUrl, target: '_self');
+          } else {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          }
         } catch (e) {
-          if (mounted) {
-            Navigator.pop(context); // Close loading dialog
-            _showErrorDialog('Navigation Error', 'Could not launch payment page: $e');
+          try {
+            await launchUrl(url);
+          } catch (e2) {
+            if (mounted) {
+              Navigator.pop(context); // Close loading dialog
+              _showErrorDialog('Navigation Error', 'Could not launch payment page: $e2');
+            }
           }
         }
       } else {

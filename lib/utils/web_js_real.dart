@@ -6,4 +6,10 @@ class WebJs {
       js.context.callMethod(method, args);
     } catch (_) {}
   }
+
+  static void openUrl(String url, {String target = '_self'}) {
+    try {
+      js.context.callMethod('open', [url, target]);
+    } catch (_) {}
+  }
 }
