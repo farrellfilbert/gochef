@@ -27,7 +27,7 @@ workflows:
       - name: Get Flutter packages & setup iOS config
         script: |
           flutter pub get
-          flutter build ios --config-only
+          flutter build ios --config-only --no-codesign
       - name: Flutter build ipa
         script: |
           flutter build ipa --release \
