@@ -33,6 +33,10 @@ workflows:
           flutter build ipa --release \
             --no-codesign \
             --export-options-plist=/Users/builder/export_options.plist
+      - name: Publish to TestFlight
+        script: |
+          app-store-connect publish \
+            --path $(find build/ios/ipa -name "*.ipa")
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
