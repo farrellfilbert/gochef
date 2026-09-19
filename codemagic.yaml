@@ -24,12 +24,10 @@ workflows:
           app-store-connect list-certificates
           keychain add-certificates
           xcode-project use-profiles
-      - name: Get Flutter packages
+      - name: Get Flutter packages & setup iOS config
         script: |
-          flutter packages pub get
-      - name: Install CocoaPods dependencies
-        script: |
-          cd ios && pod install
+          flutter pub get
+          flutter build ios --config-only
       - name: Flutter build ipa
         script: |
           flutter build ipa --release \
