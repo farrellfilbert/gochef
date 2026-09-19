@@ -10,7 +10,7 @@ workflows:
       xcode: latest
       cocoapods: default
       vars:
-        BUNDLE_ID: "com.GoChef.grub"
+        BUNDLE_ID: "com.app.gochef"
     scripts:
       - name: Set up code signing settings on Xcode project
         script: |
