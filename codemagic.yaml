@@ -20,7 +20,7 @@ workflows:
             --create
           app-store-connect list-certificates
           keychain add-certificates
-          xcode-project use-profiles
+          xcode-project use-profiles --warn-only
       - name: Get Flutter packages
         script: |
           flutter pub get
