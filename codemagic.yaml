@@ -9,9 +9,6 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
-      groups:
-        # Group name in Codemagic Web UI (Teams > Global variables or Application > Environment variables)
-        - app_store_credentials
       vars:
         BUNDLE_ID: "com.GoChef.grub"
     scripts:
@@ -24,19 +21,14 @@ workflows:
           app-store-connect list-certificates
           keychain add-certificates
           xcode-project use-profiles
-      - name: Get Flutter packages & setup iOS config
+      - name: Get Flutter packages
         script: |
           flutter pub get
-          flutter build ios --config-only --no-codesign
-      - name: Flutter build ipa
+      - name: Build IPA
         script: |
-          flutter build ipa --release \
-            --no-codesign \
-            --export-options-plist=/Users/builder/export_options.plist
-      - name: Publish to TestFlight
-        script: |
-          app-store-connect publish \
-            --path $(find build/ios/ipa -name "*.ipa")
+          xcode-project build-ipa \
+            --workspace ios/Runner.xcworkspace \
+            --scheme Runner
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
