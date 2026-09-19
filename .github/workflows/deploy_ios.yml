@@ -1,0 +1,50 @@
+name: Build & Upload iOS App
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  build-and-release:
+    name: Build & Release to TestFlight
+    runs-on: macos-14
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Set up Apple API Key
+        env:
+          APP_STORE_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$APP_STORE_KEY_CONTENT" > ~/.appstoreconnect/private_keys/AuthKey_${KEY_ID}.p8
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          cd ios && pod install --repo-update && cd ..
+
+      - name: Build IPA
+        run: |
+          flutter build ipa --release
+
+      - name: Upload to App Store Connect
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          xcrun altool --upload-app \
+            --type ios \
+            --file build/ios/ipa/*.ipa \
+            --apiKey "$KEY_ID" \
+            --apiIssuer "$ISSUER_ID"

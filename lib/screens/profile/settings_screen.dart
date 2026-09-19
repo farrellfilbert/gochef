@@ -3,6 +3,8 @@ import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
 import '../legal/terms_of_service_screen.dart';
 import '../legal/privacy_policy_screen.dart';
+import '../auth/login_screen.dart';
+import '../../services/api_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -47,7 +49,7 @@ class SettingsScreen extends StatelessWidget {
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(Icons.share, 'Social Accounts', null),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(Icons.no_accounts, 'Deactivate Account', null, isError: true),
+                  _buildListTile(Icons.delete_forever, 'Delete Account', () => _showDeleteAccountDialog(context), isError: true),
                 ],
               ),
             ),
@@ -158,7 +160,7 @@ class SettingsScreen extends StatelessWidget {
 
             // Logout
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () => _handleLogout(context),
               icon: const Icon(Icons.logout, color: Colors.white),
               label: const Text('Log Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
@@ -185,6 +187,93 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E232E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Delete Account?',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to permanently delete your account? All your personal information, active orders, and favorites will be permanently removed. This action cannot be undone.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Deleting account...')),
+              );
+              final success = await ApiService.deleteAccount();
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Account deleted successfully.')),
+                  );
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Failed to delete account. Please try again.')),
+                  );
+                }
+              }
+            },
+            child: const Text('Delete Permanently', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleLogout(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E232E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Log Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text('Are you sure you want to log out?', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: const Text('Log Out', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && context.mounted) {
+      await ApiService.logout();
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      }
+    }
+  }
+
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -198,7 +287,7 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildListTile(IconData icon, String title, VoidCallback? onTap, {bool isError = false, IconData trailingIcon = Icons.chevron_right}) {
     Color color = isError ? AppColors.error : Colors.white;
     Color textColor = isError ? AppColors.error : Colors.white;
-    Color iconColor = isError ? AppColors.error.withValues(alpha: 0.4) : Colors.white;
+    Color iconColor = isError ? AppColors.error.withValues(alpha: 0.15) : Colors.white12;
 
     return InkWell(
       onTap: onTap,
@@ -206,10 +295,22 @@ class SettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(icon, color: color),
-            const SizedBox(width: 12),
-            Expanded(child: Text(title, style: AppTextStyles.bodyMd(color: textColor))),
-            Icon(trailingIcon, color: iconColor),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: AppTextStyles.bodyMd(color: textColor),
+              ),
+            ),
+            Icon(trailingIcon, color: Colors.white30, size: 20),
           ],
         ),
       ),
@@ -223,26 +324,36 @@ class SettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(child: Text(title, style: AppTextStyles.bodyMd(color: Colors.white))),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white12,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: AppTextStyles.bodyMd(color: Colors.white),
+              ),
+            ),
             Text(
               value,
-              style: valueIsMono
-                  ? AppTextStyles.labelMono(color: Colors.white70)
-                  : AppTextStyles.bodyMd(color: Colors.white70),
+              style: AppTextStyles.bodySm(color: Colors.white60).copyWith(
+                fontFamily: valueIsMono ? 'monospace' : null,
+              ),
             ),
-            if (!valueIsMono) ...[
-              const SizedBox(width: 4),
-              const Icon(Icons.chevron_right, color: Colors.white70),
-            ]
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right, color: Colors.white30, size: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildListTileNoLeading(String title, VoidCallback? onTap, {required IconData trailingIcon}) {
+  Widget _buildListTileNoLeading(String title, VoidCallback? onTap, {IconData trailingIcon = Icons.chevron_right}) {
     return InkWell(
       onTap: onTap,
       child: Padding(

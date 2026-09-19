@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../main.dart';
@@ -229,6 +230,76 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  Future<void> _onAppleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final fullName = [
+        credential.givenName,
+        credential.familyName,
+      ].where((name) => name != null && name.trim().isNotEmpty).join(' ').trim();
+
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/login_apple.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'apple_id': credential.userIdentifier,
+          'email': credential.email ?? '',
+          'name': fullName.isNotEmpty ? fullName : 'Apple User',
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final userRole = data['user']['role']?.toString() ?? 'user';
+          await ApiService.saveUserId(
+            data['user']['id'].toString(),
+            role: userRole,
+            kitchenId: data['user']['kitchen_id']?.toString(),
+          );
+          if (!mounted) return;
+          if (userRole == 'admin') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+            );
+          } else if (userRole == 'chef') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ChefMainNavigation()),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MainNavigation()),
+            );
+          }
+        } else {
+          _showError(data['error'] ?? 'Login failed');
+        }
+      } else {
+        _showError('Server error during Apple login');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      final errorStr = e.toString();
+      if (!errorStr.contains('canceled') && !errorStr.contains('cancelled')) {
+        _showError('Apple sign in failed: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -381,9 +452,7 @@ class _LoginScreenState extends State<LoginScreen>
                     child: _buildSocialButton(
                       'Apple',
                       _buildAppleIcon(),
-                      onTap: () {
-                        _showError("Apple Sign-In coming soon!");
-                      },
+                      onTap: _isLoading ? null : _onAppleLogin,
                     ),
                   ),
                 ],

@@ -24,6 +24,12 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>GoChef requires access to your photo library to allow you to upload profile pictures, dishes, and chef verification documents.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>GoChef requires access to your camera to take photos of your profile, dishes, and kitchen.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>GoChef requires access to your microphone when capturing kitchen or dish videos.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

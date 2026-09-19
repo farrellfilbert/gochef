@@ -1,0 +1,42 @@
+workflows:
+  ios-release:
+    name: GoChef iOS Release & App Store Connect
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        # Group name in Codemagic Web UI (Teams > Global variables or Application > Environment variables)
+        - app_store_credentials
+      vars:
+        BUNDLE_ID: "com.GoChef.grub"
+    scripts:
+      - name: Set up code signing settings on Xcode project
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          app-store-connect list-certificates
+          keychain add-certificates
+          xcode-project use-profiles
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios && pod install
+      - name: Flutter build ipa
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false

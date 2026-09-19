@@ -13,7 +13,6 @@ import '../models/cart_item_model.dart';
 import '../models/review_model.dart';
 import '../models/notification_model.dart';
 import '../models/promotion_model.dart';
-import '../models/category_model.dart';
 import '../models/address_model.dart';
 
 class ApiService {
@@ -110,6 +109,29 @@ class ApiService {
     await prefs.remove('user_id');
     await prefs.remove('user_role');
     await prefs.remove('kitchen_id');
+  }
+
+  static Future<bool> deleteAccount() async {
+    final userId = await getUserId();
+    if (userId == null) return false;
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/delete_account.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'user_id': userId}),
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data['success'] == true) {
+          await logout();
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error deleting account: $e');
+      return false;
+    }
   }
 
   static Future<UserModel> getProfile() async {

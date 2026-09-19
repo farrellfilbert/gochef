@@ -8,7 +8,7 @@
 PRODUCT_NAME = go_chef_app
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.goChefApp
+PRODUCT_BUNDLE_IDENTIFIER = com.GoChef.grub
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.

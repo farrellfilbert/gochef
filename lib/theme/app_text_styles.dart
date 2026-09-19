@@ -60,6 +60,13 @@ class AppTextStyles {
         color: color,
       );
 
+  static TextStyle bodySm({Color? color}) => GoogleFonts.karla(
+        fontSize: 14,
+        height: 20 / 14,
+        fontWeight: FontWeight.w400,
+        color: color,
+      );
+
   // ─── Label ───
   static TextStyle labelMono({Color? color}) => GoogleFonts.karla(
         fontSize: 14,
