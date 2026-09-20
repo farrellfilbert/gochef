@@ -20,16 +20,14 @@ workflows:
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp GoChef_AppStore_Profile.mobileprovision "$HOME/Library/MobileDevice/Provisioning Profiles/"
           xcode-project use-profiles --warn-only
-      - name: Get Flutter packages & install CocoaPods
+      - name: Flutter build ipa & export
         script: |
           flutter pub get
-          cd ios && pod install
-          sed -i '' 's/@import google_sign_in_ios;/\/\/@import google_sign_in_ios;/g' Runner/GeneratedPluginRegistrant.m || true
-      - name: Build IPA
-        script: |
-          xcode-project build-ipa \
-            --workspace ios/Runner.xcworkspace \
-            --scheme Runner
+          flutter build ipa --release --no-codesign
+          xcodebuild -exportArchive \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -exportOptionsPlist /Users/builder/export_options.plist \
+            -exportPath build/ios/ipa
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
