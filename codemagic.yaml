@@ -24,6 +24,7 @@ workflows:
         script: |
           flutter pub get
           cd ios && pod install
+          sed -i '' 's/@import google_sign_in_ios;/\/\/@import google_sign_in_ios;/g' Runner/GeneratedPluginRegistrant.m || true
       - name: Build IPA
         script: |
           xcode-project build-ipa \
