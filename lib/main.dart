@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,38 +18,44 @@ import 'screens/admin/admin_dashboard_screen.dart';
 import 'screens/checkout/payment_success_screen.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // Allow Google Fonts to fetch at runtime (needed for Karla, etc.)
-  // Previously disabled, but this crashes when fonts aren't bundled in assets
-  GoogleFonts.config.allowRuntimeFetching = true;
-  
-  if (!kIsWeb) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-      ),
-    );
-  }
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    GoogleFonts.config.allowRuntimeFetching = true;
+    
+    if (!kIsWeb) {
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+        ),
+      );
+    }
 
-  // Catch all UI errors and show them on screen instead of a blank white screen
-  ErrorWidget.builder = (FlutterErrorDetails details) {
-    return Material(
-      color: Colors.red,
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            details.exceptionAsString() + '\n\n' + (details.stack?.toString() ?? ''),
-            style: const TextStyle(color: Colors.white, fontSize: 12),
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      debugPrint('FlutterError: ${details.exceptionWithStackTrace}');
+    };
+
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      return Material(
+        color: const Color(0xFF1E1E2C),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'App Error:\n${details.exceptionAsString()}\n\n${details.stack?.toString() ?? ''}',
+              style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+            ),
           ),
         ),
-      ),
-    );
-  };
+      );
+    };
 
-  runApp(const GoChefApp());
+    runApp(const GoChefApp());
+  }, (error, stack) {
+    debugPrint('Uncaught error in zone: $error\n$stack');
+  });
 }
 
 class GoChefApp extends StatelessWidget {
