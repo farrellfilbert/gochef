@@ -172,7 +172,10 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _isLoading = true);
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: '1055253793767-as9i19kkmka2ootv8rublt7qvo31ovrb.apps.googleusercontent.com',
+        clientId: defaultTargetPlatform == TargetPlatform.iOS
+            ? '1055253793767-b9fl45vdimn71g227lq2daf4ck2557e6.apps.googleusercontent.com'
+            : '1055253793767-as9i19kkmka2ootv8rublt7qvo31ovrb.apps.googleusercontent.com',
+        serverClientId: '1055253793767-as9i19kkmka2ootv8rublt7qvo31ovrb.apps.googleusercontent.com',
       );
       final GoogleSignInAccount? account = await googleSignIn.signIn();
       
