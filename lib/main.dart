@@ -34,7 +34,7 @@ void main() {
 
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
-      debugPrint('FlutterError: ${details.exceptionWithStackTrace}');
+      debugPrint('FlutterError: ${details.exceptionAsString()}\n${details.stack}');
     };
 
     ErrorWidget.builder = (FlutterErrorDetails details) {
