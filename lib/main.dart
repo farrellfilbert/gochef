@@ -21,7 +21,7 @@ void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
     
-    GoogleFonts.config.allowRuntimeFetching = true;
+    GoogleFonts.config.allowRuntimeFetching = false;
     
     if (!kIsWeb) {
       SystemChrome.setSystemUIOverlayStyle(
