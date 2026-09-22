@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'order_complete_screen.dart';
+import 'payment_webview_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/address_model.dart';
 import '../../models/cart_item_model.dart';
@@ -508,34 +509,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         });
         
         if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => const AlertDialog(
-              content: Row(
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(width: 20),
-                  Text('Opening Secure Payment...'),
-                ],
-              ),
-            ),
-          );
-        }
-
-        try {
           if (kIsWeb) {
             WebJs.openUrl(payUrl, target: '_self');
           } else {
-            await launchUrl(url, mode: LaunchMode.inAppBrowserView);
-          }
-        } catch (e) {
-          try {
-            await launchUrl(url, mode: LaunchMode.inAppWebView);
-          } catch (e2) {
+            final resultSuccess = await Navigator.push<bool>(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PaymentWebViewScreen(
+                  initialUrl: payUrl,
+                  successUrlPattern: 'success',
+                  cancelUrlPattern: 'cancel',
+                ),
+              ),
+            );
+
             if (mounted) {
-              Navigator.pop(context); // Close loading dialog
-              _showErrorDialog('Navigation Error', 'Could not launch payment page: $e2');
+              if (resultSuccess == true) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OrderCompleteScreen()),
+                );
+              }
             }
           }
         }
