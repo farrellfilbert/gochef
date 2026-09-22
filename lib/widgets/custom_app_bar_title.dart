@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../services/api_service.dart';
@@ -138,7 +139,7 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
               image: DecorationImage(
-                image: NetworkImage(_avatarUrl),
+                image: CachedNetworkImageProvider(_avatarUrl),
                 fit: BoxFit.cover,
               ),
             ),

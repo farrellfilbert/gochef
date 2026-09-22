@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../kitchen/kitchen_profile_screen.dart';
@@ -429,7 +430,7 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 image: DecorationImage(
-                  image: NetworkImage(kitchen.coverImage.isNotEmpty ? kitchen.coverImage : kitchen.avatar),
+                  image: CachedNetworkImageProvider(kitchen.coverImage.isNotEmpty ? kitchen.coverImage : kitchen.avatar),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -517,7 +518,7 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
-                  image: NetworkImage(meal.image),
+                  image: CachedNetworkImageProvider(meal.image),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -703,7 +704,7 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
                           )
                         ],
                         image: DecorationImage(
-                          image: NetworkImage(ApiService.formatImageUrl(promo.image)),
+                          image: CachedNetworkImageProvider(ApiService.formatImageUrl(promo.image)),
                           fit: BoxFit.cover,
                           onError: (_, __) {},
                         ),
