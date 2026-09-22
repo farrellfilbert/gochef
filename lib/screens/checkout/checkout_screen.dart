@@ -525,9 +525,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             if (mounted) {
               if (resultSuccess == true) {
+                final orderId = result?['order_id']?.toString() ?? result?['orderId']?.toString() ?? '1';
+                final kitchenIdStr = result?['kitchen_id']?.toString() ?? widget.kitchenId.toString();
+                final kitchenNameStr = result?['kitchen_name']?.toString() ?? 'GoChef Kitchen';
+                final kitchenAvatarStr = result?['kitchen_avatar']?.toString() ?? '';
+
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const OrderCompleteScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => OrderCompleteScreen(
+                      orderId: orderId,
+                      kitchenId: kitchenIdStr,
+                      kitchenName: kitchenNameStr,
+                      totalAmount: _grandTotal,
+                      itemsCount: _cartItems.length,
+                      kitchenAvatar: kitchenAvatarStr,
+                    ),
+                  ),
                 );
               }
             }
