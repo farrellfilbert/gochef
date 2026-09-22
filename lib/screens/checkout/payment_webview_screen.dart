@@ -96,8 +96,20 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.pop(context, false),
+          onPressed: () => Navigator.pop(context, true),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Padding(
+              padding: EdgeInsets.only(right: 8.0),
+              child: Text(
+                'Done',
+                style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(3),
           child: _isLoading

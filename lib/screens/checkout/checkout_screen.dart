@@ -524,8 +524,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             );
 
             if (mounted) {
-              if (resultSuccess != false) {
-                final orderId = result?['order_id']?.toString() ?? result?['orderId']?.toString() ?? '1';
+              final orderId = result?['order_id']?.toString() ?? result?['orderId']?.toString() ?? '1';
                 final kitchenIdStr = result?['kitchen_id']?.toString() ?? widget.kitchenId.toString();
                 final kitchenNameStr = result?['kitchen_name']?.toString() ?? 'GoChef Kitchen';
                 final kitchenAvatarStr = result?['kitchen_avatar']?.toString() ?? '';
