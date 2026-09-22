@@ -69,9 +69,18 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
 
   void _checkUrl(String url) {
     if (!mounted) return;
-    if (widget.successUrlPattern != null && url.toLowerCase().contains(widget.successUrlPattern!.toLowerCase())) {
+    final lower = url.toLowerCase();
+    if (lower.contains('success') ||
+        lower.contains('complete') ||
+        lower.contains('paid') ||
+        lower.contains('thank') ||
+        lower.contains('finish') ||
+        lower.contains('return') ||
+        lower.contains('approved') ||
+        lower.contains('status=1') ||
+        lower.contains('session_id')) {
       Navigator.pop(context, true);
-    } else if (widget.cancelUrlPattern != null && url.toLowerCase().contains(widget.cancelUrlPattern!.toLowerCase())) {
+    } else if (lower.contains('cancel') || lower.contains('declined') || lower.contains('failed')) {
       Navigator.pop(context, false);
     }
   }
