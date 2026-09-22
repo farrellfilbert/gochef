@@ -503,7 +503,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (mounted) {
       final payUrl = result?['checkout_url'] ?? result?['pay_url'];
       if (result != null && result['success'] == true && payUrl != null) {
-        final url = Uri.parse(payUrl);
         setState(() {
           isOrdering = false;
         });
@@ -512,7 +511,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           if (kIsWeb) {
             WebJs.openUrl(payUrl, target: '_self');
           } else {
-            final resultSuccess = await Navigator.push<bool>(
+            await Navigator.push<bool>(
               context,
               MaterialPageRoute(
                 builder: (context) => PaymentWebViewScreen(
@@ -524,25 +523,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             );
 
             if (mounted) {
-              final orderId = result?['order_id']?.toString() ?? result?['orderId']?.toString() ?? '1';
-                final kitchenIdStr = result?['kitchen_id']?.toString() ?? widget.kitchenId.toString();
-                final kitchenNameStr = result?['kitchen_name']?.toString() ?? 'GoChef Kitchen';
-                final kitchenAvatarStr = result?['kitchen_avatar']?.toString() ?? '';
+              final orderId = result['order_id']?.toString() ?? result['orderId']?.toString() ?? '1';
+              final kitchenIdStr = result['kitchen_id']?.toString() ?? widget.kitchenId.toString();
+              final kitchenNameStr = result['kitchen_name']?.toString() ?? 'GoChef Kitchen';
+              final kitchenAvatarStr = result['kitchen_avatar']?.toString() ?? '';
 
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => OrderCompleteScreen(
-                      orderId: orderId,
-                      kitchenId: kitchenIdStr,
-                      kitchenName: kitchenNameStr,
-                      totalAmount: _grandTotal,
-                      itemsCount: _cartItems.length,
-                      kitchenAvatar: kitchenAvatarStr,
-                    ),
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderCompleteScreen(
+                    orderId: orderId,
+                    kitchenId: kitchenIdStr,
+                    kitchenName: kitchenNameStr,
+                    totalAmount: _grandTotal,
+                    itemsCount: _cartItems.length,
+                    kitchenAvatar: kitchenAvatarStr,
                   ),
-                );
-              }
+                ),
+              );
             }
           }
         }
