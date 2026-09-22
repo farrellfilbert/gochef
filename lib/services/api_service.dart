@@ -134,7 +134,12 @@ class ApiService {
     }
   }
 
-  static Future<UserModel> getProfile() async {
+  static UserModel? _cachedProfile;
+  static DateTime? _profileLastFetch;
+  static Map<String, dynamic>? _cachedHomeData;
+  static DateTime? _homeDataLastFetch;
+
+  static Future<UserModel> getProfile({bool forceRefresh = false}) async {
     final userId = await getUserId();
     if (userId == null) {
       final prefs = await SharedPreferences.getInstance();
@@ -142,18 +147,31 @@ class ApiService {
       throw Exception('Not logged in (Cache: $_cachedUserId, Prefs: $rawPrefs)');
     }
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/profile.php?user_id=$userId'),
-    ).timeout(const Duration(seconds: 10));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true) {
-        return UserModel.fromJson(data['data']);
+    if (!forceRefresh && _cachedProfile != null && _profileLastFetch != null) {
+      if (DateTime.now().difference(_profileLastFetch!) < const Duration(minutes: 3)) {
+        return _cachedProfile!;
       }
-      throw Exception(data['error'] ?? 'Failed to get profile');
     }
-    throw Exception('Server error: ${response.statusCode}');
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/profile.php?user_id=$userId'),
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          _cachedProfile = UserModel.fromJson(data['data']);
+          _profileLastFetch = DateTime.now();
+          return _cachedProfile!;
+        }
+      }
+    } catch (e) {
+      if (_cachedProfile != null) return _cachedProfile!;
+      debugPrint('Error loading profile: $e');
+    }
+    if (_cachedProfile != null) return _cachedProfile!;
+    throw Exception('Failed to get profile');
   }
 
   static Future<bool> updateProfile({String? name, String? phone, XFile? avatarImage}) async {
@@ -176,34 +194,48 @@ class ApiService {
       final response = await http.Response.fromStream(streamedResponse);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['success'] == true;
-      } else {
-        throw Exception('Server error: ${response.statusCode} - ${response.body}');
+        if (data['success'] == true) {
+          _cachedProfile = null; // Invalidate profile cache
+          return true;
+        }
       }
     } catch (e) {
-      throw Exception('Network error: $e');
+      debugPrint('Error updating profile: $e');
     }
+    return false;
   }
 
   // =============================================
   // HOME
   // =============================================
 
-  static Future<Map<String, dynamic>> getHomeData() async {
-    final response = await http.get(Uri.parse('$baseUrl/home.php')).timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true) {
-        final d = data['data'];
-        return {
-          'featured_kitchens': (d['featured_kitchens'] as List).map((e) => KitchenModel.fromJson(e)).toList(),
-          'popular_meals': (d['popular_meals'] as List).map((e) => MenuItemModel.fromJson(e)).toList(),
-          'categories': (d['categories'] as List).map((e) => CategoryModel.fromJson(e)).toList(),
-          'promotions': (d['promotions'] as List).map((e) => PromotionModel.fromJson(e)).toList(),
-        };
+  static Future<Map<String, dynamic>> getHomeData({bool forceRefresh = false}) async {
+    if (!forceRefresh && _cachedHomeData != null && _homeDataLastFetch != null) {
+      if (DateTime.now().difference(_homeDataLastFetch!) < const Duration(minutes: 3)) {
+        return _cachedHomeData!;
       }
     }
-    return {'featured_kitchens': [], 'popular_meals': [], 'categories': [], 'promotions': []};
+
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/home.php')).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          final d = data['data'];
+          _cachedHomeData = {
+            'featured_kitchens': (d['featured_kitchens'] as List).map((e) => KitchenModel.fromJson(e)).toList(),
+            'popular_meals': (d['popular_meals'] as List).map((e) => MenuItemModel.fromJson(e)).toList(),
+            'categories': (d['categories'] as List).map((e) => CategoryModel.fromJson(e)).toList(),
+            'promotions': (d['promotions'] as List).map((e) => PromotionModel.fromJson(e)).toList(),
+          };
+          _homeDataLastFetch = DateTime.now();
+          return _cachedHomeData!;
+        }
+      }
+    } catch (e) {
+      debugPrint('getHomeData network error: $e');
+    }
+    return _cachedHomeData ?? {'featured_kitchens': [], 'popular_meals': [], 'categories': [], 'promotions': []};
   }
   // =============================================
   // MOCK DATA FOR SIMULATION
