@@ -527,11 +527,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           if (kIsWeb) {
             WebJs.openUrl(payUrl, target: '_self');
           } else {
-            await launchUrl(url, mode: LaunchMode.externalApplication);
+            await launchUrl(url, mode: LaunchMode.inAppBrowserView);
           }
         } catch (e) {
           try {
-            await launchUrl(url);
+            await launchUrl(url, mode: LaunchMode.inAppWebView);
           } catch (e2) {
             if (mounted) {
               Navigator.pop(context); // Close loading dialog
