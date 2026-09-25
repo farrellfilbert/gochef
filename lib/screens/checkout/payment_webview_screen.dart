@@ -30,6 +30,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(AppColors.background)
+      ..setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1')
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (int progress) {
@@ -60,7 +61,10 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
           },
           onNavigationRequest: (NavigationRequest request) {
             _checkUrl(request.url);
-            return NavigationDecision.navigate;
+            if (request.url.startsWith('http://') || request.url.startsWith('https://')) {
+              return NavigationDecision.navigate;
+            }
+            return NavigationDecision.prevent;
           },
         ),
       )
