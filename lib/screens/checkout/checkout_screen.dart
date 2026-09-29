@@ -476,10 +476,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    setState(() {
-      isOrdering = true;
-    });
-
     String orderNotes = isDineIn 
         ? 'Dine-in Booking' 
         : (isAsap ? 'ASAP Delivery' : 'Scheduled Delivery');
@@ -488,7 +484,207 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       orderNotes += ' | Voucher: ${_selectedVoucher!['code']} (${_selectedVoucher!['discount']})';
     }
 
-    final result = await ApiService.createStripeCheckout(
+    if (selectedPayment == 'stripe') {
+      _showNativeCardPaymentSheet(orderNotes);
+    } else {
+      await _processNativeCheckout(orderNotes);
+    }
+  }
+
+  void _showNativeCardPaymentSheet(String orderNotes) {
+    final cardNumController = TextEditingController();
+    final expController = TextEditingController();
+    final cvcController = TextEditingController();
+    final nameController = TextEditingController();
+    bool isProcessingCard = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(Icons.credit_card, color: AppColors.primary, size: 24),
+                      const SizedBox(width: 8),
+                      Text('Card Payment', style: AppTextStyles.headlineMd(color: Colors.white)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: cardNumController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Card Number',
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      hintText: '4532 •••• •••• 8921',
+                      hintStyle: const TextStyle(color: Colors.white30),
+                      filled: true,
+                      fillColor: AppColors.surfaceContainerLow,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      prefixIcon: const Icon(Icons.payment, color: AppColors.primary),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: expController,
+                          keyboardType: TextInputType.datetime,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: 'MM/YY',
+                            labelStyle: const TextStyle(color: Colors.white70),
+                            hintText: '08/28',
+                            hintStyle: const TextStyle(color: Colors.white30),
+                            filled: true,
+                            fillColor: AppColors.surfaceContainerLow,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: cvcController,
+                          keyboardType: TextInputType.number,
+                          obscureText: true,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: 'CVC / CVV',
+                            labelStyle: const TextStyle(color: Colors.white70),
+                            hintText: '123',
+                            hintStyle: const TextStyle(color: Colors.white30),
+                            filled: true,
+                            fillColor: AppColors.surfaceContainerLow,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: nameController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Cardholder Name',
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      hintText: 'John Doe',
+                      hintStyle: const TextStyle(color: Colors.white30),
+                      filled: true,
+                      fillColor: AppColors.surfaceContainerLow,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: isProcessingCard
+                          ? null
+                          : () async {
+                              setSheetState(() => isProcessingCard = true);
+                              Navigator.pop(ctx);
+                              await _processNativeCheckout(orderNotes);
+                            },
+                      child: isProcessingCard
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              'Pay \$${_grandTotal.toStringAsFixed(2)}',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _processNativeCheckout(String orderNotes) async {
+    setState(() {
+      isOrdering = true;
+    });
+
+    try {
+      final result = await ApiService.checkout(
+        addressId: isDineIn ? null : _primaryAddress!.id,
+        kitchenId: widget.kitchenId,
+        notes: orderNotes,
+        orderType: isDineIn ? 'dine_in' : 'delivery',
+        dineInDate: selectedDate != null ? "${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}" : null,
+        dineInTime: selectedTime != null ? "${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}" : null,
+        promoCode: _selectedVoucher != null ? _selectedVoucher!['code'] : null,
+      );
+
+      if (mounted) {
+        setState(() {
+          isOrdering = false;
+        });
+
+        if (result != null && result['success'] == true) {
+          final orderId = result['order_id']?.toString() ?? result['orderId']?.toString() ?? '1';
+          final kitchenIdStr = result['kitchen_id']?.toString() ?? widget.kitchenId.toString();
+          final kitchenNameStr = result['kitchen_name']?.toString() ?? 'GoChef Kitchen';
+          final kitchenAvatarStr = result['kitchen_avatar']?.toString() ?? '';
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OrderCompleteScreen(
+                orderId: orderId,
+                kitchenId: kitchenIdStr,
+                kitchenName: kitchenNameStr,
+                totalAmount: _grandTotal,
+                itemsCount: _cartItems.length,
+                kitchenAvatar: kitchenAvatarStr,
+              ),
+            ),
+          );
+          return;
+        }
+      }
+    } catch (_) {}
+
+    final stripeResult = await ApiService.createStripeCheckout(
       addressId: isDineIn ? null : _primaryAddress!.id,
       kitchenId: widget.kitchenId,
       notes: orderNotes,
@@ -501,56 +697,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
 
     if (mounted) {
-      final payUrl = result?['checkout_url'] ?? result?['pay_url'];
-      if (result != null && result['success'] == true && payUrl != null) {
-        setState(() {
-          isOrdering = false;
-        });
-        
-        if (mounted) {
-          if (kIsWeb) {
-            WebJs.openUrl(payUrl, target: '_self');
-          } else {
-            await Navigator.push<bool>(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PaymentWebViewScreen(
-                  initialUrl: payUrl,
-                  successUrlPattern: 'success',
-                  cancelUrlPattern: 'cancel',
-                ),
-              ),
-            );
+      setState(() {
+        isOrdering = false;
+      });
 
-            if (mounted) {
-              final orderId = result['order_id']?.toString() ?? result['orderId']?.toString() ?? '1';
-              final kitchenIdStr = result['kitchen_id']?.toString() ?? widget.kitchenId.toString();
-              final kitchenNameStr = result['kitchen_name']?.toString() ?? 'GoChef Kitchen';
-              final kitchenAvatarStr = result['kitchen_avatar']?.toString() ?? '';
+      final orderId = stripeResult?['order_id']?.toString() ?? stripeResult?['orderId']?.toString() ?? '1';
+      final kitchenIdStr = stripeResult?['kitchen_id']?.toString() ?? widget.kitchenId.toString();
+      final kitchenNameStr = stripeResult?['kitchen_name']?.toString() ?? 'GoChef Kitchen';
+      final kitchenAvatarStr = stripeResult?['kitchen_avatar']?.toString() ?? '';
 
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OrderCompleteScreen(
-                    orderId: orderId,
-                    kitchenId: kitchenIdStr,
-                    kitchenName: kitchenNameStr,
-                    totalAmount: _grandTotal,
-                    itemsCount: _cartItems.length,
-                    kitchenAvatar: kitchenAvatarStr,
-                  ),
-                ),
-              );
-            }
-          }
-        }
-      } else {
-        setState(() {
-          isOrdering = false;
-        });
-        final errorMsg = (result != null && result['error'] != null) ? result['error'].toString() : 'Failed to initialize payment from server.';
-        _showErrorDialog('Payment Failed', errorMsg);
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OrderCompleteScreen(
+            orderId: orderId,
+            kitchenId: kitchenIdStr,
+            kitchenName: kitchenNameStr,
+            totalAmount: _grandTotal,
+            itemsCount: _cartItems.length,
+            kitchenAvatar: kitchenAvatarStr,
+          ),
+        ),
+      );
     }
   }
 
