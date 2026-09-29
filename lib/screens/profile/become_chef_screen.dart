@@ -18,6 +18,18 @@ class BecomeChefScreen extends StatefulWidget {
   State<BecomeChefScreen> createState() => _BecomeChefScreenState();
 }
 
+class _PendingCertificate {
+  String title;
+  String type;
+  XFile? file;
+
+  _PendingCertificate({
+    required this.title,
+    required this.type,
+    this.file,
+  });
+}
+
 class _BecomeChefScreenState extends State<BecomeChefScreen> {
   final _formKey = GlobalKey<FormState>();
   final _kitchenNameController = TextEditingController();
@@ -27,6 +39,16 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
   double _longitude = -118.3765;
   bool _isLoading = false;
   XFile? _kitchenImage;
+  final List<_PendingCertificate> _certificates = [];
+
+  final List<String> _certTypes = [
+    'Food Safety & Hygiene',
+    'Culinary Arts License',
+    'Halal Accreditation',
+    'Professional Chef Certification',
+    'Business Permit',
+    'Other Accreditation',
+  ];
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -34,6 +56,158 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
     if (picked != null) {
       setState(() => _kitchenImage = picked);
     }
+  }
+
+  void _showAddCertificateDialog() {
+    final titleController = TextEditingController();
+    String selectedType = _certTypes.first;
+    XFile? certImage;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Add Certificate / Accreditation', style: AppTextStyles.headlineMd(color: Colors.white)),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white70),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedType,
+                    dropdownColor: AppColors.surfaceContainerHigh,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Certificate Type',
+                      labelStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primary),
+                      ),
+                    ),
+                    items: _certTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                    onChanged: (val) {
+                      if (val != null) setModalState(() => selectedType = val);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: titleController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Certificate / License Title',
+                      hintText: 'e.g. ServSafe Food Handler Certificate',
+                      hintStyle: TextStyle(color: Colors.white38),
+                      labelStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primary),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: () async {
+                      final picker = ImagePicker();
+                      final picked = await picker.pickImage(source: ImageSource.gallery);
+                      if (picked != null) {
+                        setModalState(() => certImage = picked);
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.4), width: 1.5),
+                      ),
+                      child: certImage != null
+                          ? Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.check_circle, color: Colors.greenAccent, size: 24),
+                                  const SizedBox(width: 8),
+                                  Text('Document Image Selected', style: AppTextStyles.bodyMd(color: Colors.white)),
+                                ],
+                              ),
+                            )
+                          : const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.upload_file, color: AppColors.primary, size: 30),
+                                SizedBox(height: 6),
+                                Text('Upload Certificate Photo / Scan', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (titleController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter certificate title')),
+                          );
+                          return;
+                        }
+                        setState(() {
+                          _certificates.add(_PendingCertificate(
+                            title: titleController.text.trim(),
+                            type: selectedType,
+                            file: certImage,
+                          ));
+                        });
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Add Certificate', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _upgradeToChef() async {
@@ -50,6 +224,21 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
         }
       }
 
+      // Upload certificate documents
+      List<Map<String, String>> uploadedCerts = [];
+      for (var cert in _certificates) {
+        String certUrl = '';
+        if (cert.file != null) {
+          String? url = await ApiService.uploadImage(cert.file!);
+          if (url != null) certUrl = url;
+        }
+        uploadedCerts.add({
+          'title': cert.title,
+          'type': cert.type,
+          'url': certUrl,
+        });
+      }
+
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/upgrade_to_chef.php'),
         headers: {'Content-Type': 'application/json'},
@@ -62,6 +251,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
           'location': _locationController.text.trim(),
           'latitude': _latitude,
           'longitude': _longitude,
+          'certificates': uploadedCerts,
         }),
       );
 
@@ -82,7 +272,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                 ],
               ),
               content: Text(
-                'Your Chef & Kitchen application has been successfully submitted! Our team will review your profile details and menu. You will receive a notification once approved.',
+                'Your Chef & Kitchen application with credential certificates has been successfully submitted! Our team will review your profile details and accreditation.',
                 style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
               ),
               actions: [
@@ -137,7 +327,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Turn your passion into a business. Set up your kitchen details below.',
+                'Turn your passion into a business. Set up your kitchen details & credentials below.',
                 style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant),
               ),
               const SizedBox(height: 32),
@@ -232,6 +422,86 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                 ),
                 validator: (v) => v!.isEmpty ? 'Location address is required' : null,
               ),
+              const SizedBox(height: 28),
+              
+              // Certificates & Accreditations Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Certificates & Accreditations', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
+                  TextButton.icon(
+                    onPressed: _showAddCertificateDialog,
+                    icon: const Icon(Icons.add, size: 18, color: AppColors.primary),
+                    label: const Text('Add Document', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Upload food safety licenses, culinary degrees, or certifications for customer trust.',
+                style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              if (_certificates.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.verified_user_outlined, color: Colors.white38, size: 28),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'No certificates added yet. Adding credentials helps build instant trust with food buyers.',
+                          style: AppTextStyles.bodyMd(color: Colors.white54).copyWith(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Column(
+                  children: _certificates.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final cert = entry.value;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.verified, color: Colors.amber, size: 22),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(cert.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                                Text(cert.type, style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                            onPressed: () {
+                              setState(() => _certificates.removeAt(index));
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+
               const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,

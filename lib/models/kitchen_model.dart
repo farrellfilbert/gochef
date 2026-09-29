@@ -2,6 +2,38 @@ import '../services/api_service.dart';
 import 'menu_item_model.dart';
 import 'review_model.dart';
 
+class ChefCertificate {
+  final String title;
+  final String type;
+  final String url;
+  final String issueDate;
+
+  ChefCertificate({
+    required this.title,
+    required this.type,
+    required this.url,
+    this.issueDate = '',
+  });
+
+  factory ChefCertificate.fromJson(Map<String, dynamic> json) {
+    return ChefCertificate(
+      title: json['title'] ?? json['name'] ?? 'Certificate',
+      type: json['type'] ?? 'Accreditation',
+      url: ApiService.formatImageUrl(json['url'] ?? json['image_url'] ?? json['file']),
+      issueDate: json['issue_date'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'type': type,
+      'url': url,
+      'issue_date': issueDate,
+    };
+  }
+}
+
 class KitchenModel {
   final int id;
   final int userId;
@@ -23,6 +55,7 @@ class KitchenModel {
   final bool isFeatured;
   final String createdAt;
   final List<String> atmosphereImages;
+  final List<ChefCertificate> certificates;
   final List<MenuItemModel>? menuItems;
   final List<ReviewModel>? reviews;
 
@@ -47,6 +80,7 @@ class KitchenModel {
     this.isFeatured = false,
     this.createdAt = '',
     this.atmosphereImages = const [],
+    this.certificates = const [],
     this.menuItems,
     this.reviews,
   });
@@ -76,6 +110,9 @@ class KitchenModel {
       createdAt: json['created_at'] ?? '',
       atmosphereImages: json['atmosphere_images'] != null && json['atmosphere_images'] is List
           ? (json['atmosphere_images'] as List).map((e) => ApiService.formatImageUrl(e.toString())).toList()
+          : [],
+      certificates: json['certificates'] != null && json['certificates'] is List
+          ? (json['certificates'] as List).map((e) => ChefCertificate.fromJson(e is Map<String, dynamic> ? e : {})).toList()
           : [],
       menuItems: json['menu_items'] != null
           ? (json['menu_items'] as List).map((e) => MenuItemModel.fromJson(e)).toList()

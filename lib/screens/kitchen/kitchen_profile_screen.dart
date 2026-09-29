@@ -378,6 +378,33 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                   ]),
                 ),
                 const SizedBox(height: 32),
+                // Certificates & Accreditations Section
+                if (kitchen.certificates.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.workspace_premium_rounded, color: Colors.amber, size: 22),
+                        const SizedBox(width: 8),
+                        Text('Certificates & Accreditations', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 90,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: kitchen.certificates.length,
+                      itemBuilder: (context, index) {
+                        final cert = kitchen.certificates[index];
+                        return _buildCertificateBadge(context, cert);
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
                 // Atmosphere Gallery
                 if (kitchen.atmosphereImages.isNotEmpty) ...[
                   Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Text('Atmosphere', style: AppTextStyles.headlineMd(color: AppColors.onSurface))),
@@ -559,6 +586,108 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
       width: 40, height: 40,
       decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5))),
       child: IconButton(icon: Icon(icon, size: 20, color: AppColors.onSurface), onPressed: onTap, padding: EdgeInsets.zero),
+    );
+  }
+
+  Widget _buildCertificateBadge(BuildContext context, ChefCertificate cert) {
+    return GestureDetector(
+      onTap: () {
+        if (cert.url.isNotEmpty) {
+          _openFullscreenImage(context, cert.url, 'cert_${cert.hashCode}');
+        } else {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppColors.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  const Icon(Icons.verified, color: Colors.amber, size: 24),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(cert.title, style: AppTextStyles.headlineMd(color: Colors.white))),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Category: ${cert.type}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Text('This certificate has been verified by the GoChef platform compliance team.', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Close', style: const TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+      child: Container(
+        width: 220,
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.glassBackground,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.amber.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.verified, color: Colors.amber, size: 22),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    cert.title,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    cert.type,
+                    style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.visibility_outlined, color: AppColors.primary, size: 12),
+                      const SizedBox(width: 4),
+                      Text(
+                        cert.url.isNotEmpty ? 'View Certificate' : 'Verified',
+                        style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
