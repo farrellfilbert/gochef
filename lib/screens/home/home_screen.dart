@@ -426,17 +426,33 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            Container(
-              height: 224,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                image: DecorationImage(
-                  image: CachedNetworkImageProvider(kitchen.coverImage.isNotEmpty ? kitchen.coverImage : kitchen.avatar),
-                  fit: BoxFit.cover,
-                ),
-              ),
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: Stack(
                 children: [
+                  CachedNetworkImage(
+                    imageUrl: kitchen.effectiveCoverImage,
+                    height: 224,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      height: 224,
+                      color: AppColors.surfaceContainerLow,
+                      child: const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Image.network(
+                      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+                      height: 224,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                   Positioned(
                     top: 16,
                     right: 16,

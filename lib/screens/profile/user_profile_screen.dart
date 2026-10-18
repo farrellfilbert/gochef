@@ -4,9 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'settings_screen.dart';
-import '../cart/cart_screen.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 import '../auth/login_screen.dart';
@@ -24,6 +22,8 @@ import '../chef_dashboard/chef_main_navigation.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../../widgets/cart_icon_button.dart';
 import '../../widgets/notification_bell.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'personal_information_screen.dart';
 import '../../services/support_helper.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -83,6 +83,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final nameController = TextEditingController(text: user.name);
     final phoneController = TextEditingController(text: user.phone);
     XFile? selectedImage;
+    Uint8List? selectedImageBytes;
     bool isSaving = false;
 
     await showDialog(
@@ -100,36 +101,32 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        final picked = await _picker.pickImage(source: ImageSource.gallery);
-                        if (picked != null) {
-                          if (kIsWeb) {
+                        try {
+                          final picked = await _picker.pickImage(
+                            source: ImageSource.gallery,
+                            maxWidth: 1024,
+                            maxHeight: 1024,
+                            imageQuality: 85,
+                          );
+                          if (picked != null) {
+                            final bytes = await picked.readAsBytes();
                             setDialogState(() {
                               selectedImage = picked;
-                            });
-                            return;
-                          }
-                          final croppedFile = await ImageCropper().cropImage(
-                            sourcePath: picked.path,
-                            uiSettings: [
-                              WebUiSettings(
-                                context: context,
-                                presentStyle: WebPresentStyle.dialog,
-                              ),
-                            ],
-                          );
-                          if (croppedFile != null) {
-                            setDialogState(() {
-                              selectedImage = XFile(croppedFile.path);
+                              selectedImageBytes = bytes;
                             });
                           }
+                        } catch (e) {
+                          debugPrint('Error picking image: $e');
                         }
                       },
                       child: CircleAvatar(
                         radius: 40,
                         backgroundColor: AppColors.primaryContainer,
-                        backgroundImage: selectedImage != null
-                            ? NetworkImage(selectedImage!.path)
-                            : NetworkImage(user.avatar.isNotEmpty ? user.avatar : 'https://via.placeholder.com/150'),
+                        backgroundImage: selectedImageBytes != null
+                            ? MemoryImage(selectedImageBytes!)
+                            : (user.avatar.isNotEmpty
+                                ? CachedNetworkImageProvider(user.avatar) as ImageProvider
+                                : NetworkImage(user.effectiveAvatar)),
                         child: const Align(
                           alignment: Alignment.bottomRight,
                           child: Icon(Icons.camera_alt, color: Colors.white),
@@ -1193,7 +1190,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   Column(
                     children: [
                       GestureDetector(
-                        onTap: () => _showEditProfileDialog(user),
+                        onTap: () async {
+                          final updated = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PersonalInformationScreen(initialUser: user),
+                            ),
+                          );
+                          if (updated == true) {
+                            _refreshProfile();
+                          }
+                        },
                         child: Stack(
                           alignment: Alignment.bottomRight,
                           children: [
@@ -1205,7 +1212,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 border: Border.all(color: AppColors.primaryContainer, width: 2),
                                 boxShadow: [BoxShadow(color: AppColors.primaryContainer.withValues(alpha: 0.3), blurRadius: 15)],
                                 image: DecorationImage(
-                                  image: NetworkImage(user.avatar.isNotEmpty ? user.avatar : 'https://via.placeholder.com/150'),
+                                  image: (user.avatar.isNotEmpty
+                                      ? CachedNetworkImageProvider(user.avatar) as ImageProvider
+                                      : NetworkImage(user.effectiveAvatar)),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -1632,7 +1641,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildListTile(Icons.person_outline, 'Personal Information', () => _showEditProfileDialog(user)),
+                        _buildListTile(Icons.person_outline, 'Personal Information', () async {
+                          final updated = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PersonalInformationScreen(initialUser: user),
+                            ),
+                          );
+                          if (updated == true) {
+                            _refreshProfile();
+                          }
+                        }),
                         Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                         _buildListTile(Icons.inbox, 'Messages / Inbox', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const InboxScreen()));

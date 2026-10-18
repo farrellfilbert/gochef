@@ -205,6 +205,33 @@ class ApiService {
     return false;
   }
 
+  static Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final userId = await getUserId();
+    if (userId == null) {
+      return {'success': false, 'error': 'You must be logged in to change your password.'};
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/change_password.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+      return data is Map<String, dynamic> ? data : {'success': false, 'error': 'Invalid server response'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error: $e'};
+    }
+  }
+
   // =============================================
   // HOME
   // =============================================

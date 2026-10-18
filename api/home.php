@@ -4,9 +4,24 @@ require_once 'db_connect.php';
 // Home page aggregate data
 $data = [];
 
+// Auto-assign default cover image if any kitchen has empty cover_image
+try {
+    $pdo->exec("UPDATE kitchens SET cover_image = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80' WHERE cover_image IS NULL OR cover_image = ''");
+    $pdo->exec("UPDATE kitchens SET avatar = 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=400&q=80' WHERE avatar IS NULL OR avatar = ''");
+} catch(Exception $e) {}
+
 // Featured kitchens (Latest kitchens for demo purposes)
 $stmt = $pdo->query("SELECT * FROM kitchens ORDER BY id DESC LIMIT 10");
-$data['featured_kitchens'] = $stmt->fetchAll();
+$kitchens = $stmt->fetchAll();
+foreach ($kitchens as &$k) {
+    if (empty($k['cover_image'])) {
+        $k['cover_image'] = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80';
+    }
+    if (empty($k['avatar'])) {
+        $k['avatar'] = 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=400&q=80';
+    }
+}
+$data['featured_kitchens'] = $kitchens;
 
 // Popular meals (Latest available meals for demo purposes)
 $stmt = $pdo->query("

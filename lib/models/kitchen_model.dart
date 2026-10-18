@@ -87,6 +87,18 @@ class KitchenModel {
     this.hasPurchased = false,
   });
 
+  String get effectiveCoverImage {
+    if (coverImage.trim().isNotEmpty) return coverImage.trim();
+    if (avatar.trim().isNotEmpty) return avatar.trim();
+    return 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80';
+  }
+
+  String get effectiveAvatar {
+    if (avatar.trim().isNotEmpty) return avatar.trim();
+    if (coverImage.trim().isNotEmpty) return coverImage.trim();
+    return 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=400&q=80';
+  }
+
   /// Returns an approximate location (City, State / Area) similar to Airbnb
   /// to protect chef privacy until an order/purchase is made.
   String get approximateLocation {

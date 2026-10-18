@@ -1,13 +1,9 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../services/api_service.dart';
 import '../services/location_service.dart';
-import '../models/user_model.dart';
-import '../models/address_model.dart';
 import '../screens/map_screen.dart';
 
 class CustomAppBarTitle extends StatefulWidget {
