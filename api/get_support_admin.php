@@ -13,6 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once 'db_connect.php';
 
 try {
+    // Ensure users table supports utf8mb4
+    try {
+        $pdo->exec("ALTER TABLE users CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    } catch(Exception $e) {}
+
     // 1. Check for dedicated support account
     $stmt = $pdo->prepare("SELECT id, name, email, phone, avatar, role FROM users WHERE email = 'support@thegrubnextdoor.com' OR role = 'support' LIMIT 1");
     $stmt->execute();
@@ -26,7 +31,7 @@ try {
             VALUES (?, ?, ?, ?, 'support', ?, 'active')
         ");
         $ins->execute([
-            'GoChef Live Support 🎧',
+            'GoChef Live Support',
             'support@thegrubnextdoor.com',
             $defaultPass,
             '+1 (800) 462-4330',
