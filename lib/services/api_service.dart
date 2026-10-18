@@ -1314,13 +1314,14 @@ class ApiService {
     }
   }
   
-  static Future<List<Map<String, dynamic>>> getChatInbox() async {
+  static Future<List<Map<String, dynamic>>> getChatInbox({bool isSupportDesk = false}) async {
     try {
       final userId = await getUserId();
       final role = await getUserRole() ?? 'user';
       if (userId == null) return [];
       
-      final url = Uri.parse('$baseUrl/chat_inbox.php?user_id=$userId&role=$role');
+      final deskParam = isSupportDesk ? '&is_support_desk=1' : '';
+      final url = Uri.parse('$baseUrl/chat_inbox.php?user_id=$userId&role=$role$deskParam');
       final response = await http.get(url);
       
       if (response.statusCode == 200) {

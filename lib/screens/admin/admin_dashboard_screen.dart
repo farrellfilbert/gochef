@@ -62,7 +62,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     if (!isPolling && mounted) {
       setState(() => _isLoadingSupport = true);
     }
-    final inbox = await ApiService.getChatInbox();
+    final inbox = await ApiService.getChatInbox(isSupportDesk: true);
     if (mounted) {
       setState(() {
         _supportChats = inbox;

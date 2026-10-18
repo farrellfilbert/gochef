@@ -52,9 +52,14 @@ if ($method === 'POST') {
     }
     
     try {
+        // Ensure notifications table has utf8mb4 charset for emojis
+        try {
+            $pdo->exec("ALTER TABLE notifications CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        } catch (Exception $e) {}
+
         if ($action === 'approve') {
-            // Update kitchen verification status
-            $stmt = $pdo->prepare("UPDATE kitchens SET is_verified = 1 WHERE id = ?");
+            // Update kitchen verification status and active status
+            $stmt = $pdo->prepare("UPDATE kitchens SET is_verified = 1, status = 'active' WHERE id = ?");
             $stmt->execute([$kitchen_id]);
             
             // Get user_id if not provided
@@ -69,13 +74,24 @@ if ($method === 'POST') {
                 $uUpdate = $pdo->prepare("UPDATE users SET role = 'chef' WHERE id = ?");
                 $uUpdate->execute([$user_id]);
                 
-                // Send approval notification
-                $notif = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read) VALUES (?, ?, ?, 'chef_approval', 0)");
-                $notif->execute([
-                    $user_id,
-                    'Chef Application Approved! 🎉',
-                    'Congratulations! Your kitchen registration has been approved by the Admin. You can now access your Chef Dashboard and start publishing menus.'
-                ]);
+                // Send approval notification safely
+                try {
+                    $notif = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read) VALUES (?, ?, ?, 'chef_approval', 0)");
+                    $notif->execute([
+                        $user_id,
+                        'Chef Application Approved! 🎉',
+                        'Congratulations! Your kitchen registration has been approved by the Admin. You can now access your Chef Dashboard and start publishing menus.'
+                    ]);
+                } catch (Exception $ne) {
+                    try {
+                        $notif = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read) VALUES (?, ?, ?, 'chef_approval', 0)");
+                        $notif->execute([
+                            $user_id,
+                            'Chef Application Approved!',
+                            'Congratulations! Your kitchen registration has been approved by the Admin. You can now access your Chef Dashboard and start publishing menus.'
+                        ]);
+                    } catch (Exception $ne2) {}
+                }
             }
             
             echo json_encode(['success' => true, 'message' => 'Chef application approved successfully']);
@@ -99,13 +115,15 @@ if ($method === 'POST') {
                 $uUpdate = $pdo->prepare("UPDATE users SET role = 'user' WHERE id = ?");
                 $uUpdate->execute([$user_id]);
                 
-                // Send rejection notification
-                $notif = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read) VALUES (?, ?, ?, 'chef_rejection', 0)");
-                $notif->execute([
-                    $user_id,
-                    'Chef Application Update',
-                    "Your chef application could not be approved at this time. Reason: $reason. You may update your profile and apply again."
-                ]);
+                // Send rejection notification safely
+                try {
+                    $notif = $pdo->prepare("INSERT INTO notifications (user_id, title, message, type, is_read) VALUES (?, ?, ?, 'chef_rejection', 0)");
+                    $notif->execute([
+                        $user_id,
+                        'Chef Application Update',
+                        "Your chef application could not be approved at this time. Reason: $reason. You may update your profile and apply again."
+                    ]);
+                } catch (Exception $ne) {}
             }
             
             echo json_encode(['success' => true, 'message' => 'Chef application rejected']);
