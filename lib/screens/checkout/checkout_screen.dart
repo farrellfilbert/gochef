@@ -15,7 +15,8 @@ import '../../utils/web_js.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final int kitchenId;
-  const CheckoutScreen({super.key, required this.kitchenId});
+  final String? initialPromoCode;
+  const CheckoutScreen({super.key, required this.kitchenId, this.initialPromoCode});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -138,6 +139,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           (a) => a.isDefault,
           orElse: () => addresses.first,
         );
+      }
+
+      if (widget.initialPromoCode != null && widget.initialPromoCode!.trim().isNotEmpty) {
+        final code = widget.initialPromoCode!.trim().toUpperCase();
+        final matched = _availableVouchers.firstWhere(
+          (v) => (v['code']?.toString().toUpperCase() == code),
+          orElse: () {
+            final is50 = (code == 'FIRST50' || code == 'GOCHEF50');
+            final isFree = (code == 'FREEDELIV' || code == 'FREESHIP');
+            return {
+              'code': code,
+              'discount': isFree ? 'Free Delivery' : (is50 ? '50% OFF' : '20% OFF'),
+              'title': '$code Promo Code',
+              'subtitle': 'Applied from cart',
+              'discountType': isFree ? 'free_delivery' : 'percent',
+              'discountValue': isFree ? 0.0 : (is50 ? 50.0 : 20.0),
+            };
+          },
+        );
+        _selectedVoucher = matched;
       }
 
       _recalculateTotal();

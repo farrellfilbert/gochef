@@ -10,9 +10,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once 'db_connect.php';
 
-// Ensure order_id exists in reviews table
+// Ensure order_id exists and collation is utf8mb4 in reviews table
 try {
     $pdo->exec("ALTER TABLE reviews ADD COLUMN order_id VARCHAR(50) DEFAULT NULL");
+    $pdo->exec("ALTER TABLE reviews CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $pdo->exec("ALTER TABLE reviews MODIFY comment TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $pdo->exec("UPDATE reviews SET comment = REPLACE(comment, '5/5 ?', '5/5 ⭐') WHERE comment LIKE '%5/5 ?%'");
+    $pdo->exec("UPDATE reviews SET comment = REPLACE(comment, 'experience! ??', 'experience! 😋🔥') WHERE comment LIKE '%experience! ??%'");
+    $pdo->exec("UPDATE reviews SET comment = REPLACE(comment, '(Super Tasty ??, Fast Delivery ?)', '(Super Tasty 😋👍, Fast Delivery 🚀)') WHERE comment LIKE '%Super Tasty ??%'");
 } catch (Exception $e) {}
 
 $method = $_SERVER['REQUEST_METHOD'];

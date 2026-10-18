@@ -145,24 +145,35 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
             ),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(_name, style: AppTextStyles.headlineLgMobile(color: Colors.white).copyWith(fontSize: 20)),
-              Row(
-                children: [
-                  const Icon(Icons.location_on, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 4),
-                  Text(
-                    widget.subtitle.isNotEmpty ? widget.subtitle : location,
-                    style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down, color: AppColors.primary, size: 14),
-                ],
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _name,
+                  style: AppTextStyles.headlineLgMobile(color: Colors.white).copyWith(fontSize: 20),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, size: 14, color: AppColors.primary),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        widget.subtitle.isNotEmpty ? widget.subtitle : location,
+                        style: AppTextStyles.labelSm(color: AppColors.primary).copyWith(fontWeight: FontWeight.w600),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.keyboard_arrow_down, color: AppColors.primary, size: 14),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -23,10 +23,96 @@ class _CartScreenState extends State<CartScreen> {
   AddressModel? _primaryAddress;
   int? _selectedKitchenId;
 
+  final TextEditingController _promoController = TextEditingController();
+  String? _appliedPromoCode;
+  String? _appliedPromoTitle;
+  double _discountPercent = 0.0;
+  bool _isFreeDelivery = false;
+
   @override
   void initState() {
     super.initState();
     _loadCartData();
+  }
+
+  @override
+  void dispose() {
+    _promoController.dispose();
+    super.dispose();
+  }
+
+  void _applyPromoCode() {
+    final code = _promoController.text.trim().toUpperCase();
+    if (code.isEmpty) return;
+
+    final is50 = (code == 'FIRST50' || code == 'GOCHEF50');
+    final isFree = (code == 'FREEDELIV' || code == 'FREESHIP');
+
+    setState(() {
+      _appliedPromoCode = code;
+      if (isFree) {
+        _isFreeDelivery = true;
+        _discountPercent = 0.0;
+        _appliedPromoTitle = '$code (Free Delivery)';
+      } else {
+        _isFreeDelivery = false;
+        _discountPercent = is50 ? 50.0 : 20.0;
+        _appliedPromoTitle = '$code (${_discountPercent.toInt()}% OFF)';
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('🎉 Promo Code "$code" applied!'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _removePromoCode() {
+    setState(() {
+      _appliedPromoCode = null;
+      _appliedPromoTitle = null;
+      _discountPercent = 0.0;
+      _isFreeDelivery = false;
+      _promoController.clear();
+    });
+  }
+
+  Future<void> _clearAllCart() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Clear Cart', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text(
+          'Are you sure you want to remove all items from your cart?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Clear All', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() {
+        _cartItems.clear();
+        _removePromoCode();
+      });
+      await ApiService.clearCart();
+      if (mounted) {
+        _loadCartData();
+      }
+    }
   }
 
   Future<void> _loadCartData() async {
@@ -66,14 +152,9 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _updateQuantity(int cartItemId, int newQuantity) async {
-    // Basic quantity update logic - for now, assuming delete if 0, else we'd need an updateCart API
     if (newQuantity <= 0) {
       await _removeFromCart(cartItemId);
     } else {
-      // If we had an update endpoint, we'd call it here. 
-      // Since we don't, we'll just local update or suggest remove/add.
-      // We will skip actual backend update for quantity if endpoint is missing, 
-      // but let's assume we can remove and re-add or just do local update for UI demonstration.
       final index = _cartItems.indexWhere((i) => i.cartItemId == cartItemId);
       if (index != -1) {
         setState(() {
@@ -93,6 +174,8 @@ class _CartScreenState extends State<CartScreen> {
           );
         });
       }
+      // Sync quantity update to backend
+      ApiService.updateCartQuantity(cartItemId, newQuantity);
     }
   }
 
@@ -130,9 +213,10 @@ class _CartScreenState extends State<CartScreen> {
     for (var item in selectedItems) {
       subtotal += item.totalPrice;
     }
-    double deliveryFee = selectedItems.isNotEmpty ? 4.00 : 0.00;
+    double deliveryFee = selectedItems.isNotEmpty ? (_isFreeDelivery ? 0.0 : 4.00) : 0.00;
     double serviceFee = selectedItems.isNotEmpty ? 2.50 : 0.00;
-    double grandTotal = subtotal + deliveryFee + serviceFee;
+    double discountAmount = _discountPercent > 0 ? (subtotal * (_discountPercent / 100.0)) : 0.0;
+    double grandTotal = (subtotal - discountAmount + deliveryFee + serviceFee).clamp(0.0, 999999.0);
 
     return Scaffold(
       backgroundColor: AppColors.midnight,
@@ -325,38 +409,67 @@ class _CartScreenState extends State<CartScreen> {
                         // ─── Promo Code ───
                         if (_cartItems.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
                               color: AppColors.glassBackground,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.glassBorder),
+                              border: Border.all(
+                                color: _appliedPromoCode != null 
+                                    ? Colors.green.withValues(alpha: 0.6) 
+                                    : AppColors.glassBorder,
+                              ),
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.loyalty, color: Colors.white),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: TextField(
-                                    style: AppTextStyles.bodyMd(color: AppColors.onSurface),
-                                    decoration: InputDecoration(
-                                      hintText: 'Promo code or coupon',
-                                      hintStyle: AppTextStyles.bodyMd(
-                                        color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
+                            child: _appliedPromoCode != null
+                                ? Row(
+                                    children: [
+                                      const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          'Promo: $_appliedPromoTitle',
+                                          style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                                        ),
                                       ),
-                                      border: InputBorder.none,
-                                    ),
+                                      TextButton(
+                                        onPressed: _removePromoCode,
+                                        style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                                        child: const Text('Remove', style: TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.bold)),
+                                      ),
+                                    ],
+                                  )
+                                : Row(
+                                    children: [
+                                      const Icon(Icons.loyalty, color: Colors.white70, size: 20),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _promoController,
+                                          textCapitalization: TextCapitalization.characters,
+                                          style: AppTextStyles.bodyMd(color: AppColors.onSurface),
+                                          decoration: InputDecoration(
+                                            hintText: 'Promo code (e.g. FIRST50)',
+                                            hintStyle: AppTextStyles.bodyMd(
+                                              color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
+                                            ),
+                                            border: InputBorder.none,
+                                            isDense: true,
+                                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                                          ),
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: _applyPromoCode,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primary,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                        child: const Text('Apply', style: TextStyle(fontWeight: FontWeight.bold)),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                TextButton(
-                                  onPressed: () {},
-                                  child: Text(
-                                    'Apply',
-                                    style: AppTextStyles.labelMono(color: AppColors.primary)
-                                        .copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                         const SizedBox(height: 24),
 
@@ -373,9 +486,21 @@ class _CartScreenState extends State<CartScreen> {
                               children: [
                                 _buildSummaryRow('Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
                                 const SizedBox(height: 12),
-                                _buildSummaryRow('Delivery Fee', '\$${deliveryFee.toStringAsFixed(2)}'),
+                                _buildSummaryRow(
+                                  _isFreeDelivery ? 'Delivery Fee (Free)' : 'Delivery Fee',
+                                  _isFreeDelivery ? '\$0.00' : '\$${deliveryFee.toStringAsFixed(2)}',
+                                  valueColor: _isFreeDelivery ? Colors.greenAccent : null,
+                                ),
                                 const SizedBox(height: 12),
                                 _buildSummaryRow('Service Fee', '\$${serviceFee.toStringAsFixed(2)}'),
+                                if (discountAmount > 0) ...[
+                                  const SizedBox(height: 12),
+                                  _buildSummaryRow(
+                                    'Discount ($_appliedPromoCode)',
+                                    '-\$${discountAmount.toStringAsFixed(2)}',
+                                    valueColor: Colors.greenAccent,
+                                  ),
+                                ],
                                 const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 12),
                                   child: Divider(color: AppColors.ghostBorder),
@@ -442,10 +567,7 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       if (_cartItems.isNotEmpty)
                         GestureDetector(
-                          onTap: () async {
-                            // Implement clear cart if needed. For now just clear local.
-                            setState(() => _cartItems.clear());
-                          },
+                          onTap: _clearAllCart,
                           child: Text(
                             'CLEAR ALL',
                             style: AppTextStyles.labelMono(color: Colors.white)
@@ -531,7 +653,12 @@ class _CartScreenState extends State<CartScreen> {
                               onTap: _selectedKitchenId == null ? null : () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => CheckoutScreen(kitchenId: _selectedKitchenId!)),
+                                  MaterialPageRoute(
+                                    builder: (context) => CheckoutScreen(
+                                      kitchenId: _selectedKitchenId!,
+                                      initialPromoCode: _appliedPromoCode,
+                                    ),
+                                  ),
                                 );
                               },
                               borderRadius: BorderRadius.circular(28),
@@ -560,7 +687,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value) {
+  Widget _buildSummaryRow(String label, String value, {Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -570,7 +697,7 @@ class _CartScreenState extends State<CartScreen> {
         ),
         Text(
           value,
-          style: AppTextStyles.labelMono(color: AppColors.onSurface),
+          style: AppTextStyles.labelMono(color: valueColor ?? AppColors.onSurface),
         ),
       ],
     );

@@ -24,6 +24,32 @@ class _ReviewsRatingsScreenState extends State<ReviewsRatingsScreen> {
     _reviewsFuture = ApiService.getReviews(kitchenId: widget.kitchenId);
   }
 
+  String _formatReviewDate(String rawDate) {
+    if (rawDate.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(rawDate.replaceAll(' ', 'T'));
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return '${months[dt.month - 1]} ${dt.year}';
+    } catch (_) {
+      try {
+        final parts = rawDate.split(' ')[0].split('-');
+        if (parts.length >= 2) {
+          final year = parts[0];
+          final monthIdx = int.tryParse(parts[1]) ?? 1;
+          const months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+          ];
+          return '${months[monthIdx - 1]} $year';
+        }
+      } catch (_) {}
+      return rawDate;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,7 +183,7 @@ class _ReviewsRatingsScreenState extends State<ReviewsRatingsScreen> {
                       padding: const EdgeInsets.only(bottom: 24),
                       child: _buildReviewCard(
                         name: review.userName,
-                        time: review.createdAt,
+                        time: _formatReviewDate(review.createdAt),
                         avatar: review.userAvatar,
                         rating: review.rating,
                         text: review.comment,

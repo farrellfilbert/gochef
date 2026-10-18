@@ -558,6 +558,30 @@ class ApiService {
     return false;
   }
 
+  static Future<bool> clearCart() async {
+    final userId = await getUserId();
+    if (userId == null) return false;
+
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/cart.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'clear_all': true,
+          'user_id': int.parse(userId),
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
+      }
+    } catch (e) {
+      print('Error clearing cart: $e');
+    }
+    return false;
+  }
+
   static Future<bool> updateCartQuantity(int cartItemId, int quantity) async {
     try {
       final response = await http.put(

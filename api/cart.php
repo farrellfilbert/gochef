@@ -80,14 +80,34 @@ if ($method === 'GET') {
     echo json_encode(['success' => true, 'cart_item_id' => $cart_item_id]);
 
 } elseif ($method === 'DELETE') {
-    // Remove item from cart
+    // Remove item from cart or clear entire cart
     $input = json_decode(file_get_contents('php://input'), true);
     $cart_item_id = intval($input['cart_item_id'] ?? 0);
+    $user_id = intval($input['user_id'] ?? 0);
+    $clear_all = !empty($input['clear_all']) || (!empty($user_id) && !$cart_item_id);
 
-    if (!$cart_item_id) {
-        echo json_encode(['success' => false, 'error' => 'cart_item_id required']);
+    if ($clear_all && $user_id) {
+        // Also remove associated addons first to maintain integrity
+        $stmtAddons = $pdo->prepare("DELETE FROM cart_item_addons WHERE cart_item_id IN (SELECT id FROM cart_items WHERE user_id = ?)");
+        try {
+            $stmtAddons->execute([$user_id]);
+        } catch (Exception $e) {}
+
+        $stmt = $pdo->prepare("DELETE FROM cart_items WHERE user_id = ?");
+        $stmt->execute([$user_id]);
+        echo json_encode(['success' => true, 'message' => 'Cart cleared']);
         exit;
     }
+
+    if (!$cart_item_id) {
+        echo json_encode(['success' => false, 'error' => 'cart_item_id or user_id required']);
+        exit;
+    }
+
+    // Delete associated addons first
+    try {
+        $pdo->prepare("DELETE FROM cart_item_addons WHERE cart_item_id = ?")->execute([$cart_item_id]);
+    } catch (Exception $e) {}
 
     $stmt = $pdo->prepare("DELETE FROM cart_items WHERE id = ?");
     $stmt->execute([$cart_item_id]);

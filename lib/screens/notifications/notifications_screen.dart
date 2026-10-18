@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../models/notification_model.dart';
 import '../../models/order_model.dart';
+import '../../models/promotion_model.dart';
 import '../chat/chat_screen.dart';
 import '../tracking/order_tracking_screen.dart';
 import 'package:intl/intl.dart';
@@ -21,6 +23,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
   bool _isLoading = true;
   String _currentUserId = '';
   List<NotificationModel> _promos = [];
+  List<PromotionModel> _activePromotions = [];
   List<Map<String, dynamic>> _chats = [];
   List<OrderModel> _activeOrders = [];
 
@@ -45,11 +48,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
         ApiService.getOrders(),
         ApiService.getChatInbox(),
         ApiService.getNotifications(),
+        ApiService.getPromotions(),
       ]);
 
       final allOrders = results[0] as List<OrderModel>;
       final allChats = results[1] as List<Map<String, dynamic>>;
       final allNotifs = results[2] as Map<String, dynamic>;
+      final allPromotions = results[3] as List<PromotionModel>;
 
       if (mounted) {
         final activeList = allOrders.where((o) => o.status != 'Completed' && o.status != 'Cancelled').toList();
@@ -68,6 +73,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
           _activeOrders = activeList;
           _chats = allChats;
           _promos = promoList;
+          _activePromotions = allPromotions;
           _isLoading = false;
         });
         // Auto mark all read on open so bell badge clears properly
@@ -427,84 +433,291 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
   }
 
   Widget _buildPromosTab() {
-    if (_promos.isEmpty) {
-      return Center(
-        child: Text('No promotions available', style: AppTextStyles.bodyLg(color: AppColors.onSurfaceVariant)),
-      );
-    }
+    // Collect all promo-related notifications
+    final promoNotifs = _promos.where((n) {
+      final t = n.title.toLowerCase();
+      final m = n.message.toLowerCase();
+      return t.contains('promo') || t.contains('discount') || t.contains('voucher') || 
+             t.contains('offer') || t.contains('deal') || t.contains('free') || 
+             m.contains('promo') || m.contains('discount') || m.contains('voucher') ||
+             m.contains('offer') || m.contains('code') || m.contains('%');
+    }).toList();
+
+    // Default vouchers to guarantee users always see active promos
+    final List<Map<String, String>> fallbackPromos = [
+      {
+        'code': 'FIRST50',
+        'title': '50% OFF First Order',
+        'subtitle': 'Special welcome discount for new foodies on GoChef',
+        'discount': '50% OFF',
+      },
+      {
+        'code': 'FREEDELIV',
+        'title': 'Free Uber Direct Delivery',
+        'subtitle': 'Enjoy \$0 delivery fee from any home chef near you',
+        'discount': 'FREE DELIVERY',
+      },
+      {
+        'code': 'GOCHEF50',
+        'title': 'GoChef Member Reward',
+        'subtitle': 'Save on your favorite gourmet homemade dishes',
+        'discount': '20% OFF',
+      },
+    ];
+
     return RefreshIndicator(
       onRefresh: _loadAllData,
       color: AppColors.primary,
-      child: ListView.builder(
+      child: ListView(
         padding: const EdgeInsets.all(16),
-        itemCount: _promos.length,
-        itemBuilder: (context, index) {
-          final promo = _promos[index];
-          return GestureDetector(
-            onTap: () {
-              if (!promo.isRead) {
-                _markAsRead(promo.id);
-              }
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: promo.isRead ? AppColors.surface : AppColors.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: promo.isRead ? Colors.transparent : AppColors.primary.withValues(alpha: 0.3),
-                ),
+        children: [
+          // ─── Header Banner ───
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFBA005E), Color(0xFFE42278)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.local_offer, color: AppColors.primary),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.celebration, color: Colors.white, size: 32),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Exclusive Offers & Codes',
+                        style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Tap any code to copy and apply directly in your cart or checkout!',
+                        style: AppTextStyles.labelSm(color: Colors.white.withValues(alpha: 0.9)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // ─── Active Promotions from API ───
+          if (_activePromotions.isNotEmpty) ...[
+            Text('CURRENT PROMOTIONS', style: AppTextStyles.labelMono(color: const Color(0xFFFF80AB))),
+            const SizedBox(height: 12),
+            ..._activePromotions.map((promo) {
+              final code = promo.code.isNotEmpty ? promo.code : 'PROMO${promo.id}';
+              final discountStr = promo.discountPercent > 0 
+                  ? '${promo.discountPercent}% OFF' 
+                  : (promo.title.contains('%') ? promo.title : 'SPECIAL OFFER');
+              return _buildVoucherCard(
+                code: code,
+                title: promo.title,
+                subtitle: promo.subtitle,
+                discount: discountStr,
+                imageUrl: promo.image,
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
+
+          // ─── Available System Vouchers ───
+          Text('FEATURED VOUCHERS', style: AppTextStyles.labelMono(color: const Color(0xFFFF80AB))),
+          const SizedBox(height: 12),
+          ...fallbackPromos.map((v) => _buildVoucherCard(
+            code: v['code']!,
+            title: v['title']!,
+            subtitle: v['subtitle']!,
+            discount: v['discount']!,
+          )),
+
+          // ─── Promo Notification History ───
+          if (promoNotifs.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            Text('PROMO NOTIFICATIONS', style: AppTextStyles.labelMono(color: const Color(0xFFFF80AB))),
+            const SizedBox(height: 12),
+            ...promoNotifs.map((n) {
+              return GestureDetector(
+                onTap: () {
+                  if (!n.isRead) _markAsRead(n.id);
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: n.isRead ? AppColors.surface : AppColors.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: n.isRead ? Colors.transparent : AppColors.primary.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.local_offer, color: AppColors.primary),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Text(
-                                promo.title,
-                                style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16),
-                              ),
+                            Text(
+                              n.title,
+                              style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 15),
                             ),
-                            if (!promo.isRead)
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
+                            const SizedBox(height: 4),
+                            Text(
+                              n.message,
+                              style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVoucherCard({
+    required String code,
+    required String title,
+    required String subtitle,
+    required String discount,
+    String? imageUrl,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (imageUrl != null && imageUrl.isNotEmpty)
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+              child: Image.network(
+                imageUrl,
+                height: 100,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          discount,
+                          style: const TextStyle(
+                            color: Color(0xFFFF80AB),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        title,
+                        style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 15),
+                      ),
+                      if (subtitle.isNotEmpty) ...[
+                        const SizedBox(height: 2),
                         Text(
-                          promo.message,
-                          style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant),
+                          subtitle,
+                          style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                InkWell(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: code));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('🎉 Promo code "$code" copied! Paste in Cart or Checkout to redeem.'),
+                        backgroundColor: Colors.green,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.primary),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              code,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.copy, color: AppColors.primary, size: 14),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'TAP TO COPY',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

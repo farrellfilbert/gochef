@@ -198,9 +198,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      final errorStr = e.toString();
-      if (!errorStr.contains('canceled') && !errorStr.contains('cancelled')) {
-        _showError('Apple Sign In failed: $e');
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('canceled') || errorStr.contains('cancelled')) {
+        // User cancelled Apple dialog, dismiss cleanly
+        return;
+      } else if (errorStr.contains('1000') || errorStr.contains('unknown') || errorStr.contains('authorizationerror')) {
+        _showError('Apple Sign In is currently unavailable on this device. Please sign up with Google or Email.');
+      } else {
+        _showError('Could not complete Apple sign up. Please try again or use another signup method.');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

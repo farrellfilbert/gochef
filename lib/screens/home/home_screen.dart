@@ -208,6 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Expanded(child: CustomAppBarTitle()),
+                          const SizedBox(width: 8),
                           Row(
                             children: const [
                               CartIconButton(iconColor: Colors.white),
