@@ -284,7 +284,7 @@ class _PersonalInformationScreenState extends State<PersonalInformationScreen> {
                     ),
                     const SizedBox(height: 10),
                     TextButton.icon(
-                      onTap: _showImagePickerModal,
+                      onPressed: _showImagePickerModal,
                       icon: const Icon(Icons.edit, color: AppColors.primary, size: 16),
                       label: const Text('Change Photo', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
                     ),
