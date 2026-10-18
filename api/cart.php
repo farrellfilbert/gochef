@@ -81,10 +81,11 @@ if ($method === 'GET') {
 
 } elseif ($method === 'DELETE') {
     // Remove item from cart or clear entire cart
-    $input = json_decode(file_get_contents('php://input'), true);
-    $cart_item_id = intval($input['cart_item_id'] ?? 0);
-    $user_id = intval($input['user_id'] ?? 0);
-    $clear_all = !empty($input['clear_all']) || (!empty($user_id) && !$cart_item_id);
+    $raw_input = file_get_contents('php://input');
+    $input = json_decode($raw_input, true) ?: [];
+    $cart_item_id = intval($input['cart_item_id'] ?? $_GET['cart_item_id'] ?? 0);
+    $user_id = intval($input['user_id'] ?? $_GET['user_id'] ?? 0);
+    $clear_all = !empty($input['clear_all']) || !empty($_GET['clear_all']) || (!empty($user_id) && !$cart_item_id);
 
     if ($clear_all && $user_id) {
         // Also remove associated addons first to maintain integrity
