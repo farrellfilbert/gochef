@@ -11,14 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once 'db_connect.php';
 
 // Ensure order_id exists and collation is utf8mb4 in reviews table
-try {
-    $pdo->exec("ALTER TABLE reviews ADD COLUMN order_id VARCHAR(50) DEFAULT NULL");
-    $pdo->exec("ALTER TABLE reviews CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdo->exec("ALTER TABLE reviews MODIFY comment TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdo->exec("UPDATE reviews SET comment = 'Best food in North Hollywood! 5/5 ⭐' WHERE id = 21");
-    $pdo->exec("UPDATE reviews SET comment = 'Exceptional gourmet dining experience! 😋🔥' WHERE id = 20");
-    $pdo->exec("UPDATE reviews SET comment = 'Amazing taste! (Super Tasty 😋👍, Fast Delivery 🚀)' WHERE id = 19");
-} catch (Exception $e) {}
+try { $pdo->exec("ALTER TABLE reviews ADD COLUMN order_id VARCHAR(50) DEFAULT NULL"); } catch (Exception $e) {}
+try { $pdo->exec("ALTER TABLE reviews CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"); } catch (Exception $e) {}
+try { $pdo->exec("ALTER TABLE reviews MODIFY comment TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"); } catch (Exception $e) {}
+try { $pdo->exec("UPDATE reviews SET comment = 'Best food in North Hollywood! 5/5 ⭐' WHERE id = 21"); } catch (Exception $e) {}
+try { $pdo->exec("UPDATE reviews SET comment = 'Exceptional gourmet dining experience! 😋🔥' WHERE id = 20"); } catch (Exception $e) {}
+try { $pdo->exec("UPDATE reviews SET comment = 'Amazing taste! (Super Tasty 😋👍, Fast Delivery 🚀)' WHERE id = 19"); } catch (Exception $e) {}
 
 $method = $_SERVER['REQUEST_METHOD'];
 
