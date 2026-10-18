@@ -15,9 +15,9 @@ try {
     $pdo->exec("ALTER TABLE reviews ADD COLUMN order_id VARCHAR(50) DEFAULT NULL");
     $pdo->exec("ALTER TABLE reviews CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("ALTER TABLE reviews MODIFY comment TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdo->exec("UPDATE reviews SET comment = REPLACE(comment, '5/5 ?', '5/5 ⭐') WHERE comment LIKE '%5/5 ?%'");
-    $pdo->exec("UPDATE reviews SET comment = REPLACE(comment, 'experience! ??', 'experience! 😋🔥') WHERE comment LIKE '%experience! ??%'");
-    $pdo->exec("UPDATE reviews SET comment = REPLACE(comment, '(Super Tasty ??, Fast Delivery ?)', '(Super Tasty 😋👍, Fast Delivery 🚀)') WHERE comment LIKE '%Super Tasty ??%'");
+    $pdo->exec("UPDATE reviews SET comment = 'Best food in North Hollywood! 5/5 ⭐' WHERE id = 21");
+    $pdo->exec("UPDATE reviews SET comment = 'Exceptional gourmet dining experience! 😋🔥' WHERE id = 20");
+    $pdo->exec("UPDATE reviews SET comment = 'Amazing taste! (Super Tasty 😋👍, Fast Delivery 🚀)' WHERE id = 19");
 } catch (Exception $e) {}
 
 $method = $_SERVER['REQUEST_METHOD'];
