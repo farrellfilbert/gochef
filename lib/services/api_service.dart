@@ -564,7 +564,7 @@ class ApiService {
 
     try {
       final response = await http.delete(
-        Uri.parse('$baseUrl/cart.php'),
+        Uri.parse('$baseUrl/cart.php?clear_all=1&user_id=$userId'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'clear_all': true,
