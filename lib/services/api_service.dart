@@ -362,7 +362,11 @@ class ApiService {
 
   static Future<KitchenModel?> getKitchenDetail(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/kitchen_detail.php?id=$id')).timeout(const Duration(seconds: 10));
+      final currentUserId = await getUserId();
+      final url = currentUserId != null
+          ? '$baseUrl/kitchen_detail.php?id=$id&viewer_id=$currentUserId'
+          : '$baseUrl/kitchen_detail.php?id=$id';
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success'] == true && data['data'] != null) {
@@ -377,7 +381,11 @@ class ApiService {
 
   static Future<KitchenModel?> getKitchenDetailByUserId(int userId) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/kitchen_detail.php?user_id=$userId')).timeout(const Duration(seconds: 10));
+      final currentUserId = await getUserId();
+      final url = currentUserId != null
+          ? '$baseUrl/kitchen_detail.php?user_id=$userId&viewer_id=$currentUserId'
+          : '$baseUrl/kitchen_detail.php?user_id=$userId';
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success'] == true && data['data'] != null) {
@@ -611,11 +619,20 @@ class ApiService {
     return false;
   }
 
-  static Future<bool> removeFavorite(int favoriteId) async {
+  static Future<bool> removeFavorite(int favoriteId, {int? kitchenId, int? menuItemId}) async {
+    final userId = await getUserId();
+    final body = <String, dynamic>{
+      'favorite_id': favoriteId,
+      if (userId != null) 'user_id': int.parse(userId),
+      if (kitchenId != null) 'kitchen_id': kitchenId,
+      if (menuItemId != null) 'menu_item_id': menuItemId,
+      if (kitchenId != null) 'type': 'kitchen',
+      if (menuItemId != null) 'type': 'dish',
+    };
     final response = await http.delete(
       Uri.parse('$baseUrl/favorites.php'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'favorite_id': favoriteId}),
+      body: json.encode(body),
     ).timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 200) {

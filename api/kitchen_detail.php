@@ -3,6 +3,7 @@ require_once 'db_connect.php';
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+$viewer_id = isset($_GET['viewer_id']) ? intval($_GET['viewer_id']) : 0;
 
 if (!$id && !$user_id) {
     echo json_encode(['success' => false, 'error' => 'Kitchen ID or User ID required']);
@@ -27,6 +28,21 @@ try {
         echo json_encode(['success' => false, 'error' => 'Kitchen not found']);
         exit;
     }
+
+    // Check if viewer has made an order from this kitchen or is the kitchen owner
+    $has_purchased = false;
+    if ($viewer_id > 0) {
+        if ($viewer_id === intval($kitchen['user_id'])) {
+            $has_purchased = true;
+        } else {
+            $orderCheck = $pdo->prepare("SELECT id FROM orders WHERE user_id = ? AND kitchen_id = ? LIMIT 1");
+            $orderCheck->execute([$viewer_id, $id]);
+            if ($orderCheck->fetch()) {
+                $has_purchased = true;
+            }
+        }
+    }
+    $kitchen['has_purchased'] = $has_purchased;
 
     // Get menu items for this kitchen
     $stmt = $pdo->prepare("SELECT mi.*, c.name as category_name FROM menu_items mi LEFT JOIN categories c ON mi.category_id = c.id WHERE mi.kitchen_id = ? ORDER BY mi.is_popular DESC, mi.name ASC");

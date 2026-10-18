@@ -843,9 +843,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 14, color: AppColors.onSurfaceVariant),
+                      const Icon(Icons.location_on_outlined, size: 14, color: AppColors.onSurfaceVariant),
                       const SizedBox(width: 4),
-                      Expanded(child: Text(kitchen.location, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      Expanded(child: Text(kitchen.approximateLocation, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis)),
                     ],
                   )
                 ],

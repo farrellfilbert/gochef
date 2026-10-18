@@ -13,7 +13,7 @@ if ($method === 'GET') {
 
     if ($type === 'kitchen') {
         $stmt = $pdo->prepare("
-            SELECT f.id as favorite_id, f.created_at as favorited_at, k.*
+            SELECT f.id as favorite_id, f.kitchen_id, f.created_at as favorited_at, k.*
             FROM favorites f
             JOIN kitchens k ON f.kitchen_id = k.id
             WHERE f.user_id = ? AND f.type = 'kitchen'
@@ -21,7 +21,7 @@ if ($method === 'GET') {
         ");
     } else {
         $stmt = $pdo->prepare("
-            SELECT f.id as favorite_id, f.created_at as favorited_at,
+            SELECT f.id as favorite_id, f.menu_item_id, f.menu_item_id as item_id, f.created_at as favorited_at,
                    mi.id, mi.name, mi.price, mi.image, mi.rating, mi.prep_time,
                    k.name as kitchen_name, k.avatar as kitchen_avatar
             FROM favorites f
@@ -71,17 +71,33 @@ if ($method === 'GET') {
     echo json_encode(['success' => true, 'action' => 'added', 'id' => $pdo->lastInsertId()]);
 
 } elseif ($method === 'DELETE') {
-    $input = json_decode(file_get_contents('php://input'), true);
-    $favorite_id = intval($input['favorite_id'] ?? 0);
+    $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    $favorite_id = intval($input['favorite_id'] ?? $_GET['favorite_id'] ?? 0);
+    $user_id = intval($input['user_id'] ?? $_GET['user_id'] ?? 0);
+    $kitchen_id = intval($input['kitchen_id'] ?? $_GET['kitchen_id'] ?? 0);
+    $menu_item_id = intval($input['menu_item_id'] ?? $_GET['menu_item_id'] ?? 0);
 
-    if (!$favorite_id) {
-        echo json_encode(['success' => false, 'error' => 'favorite_id required']);
+    if ($favorite_id > 0) {
+        $stmt = $pdo->prepare("DELETE FROM favorites WHERE id = ?");
+        $stmt->execute([$favorite_id]);
+        echo json_encode(['success' => true]);
         exit;
     }
 
-    $stmt = $pdo->prepare("DELETE FROM favorites WHERE id = ?");
-    $stmt->execute([$favorite_id]);
+    if ($user_id > 0 && $kitchen_id > 0) {
+        $stmt = $pdo->prepare("DELETE FROM favorites WHERE user_id = ? AND kitchen_id = ? AND type = 'kitchen'");
+        $stmt->execute([$user_id, $kitchen_id]);
+        echo json_encode(['success' => true]);
+        exit;
+    }
 
-    echo json_encode(['success' => true]);
+    if ($user_id > 0 && $menu_item_id > 0) {
+        $stmt = $pdo->prepare("DELETE FROM favorites WHERE user_id = ? AND menu_item_id = ? AND type = 'dish'");
+        $stmt->execute([$user_id, $menu_item_id]);
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
+    echo json_encode(['success' => false, 'error' => 'favorite_id or (user_id and item_id) required']);
 }
 ?>

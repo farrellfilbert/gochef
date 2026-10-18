@@ -58,6 +58,7 @@ class KitchenModel {
   final List<ChefCertificate> certificates;
   final List<MenuItemModel>? menuItems;
   final List<ReviewModel>? reviews;
+  final bool hasPurchased;
 
   KitchenModel({
     required this.id,
@@ -83,7 +84,50 @@ class KitchenModel {
     this.certificates = const [],
     this.menuItems,
     this.reviews,
+    this.hasPurchased = false,
   });
+
+  /// Returns an approximate location (City, State / Area) similar to Airbnb
+  /// to protect chef privacy until an order/purchase is made.
+  String get approximateLocation {
+    if (location.trim().isEmpty) return '';
+    final rawParts = location.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    if (rawParts.length <= 2) {
+      final first = rawParts.first;
+      if (RegExp(r'^\d+\s+').hasMatch(first) && rawParts.length == 2) {
+        return rawParts[1];
+      }
+      return location;
+    }
+
+    List<String> meaningful = [];
+    for (int i = 0; i < rawParts.length; i++) {
+      final p = rawParts[i];
+      if (RegExp(r'^\d+$').hasMatch(p)) continue;
+      if (i < 2 && RegExp(r'(\b(st|street|ave|avenue|blvd|boulevard|rd|road|dr|drive|lane|ln|way|ct|court|pkwy|parkway)\b|^\d+)', caseSensitive: false).hasMatch(p)) {
+        continue;
+      }
+      meaningful.add(p);
+    }
+
+    if (meaningful.isNotEmpty) {
+      if (meaningful.length >= 2) {
+        final city = meaningful[0];
+        String second = meaningful[1];
+        if (meaningful.length >= 3 && second.toLowerCase().contains('county')) {
+          final state = meaningful[2];
+          return '$city, $state';
+        }
+        return '$city, $second';
+      }
+      return meaningful.first;
+    }
+
+    if (rawParts.length >= 3) {
+      return '${rawParts[rawParts.length - 3]}, ${rawParts[rawParts.length - 2]}';
+    }
+    return location;
+  }
 
   factory KitchenModel.fromJson(Map<String, dynamic> json) {
     return KitchenModel(
@@ -120,6 +164,7 @@ class KitchenModel {
       reviews: json['reviews'] != null
           ? (json['reviews'] as List).map((e) => ReviewModel.fromJson(e)).toList()
           : null,
+      hasPurchased: json['has_purchased'] == true || json['has_purchased']?.toString() == '1',
     );
   }
 }

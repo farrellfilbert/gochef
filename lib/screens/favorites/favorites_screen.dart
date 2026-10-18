@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import '../notifications/notifications_screen.dart';
 import '../../services/api_service.dart';
 import '../kitchen/kitchen_profile_screen.dart';
 import '../food/food_details_screen.dart';
-import '../../models/kitchen_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
 import '../../widgets/notification_bell.dart';
 import '../../widgets/cart_icon_button.dart';
@@ -47,17 +45,60 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
     }
   }
 
-  Future<void> _removeFavorite(int itemId, String type) async {
+  Future<void> _removeFavorite({required int favoriteId, required int targetId, required String type}) async {
+    final removedMeals = List<Map<String, dynamic>>.from(_meals);
+    final removedKitchens = List<Map<String, dynamic>>.from(_kitchens);
+
     setState(() {
       if (type == 'dish') {
-        _meals.removeWhere((m) => m['menu_item_id'] == itemId || m['item_id'] == itemId);
+        _meals.removeWhere((m) {
+          final fid = int.tryParse((m['favorite_id'] ?? 0).toString()) ?? 0;
+          final id = int.tryParse((m['id'] ?? m['menu_item_id'] ?? m['item_id'] ?? 0).toString()) ?? 0;
+          return (favoriteId > 0 && fid == favoriteId) || (targetId > 0 && id == targetId);
+        });
       } else {
-        _kitchens.removeWhere((k) => k['kitchen_id'] == itemId || k['item_id'] == itemId);
+        _kitchens.removeWhere((k) {
+          final fid = int.tryParse((k['favorite_id'] ?? 0).toString()) ?? 0;
+          final id = int.tryParse((k['id'] ?? k['kitchen_id'] ?? k['item_id'] ?? 0).toString()) ?? 0;
+          return (favoriteId > 0 && fid == favoriteId) || (targetId > 0 && id == targetId);
+        });
       }
     });
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Removed from favorites'), backgroundColor: AppColors.primary),
+      const SnackBar(
+        content: Text('Removed from favorites'),
+        backgroundColor: AppColors.primary,
+        duration: Duration(seconds: 2),
+      ),
     );
+
+    // Call backend API to delete from database
+    bool success = false;
+    if (favoriteId > 0) {
+      success = await ApiService.removeFavorite(
+        favoriteId,
+        kitchenId: type == 'kitchen' ? targetId : null,
+        menuItemId: type == 'dish' ? targetId : null,
+      );
+    }
+    if (!success && targetId > 0) {
+      if (type == 'kitchen') {
+        success = await ApiService.addFavorite(kitchenId: targetId, type: 'kitchen');
+      } else {
+        success = await ApiService.addFavorite(menuItemId: targetId, type: 'dish');
+      }
+    }
+
+    if (!success && mounted) {
+      setState(() {
+        _meals = removedMeals;
+        _kitchens = removedKitchens;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update favorites on server'), backgroundColor: Colors.redAccent),
+      );
+    }
   }
 
   @override
@@ -190,12 +231,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
       separatorBuilder: (context, index) => const SizedBox(height: 24),
       itemBuilder: (context, index) {
         final meal = filtered[index];
+        final mealId = int.tryParse((meal['id'] ?? meal['menu_item_id'] ?? meal['item_id'] ?? 0).toString()) ?? 0;
+        final favoriteId = int.tryParse((meal['favorite_id'] ?? 0).toString()) ?? 0;
         return _buildMealCard(
-          id: meal['item_id'] ?? meal['menu_item_id'] ?? 0,
+          id: mealId,
+          favoriteId: favoriteId,
           title: meal['name'] ?? 'Unknown',
           subtitle: meal['kitchen_name'] ?? '',
-          price: '\$${(meal['price'] != null ? double.parse(meal['price'].toString()) : 0.0).toStringAsFixed(2)}',
-          rating: (meal['rating'] != null ? double.parse(meal['rating'].toString()) : 0.0).toStringAsFixed(1),
+          price: '\$${(meal['price'] != null ? double.tryParse(meal['price'].toString()) ?? 0.0 : 0.0).toStringAsFixed(2)}',
+          rating: (meal['rating'] != null ? double.tryParse(meal['rating'].toString()) ?? 0.0 : 0.0).toStringAsFixed(1),
           imageUrl: meal['image'] ?? '',
         );
       },
@@ -225,11 +269,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
       separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final kitchen = filtered[index];
+        final kitchenId = int.tryParse((kitchen['id'] ?? kitchen['kitchen_id'] ?? kitchen['item_id'] ?? 0).toString()) ?? 0;
+        final favoriteId = int.tryParse((kitchen['favorite_id'] ?? 0).toString()) ?? 0;
         return _buildKitchenCard(
-          id: kitchen['item_id'] ?? kitchen['kitchen_id'] ?? 0,
+          id: kitchenId,
+          favoriteId: favoriteId,
           title: kitchen['name'] ?? 'Unknown',
           subtitle: kitchen['cuisine_type'] ?? '',
-          rating: (kitchen['rating'] != null ? double.parse(kitchen['rating'].toString()) : 0.0).toStringAsFixed(1),
+          rating: (kitchen['rating'] != null ? double.tryParse(kitchen['rating'].toString()) ?? 0.0 : 0.0).toStringAsFixed(1),
           avatar: kitchen['image'] ?? kitchen['avatar'] ?? '',
         );
       },
@@ -238,6 +285,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
 
   Widget _buildMealCard({
     required int id,
+    required int favoriteId,
     required String title,
     required String subtitle,
     required String price,
@@ -245,9 +293,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
     required String imageUrl,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         if (id > 0) {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: id)));
+          Navigator.push(context, MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: id)))
+              .then((_) => _loadFavorites());
         }
       },
       child: Container(
@@ -290,7 +340,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => _removeFavorite(id, 'dish'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _removeFavorite(favoriteId: favoriteId, targetId: id, type: 'dish'),
                           child: const Icon(Icons.favorite, color: AppColors.primaryContainer),
                         ),
                       ],
@@ -313,12 +364,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
                           ],
                         ),
                         GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () {
                             if (id > 0) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: id)),
-                              );
+                              ).then((_) => _loadFavorites());
                             }
                           },
                           child: Container(
@@ -345,15 +397,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
 
   Widget _buildKitchenCard({
     required int id,
+    required int favoriteId,
     required String title,
     required String subtitle,
     required String rating,
     required String avatar,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         if (id > 0) {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => KitchenProfileScreen(kitchenId: id)));
+          Navigator.push(context, MaterialPageRoute(builder: (context) => KitchenProfileScreen(kitchenId: id)))
+              .then((_) => _loadFavorites());
         }
       },
       child: Container(
@@ -371,8 +426,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.2)),
-                image: DecorationImage(image: NetworkImage(avatar), fit: BoxFit.cover,
-                  onError: (_, __) => const NetworkImage('https://ui-avatars.com/api/?name=Kitchen')
+                image: DecorationImage(
+                  image: NetworkImage(avatar.isNotEmpty ? avatar : 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(title)}'),
+                  fit: BoxFit.cover,
+                  onError: (_, __) => const NetworkImage('https://ui-avatars.com/api/?name=Kitchen'),
                 ),
               ),
             ),
@@ -396,7 +453,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
               ),
             ),
             GestureDetector(
-              onTap: () => _removeFavorite(id, 'kitchen'),
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _removeFavorite(favoriteId: favoriteId, targetId: id, type: 'kitchen'),
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(

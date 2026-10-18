@@ -23,17 +23,30 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
   bool _isScrolled = false;
   bool _isFollowing = false;
   int _cartCount = 0;
+  String? _currentUserId;
   late Future<KitchenModel?> _kitchenFuture;
+
+  bool _isLocationUnlocked(KitchenModel kitchen) {
+    if (kitchen.hasPurchased) return true;
+    if (_currentUserId != null && _currentUserId == kitchen.userId.toString()) return true;
+    return false;
+  }
 
   @override
   void initState() {
     super.initState();
     _kitchenFuture = ApiService.getKitchenDetail(widget.kitchenId);
     _loadCartCount();
+    ApiService.getUserId().then((uid) {
+      if (mounted) setState(() => _currentUserId = uid);
+    });
     ApiService.getFavorites(type: 'kitchen').then((favs) {
       if (mounted) {
         setState(() {
-          _isFollowing = favs.any((f) => f['id'] == widget.kitchenId);
+          _isFollowing = favs.any((f) {
+            final fid = f['id'] ?? f['kitchen_id'] ?? 0;
+            return fid == widget.kitchenId;
+          });
         });
       }
     });
@@ -89,7 +102,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
     final parts = [
       'Check out ' + kitchen.name + ' on GoChef!',
       '',
-      'Location: ' + kitchen.location,
+      'Location: ' + (_isLocationUnlocked(kitchen) ? kitchen.location : kitchen.approximateLocation),
       'Rating: ' + kitchen.rating.toStringAsFixed(1) + ' (' + kitchen.totalReviews.toString() + ' reviews)',
       'Cuisine: ' + kitchen.cuisineType,
       '',
@@ -242,8 +255,50 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                               const SizedBox(height: 2),
                               Text(kitchen.name, style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface).copyWith(height: 1.15), maxLines: 1, overflow: TextOverflow.ellipsis),
                               if (kitchen.location.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      _isLocationUnlocked(kitchen) ? Icons.location_on : Icons.location_on_outlined,
+                                      size: 13,
+                                      color: AppColors.primary,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        _isLocationUnlocked(kitchen) ? kitchen.location : kitchen.approximateLocation,
+                                        style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 13),
+                                        maxLines: _isLocationUnlocked(kitchen) ? 2 : 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 const SizedBox(height: 2),
-                                Text(kitchen.location, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      _isLocationUnlocked(kitchen) ? Icons.check_circle_outline : Icons.lock_outline,
+                                      size: 11,
+                                      color: _isLocationUnlocked(kitchen) ? Colors.greenAccent : Colors.white54,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        _isLocationUnlocked(kitchen)
+                                            ? 'Full address unlocked with purchase'
+                                            : 'Approximate area • Full address provided after purchase',
+                                        style: TextStyle(
+                                          color: _isLocationUnlocked(kitchen) ? Colors.greenAccent : Colors.white54,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ])),
                           ]),
@@ -375,6 +430,52 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                         ],
                       ),
                     ),
+                    if (kitchen.location.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.glassBorder),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _isLocationUnlocked(kitchen) ? Icons.location_on : Icons.shield_outlined,
+                                color: AppColors.primary,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _isLocationUnlocked(kitchen) ? 'Kitchen Address' : 'Kitchen Location (Approximate Area)',
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _isLocationUnlocked(kitchen)
+                                        ? kitchen.location
+                                        : '${kitchen.approximateLocation} • Exact street address provided upon order placement for chef privacy.',
+                                    style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ]),
                 ),
                 const SizedBox(height: 32),
