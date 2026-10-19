@@ -20,11 +20,15 @@ class ChefMenuScreen extends StatefulWidget {
   const ChefMenuScreen({super.key});
 
   @override
-  State<ChefMenuScreen> createState() => _ChefMenuScreenState();
+  State<ChefMenuScreen> createState() => ChefMenuScreenState();
 }
 
-class _ChefMenuScreenState extends State<ChefMenuScreen> {
+class ChefMenuScreenState extends State<ChefMenuScreen> {
   final TextEditingController _searchController = TextEditingController();
+
+  void showAddDishDialog() {
+    _showAddDishDialog();
+  }
   bool _isLoading = true;
   List<MenuItemModel> _menuItems = [];
   List<CategoryModel> _categories = [];
@@ -318,7 +322,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                             ),
                             child: isUploading 
                               ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) 
-                              : const Text('Save', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              : const Text('Save Dish', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                           ),
                         ),
                       ],
@@ -549,16 +553,19 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
                             ),
                             child: isUploading 
                               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
-                              : const Text('Add Dish', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              : const Text('Save Dish', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),

@@ -26,9 +26,11 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
   String? _lastNotifiedOrderId;
   Timer? _pollingTimer;
 
-  final List<Widget> _screens = [
+  final GlobalKey<ChefMenuScreenState> _menuScreenKey = GlobalKey<ChefMenuScreenState>();
+
+  late final List<Widget> _screens = [
     const ChefProfileScreen(),
-    const ChefMenuScreen(),
+    ChefMenuScreen(key: _menuScreenKey),
     const ChefOrdersScreen(),
     const ChefAnalyticsScreen(),
   ];
@@ -232,8 +234,14 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          setState(() {
-            _currentIndex = 1; // Switch to Menu screen
+          if (_currentIndex != 1) {
+            setState(() {
+              _currentIndex = 1; // Switch to Menu screen
+            });
+          }
+          // Directly open "+ Add New Dish" modal dialog
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _menuScreenKey.currentState?.showAddDishDialog();
           });
         },
         backgroundColor: AppColors.primary,
