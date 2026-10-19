@@ -3,7 +3,6 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../models/review_model.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
 class ReviewsScreen extends StatefulWidget {
   final int kitchenId;
@@ -36,6 +35,8 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
   String _formatReviewDate(String rawDate) {
     if (rawDate.isEmpty) return '';
     try {
