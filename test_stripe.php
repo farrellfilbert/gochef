@@ -48,7 +48,6 @@ curl_setopt($ch, CURLOPT_USERPWD, STRIPE_SECRET_KEY . ':');
 
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
 
 echo "HTTP: $httpCode\n";
 echo "Response: $response\n";
