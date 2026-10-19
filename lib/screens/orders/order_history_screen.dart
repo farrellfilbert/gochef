@@ -45,6 +45,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         toolbarHeight: 80,
         backgroundColor: AppColors.surface.withValues(alpha: 0.8),
         elevation: 0,
+        centerTitle: false,
+        titleSpacing: 16,
         title: const CustomAppBarTitle(),
         actions: const [
           CartIconButton(iconColor: Colors.white),

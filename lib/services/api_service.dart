@@ -524,7 +524,14 @@ class ApiService {
     if (userId == null) return [];
     
     try {
-      final response = await http.get(Uri.parse('$baseUrl/cart.php?user_id=$userId')).timeout(const Duration(seconds: 10));
+      final t = DateTime.now().millisecondsSinceEpoch;
+      final response = await http.get(
+        Uri.parse('$baseUrl/cart.php?user_id=$userId&_t=$t'),
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
+      ).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success'] == true) {
@@ -532,7 +539,7 @@ class ApiService {
         }
       }
     } catch (e) {
-      print('Error getting cart: $e');
+      debugPrint('Error getting cart: $e');
     }
     return [];
   }
@@ -590,9 +597,13 @@ class ApiService {
     if (userId == null) return false;
 
     try {
+      final t = DateTime.now().millisecondsSinceEpoch;
       final response = await http.delete(
-        Uri.parse('$baseUrl/cart.php?clear_all=1&user_id=$userId'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse('$baseUrl/cart.php?clear_all=1&user_id=$userId&_t=$t'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
         body: json.encode({
           'clear_all': true,
           'user_id': int.parse(userId),
@@ -604,7 +615,7 @@ class ApiService {
         return data['success'] == true;
       }
     } catch (e) {
-      print('Error clearing cart: $e');
+      debugPrint('Error clearing cart: $e');
     }
     return false;
   }

@@ -651,12 +651,14 @@ class _CartScreenState extends State<CartScreen> {
                             color: Colors.transparent,
                             child: InkWell(
                               onTap: _selectedKitchenId == null ? null : () {
+                                final typedPromo = _promoController.text.trim().toUpperCase();
+                                final promoToPass = _appliedPromoCode ?? (typedPromo.isNotEmpty ? typedPromo : null);
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => CheckoutScreen(
                                       kitchenId: _selectedKitchenId!,
-                                      initialPromoCode: _appliedPromoCode,
+                                      initialPromoCode: promoToPass,
                                     ),
                                   ),
                                 );

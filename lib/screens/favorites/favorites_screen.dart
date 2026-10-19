@@ -116,6 +116,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
         toolbarHeight: 80,
         backgroundColor: AppColors.surface.withValues(alpha: 0.8),
         elevation: 0,
+        centerTitle: false,
+        titleSpacing: 16,
         title: const CustomAppBarTitle(subtitle: 'Favorites'),
         actions: const [
           CartIconButton(iconColor: Colors.white),

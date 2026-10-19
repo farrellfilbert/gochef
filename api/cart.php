@@ -1,4 +1,13 @@
 <?php
+header('Content-Type: application/json');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 require_once 'db_connect.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -39,9 +48,21 @@ if ($method === 'GET') {
     echo json_encode(['success' => true, 'data' => $items]);
 
 } elseif ($method === 'POST') {
-    // Add item to cart
-    $input = json_decode(file_get_contents('php://input'), true);
-    $user_id = intval($input['user_id'] ?? 0);
+    // Add item to cart or clear cart
+    $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    $user_id = intval($input['user_id'] ?? $_GET['user_id'] ?? 0);
+    $clear_all = !empty($input['clear_all']) || !empty($_GET['clear_all']) || (($input['action'] ?? '') === 'clear');
+
+    if ($clear_all && $user_id) {
+        $stmtAddons = $pdo->prepare("DELETE FROM cart_item_addons WHERE cart_item_id IN (SELECT id FROM cart_items WHERE user_id = ?)");
+        try { $stmtAddons->execute([$user_id]); } catch (Exception $e) {}
+
+        $stmt = $pdo->prepare("DELETE FROM cart_items WHERE user_id = ?");
+        $stmt->execute([$user_id]);
+        echo json_encode(['success' => true, 'message' => 'Cart cleared']);
+        exit;
+    }
+
     $menu_item_id = intval($input['menu_item_id'] ?? 0);
     $quantity = intval($input['quantity'] ?? 1);
     $notes = $input['notes'] ?? '';

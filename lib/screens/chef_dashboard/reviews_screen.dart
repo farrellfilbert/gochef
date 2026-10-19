@@ -36,6 +36,30 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  String _formatReviewDate(String rawDate) {
+    if (rawDate.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(rawDate.replaceAll(' ', 'T'));
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return '${months[dt.month - 1]} ${dt.year}';
+    } catch (_) {
+      try {
+        final parts = rawDate.split(' ')[0].split('-');
+        if (parts.length >= 2) {
+          final year = parts[0];
+          final monthIdx = int.tryParse(parts[1]) ?? 1;
+          const months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+          ];
+          return '${months[monthIdx - 1]} $year';
+        }
+      } catch (_) {}
+      return rawDate;
+    }
   }
 
   @override
@@ -93,7 +117,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(review.userName, style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
-                                      Text(timeago.format(DateTime.parse(review.createdAt)), style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                                      Text(_formatReviewDate(review.createdAt), style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
                                     ],
                                   ),
                                 ),

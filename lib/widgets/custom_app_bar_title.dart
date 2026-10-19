@@ -127,6 +127,7 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
         Navigator.push(context, MaterialPageRoute(builder: (context) => const MapScreen()));
       },
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 40,
@@ -140,19 +141,20 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
+          const SizedBox(width: 10),
+          Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   _name,
-                  style: AppTextStyles.headlineLgMobile(color: Colors.white).copyWith(fontSize: 20),
+                  style: AppTextStyles.headlineLgMobile(color: Colors.white).copyWith(fontSize: 18),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.location_on, size: 14, color: AppColors.primary),
                     const SizedBox(width: 4),
