@@ -4,14 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'order_complete_screen.dart';
-import 'payment_webview_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/address_model.dart';
 import '../../models/cart_item_model.dart';
 import '../profile/address_selection_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/foundation.dart';
-import '../../utils/web_js.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final int kitchenId;
@@ -61,7 +57,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'code': 'FREEDEL',
       'discount': 'FREE DELIVERY',
       'title': 'Free Delivery This Week',
-      'subtitle': 'On all orders above $20',
+      'subtitle': 'On all orders above \$20',
       'discountType': 'free_delivery',
       'discountValue': 4.0,
       'minSpend': 20.0,
@@ -70,7 +66,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'code': 'FREEDELIV',
       'discount': 'FREE DELIVERY',
       'title': 'Free Delivery This Week',
-      'subtitle': 'On all orders above $20',
+      'subtitle': 'On all orders above \$20',
       'discountType': 'free_delivery',
       'discountValue': 4.0,
       'minSpend': 20.0,
