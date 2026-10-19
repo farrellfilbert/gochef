@@ -15,6 +15,13 @@ foreach ($tables as $table) {
     }
 }
 
+try {
+    $pdo->exec("ALTER TABLE chat_messages MODIFY message TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $results['chat_messages_column'] = 'Modified message column to utf8mb4 successfully';
+} catch (Exception $e) {
+    $results['chat_messages_column'] = 'Error: ' . $e->getMessage();
+}
+
 // Also fix any reviews where comment has '?' placeholders if needed
 try {
     $stmt = $pdo->query("SELECT id, comment FROM reviews");
