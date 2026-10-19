@@ -3,7 +3,7 @@ require_once 'db_connect.php';
 
 header('Content-Type: application/json');
 
-$tables = ['reviews', 'notifications', 'messages', 'users', 'kitchens', 'menu_items', 'orders', 'order_items'];
+$tables = ['reviews', 'notifications', 'chat_messages', 'users', 'kitchens', 'menu_items'];
 $results = [];
 
 foreach ($tables as $table) {
