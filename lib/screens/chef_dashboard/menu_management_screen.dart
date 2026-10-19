@@ -51,7 +51,7 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
       });
       
       if (_kitchenId != null) {
-        final items = await ApiService.getMenuItems(kitchenId: _kitchenId!);
+        final items = await ApiService.getMenuItems(kitchenId: _kitchenId!, all: true);
         setState(() {
           _menuItems = items;
         });
@@ -678,8 +678,9 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                     description: item.description,
                     price: '\$${item.price.toStringAsFixed(2)}',
                     imagePath: item.image,
-                    inventory: 'In stock',
-                    isActive: true,
+                    inventory: item.isAvailable ? 'In stock' : 'Out of stock',
+                    inventoryColor: item.isAvailable ? Colors.white : AppColors.error,
+                    isActive: item.isAvailable,
                   ),
                 );
               }),
@@ -802,7 +803,55 @@ class _ChefMenuScreenState extends State<ChefMenuScreen> {
                           const SizedBox(width: 8),
                           Switch(
                             value: isActive,
-                            onChanged: (bool value) {},
+                            onChanged: (bool value) async {
+                              final int itemId = id;
+                              final int kId = _kitchenId ?? item.kitchenId;
+                              setState(() {
+                                final idx = _menuItems.indexWhere((m) => m.id == itemId);
+                                if (idx != -1) {
+                                  _menuItems[idx] = MenuItemModel(
+                                    id: item.id,
+                                    kitchenId: item.kitchenId,
+                                    name: item.name,
+                                    description: item.description,
+                                    price: item.price,
+                                    image: item.image,
+                                    rating: item.rating,
+                                    totalReviews: item.totalReviews,
+                                    prepTime: item.prepTime,
+                                    isAvailable: value,
+                                    isPopular: item.isPopular,
+                                    kitchenName: item.kitchenName,
+                                    kitchenAvatar: item.kitchenAvatar,
+                                    categoryId: item.categoryId,
+                                    calories: item.calories,
+                                    createdAt: item.createdAt,
+                                    categoryName: item.categoryName,
+                                    reviews: item.reviews,
+                                    addons: item.addons,
+                                    addonCategories: item.addonCategories,
+                                  );
+                                }
+                              });
+                              final success = await ApiService.toggleMenuItemAvailability(itemId, kId, value);
+                              if (!success && mounted) {
+                                _loadMenu();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Failed to update dish status'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              } else if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${item.name} is now ${value ? "Active (in stock)" : "Inactive (out of stock)"}'),
+                                    backgroundColor: value ? Colors.green : Colors.orange,
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            },
                             activeColor: AppColors.primary,
                             activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
                           ),

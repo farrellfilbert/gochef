@@ -3,11 +3,7 @@ require_header();
 require_once 'db_connect.php';
 
 function require_header() {
-    
     header("Content-Type: application/json; charset=UTF-8");
-    
-    
-    
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -25,21 +21,32 @@ if (!isset($data->id) || !isset($data->kitchen_id)) {
 
 $id = intval($data->id);
 $kitchen_id = intval($data->kitchen_id);
+
+// Quick toggle: if only is_available is provided without name
+if (isset($data->is_available) && !isset($data->name)) {
+    $is_available = (intval($data->is_available) === 1 || $data->is_available === true) ? 1 : 0;
+    $stmt = $pdo->prepare("UPDATE menu_items SET is_available = ? WHERE id = ? AND kitchen_id = ?");
+    $result = $stmt->execute([$is_available, $id, $kitchen_id]);
+    echo json_encode(["message" => "Menu item availability updated.", "is_available" => $is_available, "success" => (bool)$result]);
+    exit();
+}
+
 $category_id = isset($data->category_id) ? intval($data->category_id) : 1;
 $name = isset($data->name) ? $data->name : '';
 $description = isset($data->description) ? $data->description : '';
 $price = isset($data->price) ? floatval($data->price) : 0;
 $image = isset($data->image) ? $data->image : '';
 $calories = isset($data->calories) ? intval($data->calories) : 650;
+$is_available = isset($data->is_available) ? ((intval($data->is_available) === 1 || $data->is_available === true) ? 1 : 0) : 1;
 
 if ($image !== '') {
-    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ?, calories = ? WHERE id = ? AND kitchen_id = ?";
+    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ?, calories = ?, is_available = ? WHERE id = ? AND kitchen_id = ?";
     $stmt = $pdo->prepare($query);
-    $result = $stmt->execute([$name, $description, $price, $category_id, $image, $calories, $id, $kitchen_id]);
+    $result = $stmt->execute([$name, $description, $price, $category_id, $image, $calories, $is_available, $id, $kitchen_id]);
 } else {
-    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, calories = ? WHERE id = ? AND kitchen_id = ?";
+    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, calories = ?, is_available = ? WHERE id = ? AND kitchen_id = ?";
     $stmt = $pdo->prepare($query);
-    $result = $stmt->execute([$name, $description, $price, $category_id, $calories, $id, $kitchen_id]);
+    $result = $stmt->execute([$name, $description, $price, $category_id, $calories, $is_available, $id, $kitchen_id]);
 }
 
 if ($result) {

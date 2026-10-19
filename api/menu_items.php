@@ -17,11 +17,16 @@ try {
     $popular = isset($_GET['popular']) ? true : false;
     $search = isset($_GET['q']) ? trim($_GET['q']) : '';
 
+    $all = isset($_GET['all']) && ($_GET['all'] == '1' || $_GET['all'] == 'true');
+
     $sql = "SELECT mi.*, k.name as kitchen_name, k.avatar as kitchen_avatar, c.name as category_name 
             FROM menu_items mi 
             JOIN kitchens k ON mi.kitchen_id = k.id 
             LEFT JOIN categories c ON mi.category_id = c.id 
-            WHERE mi.is_available = 1";
+            WHERE 1=1";
+    if (!$all) {
+        $sql .= " AND (mi.is_available = 1 OR mi.is_available IS NULL)";
+    }
     $params = [];
 
     if ($kitchen_id) {

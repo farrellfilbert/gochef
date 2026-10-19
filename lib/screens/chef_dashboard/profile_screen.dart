@@ -266,6 +266,24 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     }
   }
 
+  TimeOfDay? _parseTimeString(String rawTime) {
+    try {
+      final clean = rawTime.trim().toUpperCase();
+      final isPM = clean.contains('PM');
+      final isAM = clean.contains('AM');
+      final timeOnly = clean.replaceAll('AM', '').replaceAll('PM', '').trim();
+      final parts = timeOnly.split(':');
+      if (parts.length == 2) {
+        int hour = int.parse(parts[0].trim());
+        int minute = int.parse(parts[1].trim());
+        if (isPM && hour < 12) hour += 12;
+        if (isAM && hour == 12) hour = 0;
+        return TimeOfDay(hour: hour, minute: minute);
+      }
+    } catch (_) {}
+    return null;
+  }
+
   void _showBusinessHoursDialog() {
     TimeOfDay openTime = const TimeOfDay(hour: 9, minute: 0);
     TimeOfDay closeTime = const TimeOfDay(hour: 22, minute: 0);
@@ -274,10 +292,10 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     if (_kitchen != null && _kitchen!.businessHours.contains('-')) {
       final parts = _kitchen!.businessHours.split('-');
       if (parts.length == 2) {
-        // e.g. "09:00 AM" and "10:00 PM"
-        try {
-          // Keep existing time string as reference
-        } catch (_) {}
+        final parsedOpen = _parseTimeString(parts[0]);
+        final parsedClose = _parseTimeString(parts[1]);
+        if (parsedOpen != null) openTime = parsedOpen;
+        if (parsedClose != null) closeTime = parsedClose;
       }
     }
 
@@ -373,6 +391,36 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   onPressed: () async {
                     final formattedHours = '${openTime.format(context)} - ${closeTime.format(context)}';
                     if (_kitchenId != null) {
+                      setState(() {
+                        if (_kitchen != null) {
+                          _kitchen = KitchenModel(
+                            id: _kitchen!.id,
+                            userId: _kitchen!.userId,
+                            name: _kitchen!.name,
+                            chefName: _kitchen!.chefName,
+                            description: _kitchen!.description,
+                            avatar: _kitchen!.avatar,
+                            coverImage: _kitchen!.coverImage,
+                            rating: _kitchen!.rating,
+                            totalReviews: _kitchen!.totalReviews,
+                            cuisineType: _kitchen!.cuisineType,
+                            deliveryTime: _kitchen!.deliveryTime,
+                            businessHours: formattedHours,
+                            isOpen: isOpen,
+                            location: _kitchen!.location,
+                            latitude: _kitchen!.latitude,
+                            longitude: _kitchen!.longitude,
+                            isVerified: _kitchen!.isVerified,
+                            isFeatured: _kitchen!.isFeatured,
+                            createdAt: _kitchen!.createdAt,
+                            atmosphereImages: _kitchen!.atmosphereImages,
+                            certificates: _kitchen!.certificates,
+                            menuItems: _kitchen!.menuItems,
+                            reviews: _kitchen!.reviews,
+                            hasPurchased: _kitchen!.hasPurchased,
+                          );
+                        }
+                      });
                       await ApiService.updateKitchen({
                         'kitchen_id': _kitchenId,
                         'business_hours': formattedHours,

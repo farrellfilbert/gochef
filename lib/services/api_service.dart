@@ -448,12 +448,13 @@ class ApiService {
   // MENU ITEMS
   // =============================================
 
-  static Future<List<MenuItemModel>> getMenuItems({int? kitchenId, int? categoryId, bool popular = false, String? search}) async {
+  static Future<List<MenuItemModel>> getMenuItems({int? kitchenId, int? categoryId, bool popular = false, String? search, bool all = false}) async {
     var url = '$baseUrl/menu_items.php?';
     if (kitchenId != null) url += 'kitchen_id=$kitchenId&';
     if (categoryId != null) url += 'category_id=$categoryId&';
     if (popular) url += 'popular=1&';
     if (search != null) url += 'q=${Uri.encodeComponent(search)}&';
+    if (all) url += 'all=1&';
 
     final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
@@ -1107,6 +1108,14 @@ class ApiService {
       return resData['success'] == true;
     }
     return false;
+  }
+
+  static Future<bool> toggleMenuItemAvailability(int id, int kitchenId, bool isAvailable) async {
+    return await updateMenuItem({
+      'id': id,
+      'kitchen_id': kitchenId,
+      'is_available': isAvailable ? 1 : 0,
+    });
   }
 
   static Future<bool> deleteMenuItem(int id) async {
