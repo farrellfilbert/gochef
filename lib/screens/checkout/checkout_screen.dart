@@ -58,13 +58,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'minSpend': 0.0,
     },
     {
+      'code': 'FREEDEL',
+      'discount': 'FREE DELIVERY',
+      'title': 'Free Delivery This Week',
+      'subtitle': 'On all orders above $20',
+      'discountType': 'free_delivery',
+      'discountValue': 4.0,
+      'minSpend': 20.0,
+    },
+    {
       'code': 'FREEDELIV',
       'discount': 'FREE DELIVERY',
       'title': 'Free Delivery This Week',
-      'subtitle': 'Zero delivery fee',
+      'subtitle': 'On all orders above $20',
       'discountType': 'free_delivery',
       'discountValue': 4.0,
-      'minSpend': 0.0,
+      'minSpend': 20.0,
     },
     {
       'code': 'B2G1RAMEN',
@@ -146,15 +155,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final matched = _availableVouchers.firstWhere(
           (v) => (v['code']?.toString().toUpperCase() == code),
           orElse: () {
+            final isFree = (code == 'FREEDEL' || code == 'FREEDELIV' || code == 'FREESHIP');
             final is50 = (code == 'FIRST50' || code == 'GOCHEF50');
-            final isFree = (code == 'FREEDELIV' || code == 'FREESHIP');
+            final minSpend = isFree ? 20.0 : (code == 'GOCHEF40' ? 20.0 : 0.0);
             return {
               'code': code,
-              'discount': isFree ? 'Free Delivery' : (is50 ? '50% OFF' : '20% OFF'),
-              'title': '$code Promo Code',
-              'subtitle': 'Applied from cart',
+              'discount': isFree ? 'FREE DELIVERY' : (is50 ? '50% OFF' : '20% OFF'),
+              'title': isFree ? 'Free Delivery This Week' : '$code Promo Code',
+              'subtitle': isFree ? 'On all orders above \$20' : 'Applied from cart',
               'discountType': isFree ? 'free_delivery' : 'percent',
-              'discountValue': isFree ? 0.0 : (is50 ? 50.0 : 20.0),
+              'discountValue': isFree ? 4.0 : (is50 ? 50.0 : 20.0),
+              'minSpend': minSpend,
             };
           },
         );
@@ -211,16 +222,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     double discount = 0.0;
 
     if (_selectedVoucher != null) {
-      final type = _selectedVoucher!['discountType'] ?? 'percent';
-      final val = double.tryParse(_selectedVoucher!['discountValue']?.toString() ?? '') ?? 0.0;
+      final minSpend = double.tryParse(_selectedVoucher!['minSpend']?.toString() ?? '0') ?? 0.0;
+      if (_subtotal < minSpend) {
+        discount = 0.0;
+      } else {
+        final type = _selectedVoucher!['discountType'] ?? 'percent';
+        final val = double.tryParse(_selectedVoucher!['discountValue']?.toString() ?? '') ?? 0.0;
 
-      if (type == 'percent') {
-        discount = _subtotal * (val / 100.0);
-      } else if (type == 'free_delivery') {
-        discount = delivery;
-        delivery = 0.0;
-      } else if (type == 'fixed') {
-        discount = val.clamp(0.0, _subtotal);
+        if (type == 'percent') {
+          discount = _subtotal * (val / 100.0);
+        } else if (type == 'free_delivery') {
+          discount = delivery;
+          delivery = 0.0;
+        } else if (type == 'fixed') {
+          discount = val.clamp(0.0, _subtotal);
+        }
       }
     }
 
@@ -230,7 +246,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   bool typeIsFreeDelivery() {
-    return _selectedVoucher != null && _selectedVoucher!['discountType'] == 'free_delivery';
+    if (_selectedVoucher == null) return false;
+    final minSpend = double.tryParse(_selectedVoucher!['minSpend']?.toString() ?? '0') ?? 0.0;
+    if (_subtotal < minSpend) return false;
+    return _selectedVoucher!['discountType'] == 'free_delivery';
   }
 
   Future<void> _pickDate() async {
@@ -335,25 +354,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           final code = promoController.text.trim().toUpperCase();
                           if (code.isEmpty) return;
                           
+                          final isFree = (code == 'FREEDEL' || code == 'FREEDELIV' || code == 'FREESHIP');
                           final is50 = (code == 'FIRST50' || code == 'GOCHEF50');
-                          final custom = {
-                            'code': code,
-                            'discount': is50 ? '50% OFF' : '20% OFF',
-                            'title': '$code Promo Code',
-                            'subtitle': 'Applied from code',
-                            'discountType': 'percent',
-                            'discountValue': is50 ? 50.0 : 20.0,
-                          };
+                          final minSpend = isFree ? 20.0 : (code == 'GOCHEF40' ? 20.0 : 0.0);
+
+                          if (_subtotal < minSpend) {
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              SnackBar(
+                                content: Text('⚠️ Voucher "$code" requires a minimum order of \$${minSpend.toStringAsFixed(2)}. (Subtotal: \$${_subtotal.toStringAsFixed(2)})'),
+                                backgroundColor: AppColors.error,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final matched = _availableVouchers.firstWhere(
+                            (v) => (v['code']?.toString().toUpperCase() == code),
+                            orElse: () => {
+                              'code': code,
+                              'discount': isFree ? 'FREE DELIVERY' : (is50 ? '50% OFF' : '20% OFF'),
+                              'title': isFree ? 'Free Delivery This Week' : '$code Promo Code',
+                              'subtitle': isFree ? 'On all orders above \$20' : 'Applied from code',
+                              'discountType': isFree ? 'free_delivery' : 'percent',
+                              'discountValue': isFree ? 4.0 : (is50 ? 50.0 : 20.0),
+                              'minSpend': minSpend,
+                            },
+                          );
 
                           setState(() {
-                            _selectedVoucher = custom;
+                            _selectedVoucher = matched;
                             _recalculateTotal();
                           });
                           Navigator.pop(ctx);
 
                           ScaffoldMessenger.of(this.context).showSnackBar(
                             SnackBar(
-                              content: Text('Voucher "$code" applied! Saved \$${_discountAmount.toStringAsFixed(2)}'),
+                              content: Text('Voucher "$code" applied! ${isFree ? "Free Delivery activated!" : "Saved \$${_discountAmount.toStringAsFixed(2)}"}'),
                               backgroundColor: Colors.green,
                               behavior: SnackBarBehavior.floating,
                             ),
@@ -386,15 +423,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(14),
                             onTap: () {
+                              final minSpend = double.tryParse(v['minSpend']?.toString() ?? '0') ?? 0.0;
+                              if (_subtotal < minSpend) {
+                                ScaffoldMessenger.of(this.context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('⚠️ "${v['title']}" requires a minimum order of \$${minSpend.toStringAsFixed(2)}. (Subtotal: \$${_subtotal.toStringAsFixed(2)})'),
+                                    backgroundColor: AppColors.error,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                                return;
+                              }
                               setState(() {
                                 _selectedVoucher = v;
                                 _recalculateTotal();
                               });
                               Navigator.pop(ctx);
 
+                              final isFree = v['discountType'] == 'free_delivery';
                               ScaffoldMessenger.of(this.context).showSnackBar(
                                 SnackBar(
-                                  content: Text('🎉 Applied "${v['title']}"! You saved \$${_discountAmount.toStringAsFixed(2)}'),
+                                  content: Text('🎉 Applied "${v['title']}"! ${isFree ? "Free Delivery activated!" : "You saved \$${_discountAmount.toStringAsFixed(2)}"}'),
                                   backgroundColor: Colors.green,
                                   behavior: SnackBarBehavior.floating,
                                   duration: const Duration(seconds: 3),

@@ -246,7 +246,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                               Text(
                                 kitchen.chefName.isNotEmpty
-                                    ? 'CHEF ${kitchen.chefName.toUpperCase()}'
+                                    ? 'CHEF ${kitchen.formattedChefName.toUpperCase()}'
                                     : (kitchen.description.contains('created by')
                                         ? 'CHEF ${kitchen.description.split('created by')[1].split(',')[0].trim().toUpperCase()}'
                                         : (kitchen.cuisineType.isNotEmpty ? kitchen.cuisineType.toUpperCase() : 'CHEF')),

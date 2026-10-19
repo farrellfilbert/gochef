@@ -1799,12 +1799,39 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     height: 56,
                     child: OutlinedButton(
                       onPressed: () async {
-                        await ApiService.logout();
-                        if (context.mounted) {
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
-                            (Route<dynamic> route) => false,
-                          );
+                        final shouldLogout = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            backgroundColor: AppColors.surfaceContainerHigh,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            title: const Text('Log out?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            content: const Text('Are you sure you want to log out?', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.error,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text('Log Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (shouldLogout == true && context.mounted) {
+                          await ApiService.logout();
+                          if (context.mounted) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (context) => const LoginScreen()),
+                              (Route<dynamic> route) => false,
+                            );
+                          }
                         }
                       },
                       style: OutlinedButton.styleFrom(

@@ -45,8 +45,31 @@ class _CartScreenState extends State<CartScreen> {
     final code = _promoController.text.trim().toUpperCase();
     if (code.isEmpty) return;
 
+    final isFree = (code == 'FREEDEL' || code == 'FREEDELIV' || code == 'FREESHIP');
     final is50 = (code == 'FIRST50' || code == 'GOCHEF50');
-    final isFree = (code == 'FREEDELIV' || code == 'FREESHIP');
+    final minSpend = isFree ? 20.0 : (code == 'GOCHEF40' ? 20.0 : 0.0);
+
+    final selectedItems = _cartItems.where((i) => i.kitchenId == _selectedKitchenId).toList();
+    double currentSubtotal = 0;
+    for (var item in selectedItems) {
+      currentSubtotal += item.totalPrice;
+    }
+    if (currentSubtotal <= 0) {
+      for (var item in _cartItems) {
+        currentSubtotal += item.totalPrice;
+      }
+    }
+
+    if (currentSubtotal < minSpend) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('⚠️ Promo code "$code" requires a minimum order of \$${minSpend.toStringAsFixed(2)}. (Current subtotal: \$${currentSubtotal.toStringAsFixed(2)})'),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _appliedPromoCode = code;
@@ -63,7 +86,7 @@ class _CartScreenState extends State<CartScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('🎉 Promo Code "$code" applied!'),
+        content: Text('🎉 Promo Code "$code" applied! ${isFree ? "Free Delivery activated!" : ""}'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
       ),

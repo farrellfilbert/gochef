@@ -99,6 +99,18 @@ class KitchenModel {
     return 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=400&q=80';
   }
 
+  /// Returns chef display name with First Name + Last Initial (e.g. "Elizabeth S.")
+  /// to protect chef privacy instead of exposing full legal name.
+  String get formattedChefName {
+    final clean = chefName.trim();
+    if (clean.isEmpty) return '';
+    final parts = clean.split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
+    if (parts.length <= 1) return clean;
+    final firstName = parts.first;
+    final lastInitial = parts.last[0].toUpperCase();
+    return '$firstName $lastInitial.';
+  }
+
   /// Returns an approximate location (City, State / Area) similar to Airbnb
   /// to protect chef privacy until an order/purchase is made.
   String get approximateLocation {

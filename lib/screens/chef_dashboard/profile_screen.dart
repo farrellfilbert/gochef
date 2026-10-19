@@ -449,6 +449,40 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     );
   }
 
+  Future<void> _confirmLogout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceContainerHigh,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Log out?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text('Are you sure you want to log out?', style: TextStyle(color: AppColors.onSurfaceVariant)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Log Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true && mounted) {
+      await ApiService.logout();
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false);
+      }
+    }
+  }
+
   void _showDeliveryRadiusDialog() {
     double currentRadius = _deliveryRadius;
 
@@ -1137,19 +1171,22 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                           }
                         },
                       ),
-                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      ListTile(
-                        leading: const Icon(Icons.logout, color: Colors.redAccent),
-                        title: Text('Log Out', style: AppTextStyles.bodyMd(color: Colors.redAccent).copyWith(fontWeight: FontWeight.bold)),
-                        trailing: const Icon(Icons.chevron_right, color: Colors.white60),
-                        onTap: () async {
-                          await ApiService.logout();
-                          if (mounted) {
-                            Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false);
-                          }
-                        },
-                      ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Separate card for Logout to prevent accidental tapping
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                  ),
+                  child: ListTile(
+                    leading: const Icon(Icons.logout, color: AppColors.error),
+                    title: Text('Log Out', style: AppTextStyles.bodyMd(color: AppColors.error).copyWith(fontWeight: FontWeight.bold)),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.white60),
+                    onTap: _confirmLogout,
                   ),
                 ),
                 const SizedBox(height: 80),
