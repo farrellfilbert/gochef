@@ -1,1 +1,1 @@
-<?php require 'api/db_connect.php'; try { $pdo->exec("ALTER TABLE users ADD COLUMN avatar VARCHAR(500) DEFAULT ''"); echo 'Success'; } catch (Exception $e) { echo $e->getMessage(); } ?>
+<?php require 'api/db_connect.php'; try { $pdo->exec("ALTER TABLE chat_messages MODIFY message TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"); $pdo->exec("ALTER TABLE reviews MODIFY comment TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"); echo 'Success'; } catch (Exception $e) { echo $e->getMessage(); } ?>
