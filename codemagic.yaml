@@ -23,7 +23,10 @@ workflows:
       - name: Flutter build ipa & export
         script: |
           flutter pub get
-          flutter build ipa --release --no-codesign
+          BUILD_NUM=${BUILD_NUMBER:-1}
+          FINAL_BUILD_NUMBER=$((BUILD_NUM + 30))
+          echo "Building iOS IPA with build number: $FINAL_BUILD_NUMBER"
+          flutter build ipa --release --no-codesign --build-name=2.0.1 --build-number=$FINAL_BUILD_NUMBER
           xcodebuild -exportArchive \
             -archivePath build/ios/archive/Runner.xcarchive \
             -exportOptionsPlist /Users/builder/export_options.plist \
