@@ -44,7 +44,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
 
   Future<void> _silentLoadOrders() async {
     try {
-      final orders = await ApiService.getOrders();
+      final orders = await ApiService.getOrders(forChef: true);
       _checkScheduledOrders(orders);
       if (mounted) {
         if (_prevOrdersLength >= 0 && orders.length > _prevOrdersLength) {
@@ -88,7 +88,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   Future<void> _loadOrders() async {
     setState(() => _isLoading = true);
     try {
-      final orders = await ApiService.getOrders();
+      final orders = await ApiService.getOrders(forChef: true);
       _checkScheduledOrders(orders);
       if (mounted) {
         setState(() {

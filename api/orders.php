@@ -36,33 +36,15 @@ try {
         $stmt->execute([$kitchen_id]);
         $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } else {
-        // Check if user owns a kitchen
-        $kStmt = $pdo->prepare("SELECT id FROM kitchens WHERE user_id = ? LIMIT 1");
-        $kStmt->execute([$user_id]);
-        $kitchen = $kStmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($kitchen) {
-            $chefKitchenId = $kitchen['id'];
-            $stmt = $pdo->prepare("
-                SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar, k.user_id as kitchen_user_id
-                FROM orders o 
-                LEFT JOIN users u ON o.user_id = u.id 
-                LEFT JOIN kitchens k ON o.kitchen_id = k.id
-                WHERE o.kitchen_id = ? OR o.user_id = ?
-                ORDER BY o.order_date DESC, o.created_at DESC, o.id DESC
-            ");
-            $stmt->execute([$chefKitchenId, $user_id]);
-        } else {
-            $stmt = $pdo->prepare("
-                SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar, k.user_id as kitchen_user_id
-                FROM orders o 
-                LEFT JOIN users u ON o.user_id = u.id 
-                LEFT JOIN kitchens k ON o.kitchen_id = k.id
-                WHERE o.user_id = ? 
-                ORDER BY o.order_date DESC, o.created_at DESC, o.id DESC
-            ");
-            $stmt->execute([$user_id]);
-        }
+        $stmt = $pdo->prepare("
+            SELECT o.*, u.name as customer_name, u.phone as customer_phone, u.avatar as customer_avatar, k.user_id as kitchen_user_id
+            FROM orders o 
+            LEFT JOIN users u ON o.user_id = u.id 
+            LEFT JOIN kitchens k ON o.kitchen_id = k.id
+            WHERE o.user_id = ? 
+            ORDER BY o.order_date DESC, o.created_at DESC, o.id DESC
+        ");
+        $stmt->execute([$user_id]);
         $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     

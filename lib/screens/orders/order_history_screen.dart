@@ -27,12 +27,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _ordersFuture = ApiService.getOrders();
+    _ordersFuture = ApiService.getOrders(forChef: false);
   }
 
   Future<void> _refreshOrders() async {
     setState(() {
-      _ordersFuture = ApiService.getOrders();
+      _ordersFuture = ApiService.getOrders(forChef: false);
     });
     await _ordersFuture;
   }

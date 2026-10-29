@@ -60,7 +60,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<ProfileData> _loadData() async {
     final user = await ApiService.getProfile();
-    final orders = await ApiService.getOrders();
+    final orders = await ApiService.getOrders(forChef: false);
     
     int bonusCoins = 0;
     int totalVouchers = 25;

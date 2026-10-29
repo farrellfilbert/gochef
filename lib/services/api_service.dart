@@ -803,14 +803,15 @@ class ApiService {
   // ORDERS
   // =============================================
 
-  static Future<List<OrderModel>> getOrders() async {
+  static Future<List<OrderModel>> getOrders({bool? forChef}) async {
     final userId = await getUserId();
     final role = await getUserRole();
     final kitchenId = await getKitchenId();
     if (userId == null) return [];
 
     var url = '$baseUrl/orders.php?';
-    if (role == 'chef' && kitchenId != null) {
+    final isChef = forChef ?? (role == 'chef');
+    if (isChef && kitchenId != null) {
       url += 'kitchen_id=$kitchenId';
     } else {
       url += 'user_id=$userId';
