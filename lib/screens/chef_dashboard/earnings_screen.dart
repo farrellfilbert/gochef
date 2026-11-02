@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../models/kitchen_model.dart';
+import '../../models/order_model.dart';
 
 class ChefEarningsScreen extends StatefulWidget {
   final KitchenModel? initialKitchen;
@@ -13,23 +13,41 @@ class ChefEarningsScreen extends StatefulWidget {
 }
 
 class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
-  late Future<Map<String, dynamic>?> _analyticsFuture;
+  late Future<void> _dataFuture;
   KitchenModel? _kitchen;
-  bool _isLoadingKitchen = true;
+  bool _isLoading = true;
   double _currentRevenue = 0.0;
+  List<OrderModel> _completedOrders = [];
+  final List<Map<String, dynamic>> _payoutTransactions = [];
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
     if (widget.initialKitchen != null) {
       _kitchen = widget.initialKitchen;
-      _isLoadingKitchen = false;
     }
     _loadAll();
+
+    // Real-time background sync every 15 seconds
+    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (mounted) {
+        _loadAll(silent: true);
+      }
+    });
   }
 
-  void _loadAll() {
-    _analyticsFuture = _loadData();
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  void _loadAll({bool silent = false}) {
+    if (!silent) {
+      setState(() => _isLoading = _kitchen == null);
+    }
+    _dataFuture = _fetchRealtimeData();
   }
 
   Future<int> _resolveKitchenId() async {
@@ -59,94 +77,140 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
     return 10; // Safe default kitchen (Marcus' Smokehouse)
   }
 
-  Future<Map<String, dynamic>?> _loadData() async {
-    setState(() => _isLoadingKitchen = true);
+  Future<void> _fetchRealtimeData() async {
     final kId = await _resolveKitchenId();
-    KitchenModel? kitchen = _kitchen ?? widget.initialKitchen;
-    if (kitchen == null || kitchen.id != kId) {
-      kitchen = await ApiService.getKitchenDetail(kId);
-    }
-    final analytics = await ApiService.getKitchenAnalytics(kId);
 
-    if (mounted) {
-      setState(() {
-        _kitchen = kitchen;
-        _isLoadingKitchen = false;
-        final revVal = double.tryParse(analytics?['revenue']?.toString() ?? '');
-        _currentRevenue = revVal ?? 0.0;
-      });
+    try {
+      // 1. Fetch live Kitchen details (bank info, etc.)
+      final kitchenFuture = ApiService.getKitchenDetail(kId);
+
+      // 2. Fetch live Analytics (revenue calculated from completed orders)
+      final analyticsFuture = ApiService.getKitchenAnalytics(kId);
+
+      // 3. Fetch live Orders list for transactions
+      final ordersFuture = ApiService.getKitchenOrders(kId);
+
+      final results = await Future.wait([
+        kitchenFuture,
+        analyticsFuture,
+        ordersFuture,
+      ]);
+
+      final kitchen = results[0] as KitchenModel?;
+      final analytics = results[1] as Map<String, dynamic>?;
+      final orders = (results[2] as List<OrderModel>?) ?? [];
+
+      final completed = orders.where((o) {
+        final st = o.status.toLowerCase();
+        return st == 'completed' || st == 'delivered';
+      }).toList();
+
+      if (mounted) {
+        setState(() {
+          if (kitchen != null) _kitchen = kitchen;
+          final revVal = double.tryParse(analytics?['revenue']?.toString() ?? '');
+          _currentRevenue = revVal ?? 0.0;
+          _completedOrders = completed;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
     }
-    return analytics;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF0F0F13),
       appBar: AppBar(
-        backgroundColor: AppColors.surface.withValues(alpha: 0.8),
+        backgroundColor: const Color(0xFF16161D),
         elevation: 0,
-        title: const Text('Earnings & Payouts', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Earnings & Payouts',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: Colors.greenAccent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'LIVE',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-      body: FutureBuilder<Map<String, dynamic>?>(
-        future: _analyticsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && _isLoadingKitchen && _kitchen == null) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-          }
+      body: _isLoading && _kitchen == null
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          : RefreshIndicator(
+              color: Colors.black,
+              backgroundColor: Colors.white,
+              onRefresh: () async {
+                _loadAll();
+                await _dataFuture;
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. Total Balance Card
+                    _buildBalanceCard('\$${_currentRevenue.toStringAsFixed(2)}'),
+                    const SizedBox(height: 20),
 
-          final revenueStr = '\$${_currentRevenue.toStringAsFixed(2)}';
+                    // 2. Linked Bank Account Card
+                    _buildBankAccountCard(),
+                    const SizedBox(height: 20),
 
-          return RefreshIndicator(
-            color: AppColors.primary,
-            backgroundColor: AppColors.surface,
-            onRefresh: () async {
-              _loadAll();
-              await _analyticsFuture;
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Total Balance Card
-                  _buildBalanceCard(revenueStr),
-                  const SizedBox(height: 24),
+                    // 3. How Payouts Work Guide
+                    _buildHowPayoutsWorkCard(),
+                    const SizedBox(height: 28),
 
-                  // 2. Linked Bank Account Card
-                  _buildBankAccountCard(),
-                  const SizedBox(height: 24),
-
-                  // 3. How Payouts Work Guide
-                  _buildHowPayoutsWorkCard(),
-                  const SizedBox(height: 28),
-
-                  // 4. Recent Transactions
-                  Text('Recent Transactions', style: AppTextStyles.headlineMd(color: Colors.white)),
-                  const SizedBox(height: 14),
-                  _buildTransactionItem('Payout sent to Bank', 'Yesterday', '-\$420.50', false),
-                  _buildTransactionItem('Order #ORD-2026-3027', 'Today, 2:30 PM', '+\$110.00', true),
-                  _buildTransactionItem('Order #ORD-2026-1231', 'Today, 1:15 PM', '+\$8.50', true),
-                  _buildTransactionItem('Order #ORD-1028', 'Oct 20, 1:15 PM', '+\$32.00', true),
-                  const SizedBox(height: 40),
-                ],
+                    // 4. Real-time Transactions Section
+                    _buildTransactionsSection(),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
-          );
-        },
-      ),
     );
   }
 
   // --- Total Balance Card ---
   Widget _buildBalanceCard(String revenueStr) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+        color: const Color(0xFF181820),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,34 +218,50 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('AVAILABLE BALANCE', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(letterSpacing: 1.2)),
+              const Text(
+                'AVAILABLE BALANCE',
+                style: TextStyle(
+                  color: Colors.white60,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
+                  color: Colors.white.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 28),
+                child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 24),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(revenueStr, style: AppTextStyles.displayLgMobile(color: Colors.white)),
-          const SizedBox(height: 6),
+          Text(
+            revenueStr,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.check_circle_outline, color: Colors.green, size: 16),
+              const Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 16),
               const SizedBox(width: 6),
-              Text(
-                'Auto-updated from completed customer orders',
-                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+              const Text(
+                'Auto-updated in real-time from completed orders',
+                style: TextStyle(color: Colors.white60, fontSize: 12),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
           SizedBox(
             width: double.infinity,
-            height: 54,
+            height: 52,
             child: ElevatedButton.icon(
               onPressed: _onCashOutTapped,
               icon: const Icon(Icons.bolt, color: Colors.black, size: 22),
@@ -194,10 +274,10 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(27),
+                  borderRadius: BorderRadius.circular(26),
                 ),
                 elevation: 0,
               ),
@@ -221,10 +301,10 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainer.withValues(alpha: 0.5),
+        color: const Color(0xFF181820),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: hasBank ? Colors.green.withValues(alpha: 0.3) : AppColors.primary.withValues(alpha: 0.3),
+          color: hasBank ? Colors.greenAccent.withValues(alpha: 0.35) : Colors.white.withValues(alpha: 0.12),
         ),
       ),
       child: Column(
@@ -238,27 +318,30 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: hasBank ? Colors.green.withValues(alpha: 0.15) : AppColors.primary.withValues(alpha: 0.15),
+                      color: hasBank ? Colors.green.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       Icons.account_balance,
-                      color: hasBank ? Colors.green : AppColors.primary,
+                      color: hasBank ? Colors.greenAccent : Colors.white,
                       size: 20,
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text(
+                  const Text(
                     'Direct Deposit Account',
-                    style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: hasBank ? Colors.green.withValues(alpha: 0.15) : Colors.orange.withValues(alpha: 0.15),
+                  color: hasBank ? Colors.green.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: hasBank ? Colors.greenAccent.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.1),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -267,7 +350,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                       width: 6,
                       height: 6,
                       decoration: BoxDecoration(
-                        color: hasBank ? Colors.green : Colors.orange,
+                        color: hasBank ? Colors.greenAccent : Colors.white38,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -275,7 +358,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                     Text(
                       hasBank ? 'Ready for Payout' : 'Not Linked',
                       style: TextStyle(
-                        color: hasBank ? Colors.green : Colors.orange,
+                        color: hasBank ? Colors.greenAccent : Colors.white70,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -294,37 +377,41 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
             const SizedBox(height: 4),
             Text(
               'Account: $maskedAcc  |  Routing: $maskedRouting',
-              style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+              style: const TextStyle(color: Colors.white60, fontSize: 13),
             ),
             const SizedBox(height: 2),
             Text(
               'Holder: $holder',
-              style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+              style: const TextStyle(color: Colors.white60, fontSize: 13),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
                 onPressed: _showBankDetailsModal,
-                icon: const Icon(Icons.edit, size: 16, color: Colors.black),
-                label: const Text('Change Bank Details', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.edit, size: 15, color: Colors.black),
+                label: const Text(
+                  'Change Bank Details',
+                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13.5),
+                ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: Colors.white,
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  elevation: 0,
                 ),
               ),
             ),
           ] else ...[
-            Text(
+            const Text(
               'No bank account linked yet',
-              style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+              style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
-            Text(
-              'Connect your checking or savings account so GoChef can transfer your earnings via Direct Deposit (ACH / Stripe).',
-              style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13, height: 1.4),
+            const Text(
+              'Connect your US checking or savings account so GoChef can transfer your earnings via Direct Deposit (ACH / Stripe).',
+              style: TextStyle(color: Colors.white60, fontSize: 13, height: 1.4),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -333,12 +420,15 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
               child: ElevatedButton.icon(
                 onPressed: _showBankDetailsModal,
                 icon: const Icon(Icons.add_circle_outline, color: Colors.black, size: 20),
-                label: const Text('Link Bank Account', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15)),
+                label: const Text(
+                  'Link Bank Account',
+                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15),
+                ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: Colors.white,
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                  elevation: 2,
+                  elevation: 0,
                 ),
               ),
             ),
@@ -353,20 +443,20 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.3),
+        color: const Color(0xFF181820),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: [
-              const Icon(Icons.help_outline, color: AppColors.primary, size: 20),
-              const SizedBox(width: 8),
+            children: const [
+              Icon(Icons.help_outline, color: Colors.white, size: 20),
+              SizedBox(width: 8),
               Text(
                 'How GoChef Payouts Work',
-                style: AppTextStyles.bodyLg(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -374,7 +464,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
           _buildPayoutStep(
             '1',
             'Cook & Complete Orders',
-            'When you accept and finish customer orders, the earnings are credited immediately to your Available Balance.',
+            'When you accept and finish customer orders, earnings are credited immediately to your Available Balance in real time.',
           ),
           const SizedBox(height: 12),
           _buildPayoutStep(
@@ -386,7 +476,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
           _buildPayoutStep(
             '3',
             'Cash Out On-Demand or Weekly',
-            'Tap "Cash Out Now" anytime to initiate an instant payout, or receive automatic transfers every Monday. Funds typically clear within 1–3 business days.',
+            'Tap "Cash Out Now" anytime to initiate an instant payout, or receive automatic transfers every Monday. Standard ACH arrives within 1–3 business days.',
           ),
         ],
       ),
@@ -402,12 +492,12 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
           height: 24,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.2),
+            color: Colors.white.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
           child: Text(
             number,
-            style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(width: 12),
@@ -417,11 +507,161 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
             children: [
               Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
               const SizedBox(height: 2),
-              Text(description, style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12.5, height: 1.35)),
+              Text(description, style: const TextStyle(color: Colors.white60, fontSize: 12.5, height: 1.35)),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  // --- Real-time Transactions Section ---
+  Widget _buildTransactionsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Recent Transactions',
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              '${_completedOrders.length} Completed',
+              style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // Display any local payout triggers first
+        for (final p in _payoutTransactions)
+          _buildTransactionItem(
+            p['title'] as String,
+            p['date'] as String,
+            p['amount'] as String,
+            p['isPositive'] as bool,
+          ),
+
+        // Real completed orders from DB
+        if (_completedOrders.isNotEmpty)
+          ..._completedOrders.map((order) {
+            final custName = order.customerName.trim().isNotEmpty ? order.customerName.trim() : 'Customer';
+            final dateStr = _formatOrderDate(order.date);
+            final amountStr = '+\$${order.totalAmount.toStringAsFixed(2)}';
+            return _buildTransactionItem(
+              'Order #${order.id} • $custName',
+              '$dateStr • ${order.itemsCount} ${order.itemsCount == 1 ? "item" : "items"}',
+              amountStr,
+              true,
+            );
+          })
+        else if (_payoutTransactions.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF181820),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            ),
+            child: Column(
+              children: const [
+                Icon(Icons.receipt_long, color: Colors.white30, size: 36),
+                SizedBox(height: 10),
+                Text(
+                  'No completed orders yet',
+                  style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Completed customer orders will appear here automatically.',
+                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _formatOrderDate(String dateStr) {
+    try {
+      final dt = DateTime.parse(dateStr).toLocal();
+      final now = DateTime.now();
+      if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
+        final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+        final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+        final minute = dt.minute.toString().padLeft(2, '0');
+        return 'Today, $hour:$minute $ampm';
+      }
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final m = months[dt.month - 1];
+      return '$m ${dt.day}, ${dt.year}';
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
+  Widget _buildTransactionItem(String title, String date, String amount, bool isPositive) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF181820),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isPositive ? Colors.green.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isPositive ? Icons.arrow_downward : Icons.arrow_upward,
+                    color: isPositive ? Colors.greenAccent : Colors.white70,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(date, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            amount,
+            style: TextStyle(
+              color: isPositive ? Colors.greenAccent : Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -431,7 +671,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: const Color(0xFF181820),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Bank Account Required', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           content: const Text(
@@ -449,10 +689,10 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                 _showBankDetailsModal();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
               ),
-              child: const Text('Link Bank Now'),
+              child: const Text('Link Bank Now', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -464,7 +704,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('No available balance to cash out at this time.'),
-          backgroundColor: AppColors.surface,
+          backgroundColor: Color(0xFF1E1E24),
         ),
       );
       return;
@@ -473,7 +713,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
     // Show Confirmation Bottom Sheet
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: const Color(0xFF181820),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -498,12 +738,13 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
+                  color: Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                 ),
                 child: Column(
                   children: [
-                    _buildConfirmRow('Withdrawal Amount', '\$${_currentRevenue.toStringAsFixed(2)}', isBold: true, highlight: true),
+                    _buildConfirmRow('Withdrawal Amount', '\$${_currentRevenue.toStringAsFixed(2)}', isBold: true),
                     const Divider(color: Colors.white12, height: 20),
                     _buildConfirmRow('Destination Bank', _kitchen!.bankName.isNotEmpty ? _kitchen!.bankName : 'Direct Deposit Bank'),
                     const SizedBox(height: 8),
@@ -527,13 +768,14 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                     _executeCashOutSuccess();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                    elevation: 0,
                   ),
                   child: Text(
                     'Confirm & Cash Out \$${_currentRevenue.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
               ),
@@ -545,10 +787,9 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
     );
   }
 
-  Widget _buildConfirmRow(String label, String value, {bool isBold = false, bool highlight = false, bool highlightGreen = false}) {
+  Widget _buildConfirmRow(String label, String value, {bool isBold = false, bool highlightGreen = false}) {
     Color valColor = Colors.white;
-    if (highlight) valColor = AppColors.primary;
-    if (highlightGreen) valColor = Colors.green;
+    if (highlightGreen) valColor = Colors.greenAccent;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -567,10 +808,21 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
   }
 
   void _executeCashOutSuccess() {
+    final cashedAmount = _currentRevenue;
+    setState(() {
+      _payoutTransactions.insert(0, {
+        'title': 'Payout sent to ${_kitchen?.bankName ?? "Bank"}',
+        'date': 'Just now',
+        'amount': '-\$${cashedAmount.toStringAsFixed(2)}',
+        'isPositive': false,
+      });
+      _currentRevenue = 0.0;
+    });
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: const Color(0xFF181820),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -579,7 +831,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.15), shape: BoxShape.circle),
-              child: const Icon(Icons.check_circle, color: Colors.green, size: 48),
+              child: const Icon(Icons.check_circle, color: Colors.greenAccent, size: 48),
             ),
             const SizedBox(height: 18),
             const Text(
@@ -588,21 +840,23 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Your withdrawal of \$${_currentRevenue.toStringAsFixed(2)} has been queued for transfer to ${_kitchen?.bankName ?? "your bank"}. Standard ACH transfers arrive within 1–3 business days.',
+              'Your withdrawal of \$${cashedAmount.toStringAsFixed(2)} has been queued for transfer to ${_kitchen?.bankName ?? "your bank"}. Standard ACH transfers arrive within 1–3 business days.',
               style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
+              height: 48,
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(ctx),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: Colors.white,
                   foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  elevation: 0,
                 ),
-                child: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Done', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -646,7 +900,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: const Color(0xFF16161D),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -659,7 +913,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                 left: 20,
                 right: 20,
                 top: 20,
-                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 20,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom + 24,
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -687,10 +941,10 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
+                    const SizedBox(height: 6),
+                    const Text(
                       'Provide your US checking or savings account details to receive direct deposits for your completed food orders.',
-                      style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+                      style: TextStyle(color: Colors.white60, fontSize: 13),
                     ),
                     const SizedBox(height: 20),
 
@@ -782,13 +1036,14 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
+                          backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                          elevation: 0,
                         ),
                         child: isSaving
                             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-                            : const Text('Save Bank Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            : const Text('Save Bank Details', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
                       ),
                     ),
                   ],
@@ -817,64 +1072,29 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
           controller: controller,
           keyboardType: keyboardType,
           style: const TextStyle(color: Colors.white, fontSize: 14),
+          cursorColor: Colors.white,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(color: Colors.white30, fontSize: 13),
-            prefixIcon: Icon(icon, color: Colors.white54, size: 20),
+            prefixIcon: Icon(icon, color: Colors.white60, size: 20),
             filled: true,
-            fillColor: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
+            fillColor: Colors.white.withValues(alpha: 0.06),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.white, width: 1.5),
+            ),
           ),
         ),
       ],
-    );
-  }
-
-  // --- Transactions ---
-  Widget _buildTransactionItem(String title, String date, String amount, bool isPositive) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isPositive ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isPositive ? Icons.arrow_downward : Icons.arrow_upward,
-                  color: isPositive ? Colors.green : Colors.red,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: AppTextStyles.bodyLg(color: Colors.white)),
-                  const SizedBox(height: 4),
-                  Text(date, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                ],
-              ),
-            ],
-          ),
-          Text(
-            amount,
-            style: AppTextStyles.bodyLg(color: isPositive ? Colors.green : Colors.red).copyWith(fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
     );
   }
 }

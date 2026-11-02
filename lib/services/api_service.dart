@@ -830,6 +830,22 @@ class ApiService {
     return [];
   }
 
+  static Future<List<OrderModel>> getKitchenOrders(int kitchenId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/orders.php?kitchen_id=$kitchenId'),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return (data['data'] as List).map((e) => OrderModel.fromJson(e)).toList();
+        }
+      }
+    } catch (_) {}
+    return [];
+  }
+
   // =============================================
   // CHECKOUT & UBER DELIVERY
   // =============================================
