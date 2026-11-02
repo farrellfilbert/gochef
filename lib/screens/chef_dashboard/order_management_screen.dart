@@ -21,13 +21,142 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   List<OrderModel> _orders = [];
   int _prevOrdersLength = -1;
   Timer? _pollingTimer;
+  bool _isOpen = true;
+  int? _kitchenId;
+  bool _isTogglingStatus = false;
 
   @override
   void initState() {
     super.initState();
     AudioService.unlock();
+    _loadKitchenStatus();
     _loadOrders();
     _startPolling();
+  }
+
+  Future<void> _loadKitchenStatus() async {
+    try {
+      final kIdStr = await ApiService.getKitchenId();
+      if (kIdStr != null && kIdStr.isNotEmpty) {
+        _kitchenId = int.tryParse(kIdStr);
+        if (_kitchenId != null) {
+          final detail = await ApiService.getKitchenDetail(_kitchenId!);
+          if (detail != null && mounted) {
+            setState(() {
+              _isOpen = detail.isOpen;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading kitchen status: $e');
+    }
+  }
+
+  Future<void> _toggleStoreStatus() async {
+    if (_kitchenId == null) {
+      final kIdStr = await ApiService.getKitchenId();
+      if (kIdStr != null) _kitchenId = int.tryParse(kIdStr);
+    }
+    if (_kitchenId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kitchen ID not found')),
+      );
+      return;
+    }
+
+    final newStatus = !_isOpen;
+    setState(() => _isTogglingStatus = true);
+    try {
+      final success = await ApiService.updateKitchen({
+        'kitchen_id': _kitchenId,
+        'is_open': newStatus ? 1 : 0,
+      });
+
+      if (success && mounted) {
+        setState(() {
+          _isOpen = newStatus;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              newStatus ? '🟢 Kitchen is now OPEN and accepting orders!' : '⏸️ Kitchen is now PAUSED (Closed for orders)',
+            ),
+            backgroundColor: newStatus ? const Color(0xFF10B981) : Colors.orange[800],
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update kitchen status'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isTogglingStatus = false);
+    }
+  }
+
+  Widget _buildStoreStatusToggle() {
+    if (_isTogglingStatus) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      child: InkWell(
+        onTap: _toggleStoreStatus,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: _isOpen ? const Color(0xFF10B981).withValues(alpha: 0.15) : Colors.orange.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: _isOpen ? const Color(0xFF10B981) : Colors.orangeAccent,
+              width: 1.2,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _isOpen ? const Color(0xFF10B981) : Colors.orangeAccent,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _isOpen ? 'Store Open' : 'Paused',
+                style: TextStyle(
+                  color: _isOpen ? const Color(0xFF10B981) : Colors.orangeAccent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -166,14 +295,47 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
         elevation: 0,
         title: const Text('Order Management', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
+          _buildStoreStatusToggle(),
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _loadOrders,
+            onPressed: () {
+              _loadKitchenStatus();
+              _loadOrders();
+            },
           ),
         ],
       ),
       body: Column(
         children: [
+          if (!_isOpen)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              color: Colors.orange.withValues(alpha: 0.15),
+              child: Row(
+                children: [
+                  const Icon(Icons.pause_circle_outline, color: Colors.orangeAccent, size: 20),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      'Kitchen is paused. Customers cannot place new orders.',
+                      style: TextStyle(color: Colors.orangeAccent, fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _toggleStoreStatus,
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.orangeAccent,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text('Open Store', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  ),
+                ],
+              ),
+            ),
           // Tabs
           Container(
             height: 50,

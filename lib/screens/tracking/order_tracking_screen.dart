@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_chef_app/utils/web_js.dart';
 import 'package:go_chef_app/models/order_model.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../widgets/rate_order_dialog.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
@@ -51,6 +52,265 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   String _deliveryAddress = '';
   String? _uberTrackingUrl;
   Timer? _timer;
+  bool _isCancelling = false;
+
+  bool get _canCancel => ['Pending', 'Placed', 'Active'].contains(_currentStatus);
+
+  Future<void> _handleCancelOrder() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Cancel Order?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text(
+          'Are you sure you want to cancel this order? It will be cancelled immediately and your payment will be refunded.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep Order', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isCancelling = true);
+    try {
+      final success = await ApiService.updateOrderStatus(widget.orderId, 'Cancelled');
+      if (success && mounted) {
+        setState(() {
+          _currentStatus = 'Cancelled';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Order has been cancelled successfully.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to cancel order. Please contact support.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isCancelling = false);
+    }
+  }
+
+  void _showReceiptModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF16161D),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.receipt_long, color: Colors.white, size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('GoChef Order Receipt', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                            Text('#${widget.orderId}', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white70),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.kitchenName,
+                              style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: _currentStatus == 'Cancelled'
+                                  ? Colors.red.withValues(alpha: 0.2)
+                                  : Colors.green.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _currentStatus,
+                              style: TextStyle(
+                                color: _currentStatus == 'Cancelled' ? Colors.redAccent : Colors.greenAccent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_deliveryAddress.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text('Deliver to: $_deliveryAddress', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                      ],
+                      const Divider(color: Colors.white12, height: 24),
+                      const Text('ORDER ITEMS', style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      const SizedBox(height: 8),
+                      if (_orderItems != null && _orderItems!.isNotEmpty)
+                        ..._orderItems!.map((item) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${item.quantity}x ${item.name}',
+                                    style: const TextStyle(color: Colors.white, fontSize: 13.5),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Text(
+                                  '\$${(item.price * item.quantity).toStringAsFixed(2)}',
+                                  style: const TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          );
+                        })
+                      else
+                        Text('${widget.itemsCount} item(s)', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                      const Divider(color: Colors.white12, height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Total Paid', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text(
+                            '\$${widget.totalAmount.toStringAsFixed(2)}',
+                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      const Text('Paid with Card / Direct Checkout', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.share, size: 18),
+                        label: const Text('Share Receipt', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onPressed: () {
+                          final itemLines = _orderItems?.map((it) => '- ${it.quantity}x ${it.name} (\$${(it.price * it.quantity).toStringAsFixed(2)})').join('\n') ?? '${widget.itemsCount} item(s)';
+                          Share.share(
+                            'GoChef Order Receipt\n'
+                            'Order #${widget.orderId}\n'
+                            'Kitchen: ${widget.kitchenName}\n'
+                            'Status: $_currentStatus\n'
+                            'Items:\n$itemLines\n'
+                            'Total: \$${widget.totalAmount.toStringAsFixed(2)}\n\n'
+                            'Thank you for using GoChef!',
+                            subject: 'GoChef Receipt #${widget.orderId}',
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white24),
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   // Map coordinates
   LatLng _kitchenLocation = const LatLng(34.1722, -118.3765); // North Hollywood / Kitchen
@@ -205,6 +465,11 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         title: const Text('Track Order', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.receipt_long, color: Colors.white),
+            tooltip: 'View Receipt',
+            onPressed: () => _showReceiptModal(context),
+          ),
           IconButton(
             icon: const Icon(Icons.support_agent, color: Colors.orangeAccent),
             tooltip: 'Live Chat Support',
@@ -563,9 +828,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
-                                    _currentStatus == 'Completed' ? Icons.check_circle
-                                        : (isOutForDelivery ? Icons.delivery_dining : (_currentStatus == 'Pending' ? Icons.hourglass_top : Icons.restaurant)),
-                                    color: Colors.white,
+                                    _currentStatus == 'Cancelled' ? Icons.cancel
+                                        : (_currentStatus == 'Completed' ? Icons.check_circle
+                                        : (isOutForDelivery ? Icons.delivery_dining : (_currentStatus == 'Pending' ? Icons.hourglass_top : Icons.restaurant))),
+                                    color: _currentStatus == 'Cancelled' ? Colors.redAccent : Colors.white,
                                     size: 24,
                                   ),
                                 ),
@@ -574,7 +840,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      _currentStatus == 'pending_payment' ? 'PENDING PAYMENT'
+                                      _currentStatus == 'Cancelled' ? 'ORDER CANCELLED'
+                                      : _currentStatus == 'pending_payment' ? 'PENDING PAYMENT'
                                       : _currentStatus == 'Pending' ? 'WAITING FOR CHEF'
                                       : _currentStatus == 'Active' ? 'ORDER ACCEPTED'
                                       : _currentStatus == 'Preparing' ? 'PREPARING FOOD'
@@ -582,11 +849,12 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                       : _currentStatus == 'on_the_way' ? 'OUT FOR DELIVERY'
                                       : (_currentStatus == 'Completed' || _currentStatus == 'delivered') ? 'DELIVERED'
                                       : _currentStatus.toUpperCase(),
-                                      style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+                                      style: AppTextStyles.headlineMd(color: _currentStatus == 'Cancelled' ? Colors.redAccent : Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.bold),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      _currentStatus == 'pending_payment' ? 'Waiting for payment confirmation...'
+                                      _currentStatus == 'Cancelled' ? 'This order has been cancelled.'
+                                      : _currentStatus == 'pending_payment' ? 'Waiting for payment confirmation...'
                                       : _currentStatus == 'Pending' ? 'Waiting for the chef to accept your order.'
                                       : _currentStatus == 'Active' ? 'The chef has accepted your order.'
                                       : _currentStatus == 'Preparing' ? 'The chef is cooking and preparing your meal.'
@@ -616,6 +884,47 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Quick Actions: View Receipt & Cancel Order
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _showReceiptModal(context),
+                          icon: const Icon(Icons.receipt_long, size: 18, color: Colors.white),
+                          label: const Text('View Receipt', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(color: Colors.white24),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            backgroundColor: Colors.white.withValues(alpha: 0.05),
+                          ),
+                        ),
+                      ),
+                      if (_canCancel) ...[
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _isCancelling ? null : _handleCancelOrder,
+                            icon: _isCancelling
+                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.redAccent))
+                                : const Icon(Icons.cancel_outlined, size: 18, color: Colors.redAccent),
+                            label: Text(
+                              _isCancelling ? 'Cancelling...' : 'Cancel Order',
+                              style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.5)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              backgroundColor: Colors.redAccent.withValues(alpha: 0.08),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 16),
 
@@ -685,18 +994,17 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       child: ElevatedButton(
                         onPressed: _currentStatus == 'Completed' ? null : () async {
                           await ApiService.updateOrderStatus(widget.orderId, 'Completed');
-                          if (mounted) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => OrderReviewScreen(
-                                  orderId: widget.orderId,
-                                  kitchenId: widget.kitchenId,
-                                  kitchenName: widget.kitchenName,
-                                ),
+                          if (!context.mounted) return;
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OrderReviewScreen(
+                                orderId: widget.orderId,
+                                kitchenId: widget.kitchenId,
+                                kitchenName: widget.kitchenName,
                               ),
-                            );
-                          }
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _currentStatus == 'Completed' ? AppColors.surfaceContainerHigh : const Color(0xFF10B981),
@@ -736,6 +1044,16 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                               : 'Order created.',
                           status: ['Pending', 'Active', 'Preparing', 'Ready', 'on_the_way', 'delivered', 'Completed'].contains(_currentStatus) ? 'done' : 'active',
                         ),
+
+                        if (_currentStatus == 'Cancelled') ...[
+                          _buildTimelineLine(),
+                          _buildTimelineStep(
+                            time: '',
+                            title: 'Order Cancelled',
+                            desc: 'This order was cancelled and payment has been refunded.',
+                            status: 'done',
+                          ),
+                        ],
 
                         if (_currentStatus != 'Cancelled') ...[
                           if (_orderType == 'dine_in') ...[
@@ -940,7 +1258,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                           borderRadius: BorderRadius.circular(8),
                                           child: item.image.isNotEmpty 
                                             ? Image.network(item.image, width: 48, height: 48, fit: BoxFit.cover,
-                                                errorBuilder: (_, __, ___) => _buildFallbackImage())
+                                                errorBuilder: (context, error, stackTrace) => _buildFallbackImage())
                                             : _buildFallbackImage(),
                                         ),
                                         const SizedBox(width: 12),

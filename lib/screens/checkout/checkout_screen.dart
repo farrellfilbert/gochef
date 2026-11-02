@@ -41,6 +41,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   double _baseDeliveryFee = 4.00;
   double _serviceFee = 2.50;
   double _discountAmount = 0.0;
+  double _tipAmount = 3.00;
+  bool _isCustomTip = false;
   double _grandTotal = 0.0;
 
   // Selected Voucher
@@ -241,7 +243,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     _discountAmount = discount;
-    final total = (_subtotal + delivery + _serviceFee - _discountAmount);
+    final total = (_subtotal + delivery + _serviceFee + _tipAmount - _discountAmount);
     _grandTotal = total.clamp(0.0, 999999.0);
   }
 
@@ -562,6 +564,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       orderNotes += ' | Voucher: ${_selectedVoucher!['code']} (${_selectedVoucher!['discount']})';
     }
 
+    if (_tipAmount > 0) {
+      orderNotes += ' | Tip: \$${_tipAmount.toStringAsFixed(2)}';
+    }
+
     if (selectedPayment == 'stripe') {
       _showNativeCardPaymentSheet(orderNotes);
     } else {
@@ -731,6 +737,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         dineInDate: selectedDate != null ? "${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}" : null,
         dineInTime: selectedTime != null ? "${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}" : null,
         promoCode: _selectedVoucher != null ? _selectedVoucher!['code'] : null,
+        tipAmount: _tipAmount,
       );
 
       if (mounted) {
@@ -772,6 +779,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       promoCode: _selectedVoucher != null ? _selectedVoucher!['code'] : null,
       deliveryFee: _baseDeliveryFee,
       serviceFee: _serviceFee,
+      tipAmount: _tipAmount,
     );
 
     if (mounted) {
@@ -1305,6 +1313,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
                 
+                const SizedBox(height: 20),
+                // Tip Selector Card
+                _buildTipSelector(),
+                
                 const SizedBox(height: 24),
                 // Order Summary Breakdown
                 Text('Order Summary', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
@@ -1346,6 +1358,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           Text('\$${_serviceFee.toStringAsFixed(2)}', style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(fontWeight: FontWeight.bold)),
                         ],
                       ),
+                      if (_tipAmount > 0) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Chef & Courier Tip', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                            Text(
+                              '+\$${_tipAmount.toStringAsFixed(2)}',
+                              style: AppTextStyles.bodyMd(color: Colors.greenAccent).copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (_discountAmount > 0) ...[
                         const SizedBox(height: 8),
                         Row(
@@ -1600,6 +1625,177 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
           const SizedBox(width: 4),
           const Icon(Icons.arrow_outward, size: 12, color: AppColors.primary),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTipSelector() {
+    final tips = [0.0, 2.0, 3.0, 5.0];
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.volunteer_activism, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Tip Your Chef & Courier', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 2),
+                    Text('100% of your tip goes directly to the kitchen & courier.', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              ...tips.map((amount) {
+                final isSelected = (_tipAmount == amount && !_isCustomTip);
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _isCustomTip = false;
+                          _tipAmount = amount;
+                          _recalculateTotal();
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.12),
+                            width: isSelected ? 1.5 : 1,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          amount == 0.0 ? 'None' : '\$${amount.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            color: isSelected ? Colors.black : Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: InkWell(
+                    onTap: _showCustomTipDialog,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _isCustomTip ? Colors.white : Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _isCustomTip ? Colors.white : Colors.white.withValues(alpha: 0.12),
+                          width: _isCustomTip ? 1.5 : 1,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        _isCustomTip ? '\$${_tipAmount.toStringAsFixed(1)}' : 'Other',
+                        style: TextStyle(
+                          color: _isCustomTip ? Colors.black : Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCustomTipDialog() {
+    final controller = TextEditingController(text: _isCustomTip ? _tipAmount.toStringAsFixed(2) : '');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Custom Tip Amount', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Enter the tip amount for your home chef & delivery courier.',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              cursorColor: Colors.white,
+              decoration: InputDecoration(
+                prefixText: '\$ ',
+                prefixStyle: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                hintText: '0.00',
+                hintStyle: const TextStyle(color: Colors.white30),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.08),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final val = double.tryParse(controller.text.replaceAll(',', '.')) ?? 0.0;
+              setState(() {
+                _tipAmount = val.clamp(0.0, 500.0);
+                _isCustomTip = _tipAmount > 0;
+                _recalculateTotal();
+              });
+              Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+            ),
+            child: const Text('Apply Tip', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );
