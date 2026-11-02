@@ -1792,7 +1792,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Manage your operating times', onTap: _showBusinessHoursDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.payments, 'Payout Methods', 'Manage your earnings & bank info', destination: const ChefEarningsScreen()),
+                      _buildSettingsTile(context, Icons.payments, 'Payout Methods', 'Manage your earnings & bank info', destination: ChefEarningsScreen(initialKitchen: _kitchen)),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.local_shipping, 'Delivery Radius', 'Set your service area (currently ${_deliveryRadius.toStringAsFixed(0)}mi)', onTap: _showDeliveryRadiusDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),

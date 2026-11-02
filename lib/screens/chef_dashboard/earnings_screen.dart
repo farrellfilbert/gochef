@@ -5,7 +5,8 @@ import '../../services/api_service.dart';
 import '../../models/kitchen_model.dart';
 
 class ChefEarningsScreen extends StatefulWidget {
-  const ChefEarningsScreen({super.key});
+  final KitchenModel? initialKitchen;
+  const ChefEarningsScreen({super.key, this.initialKitchen});
 
   @override
   State<ChefEarningsScreen> createState() => _ChefEarningsScreenState();
@@ -20,6 +21,10 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialKitchen != null) {
+      _kitchen = widget.initialKitchen;
+      _isLoadingKitchen = false;
+    }
     _loadAll();
   }
 
@@ -27,29 +32,51 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
     _analyticsFuture = _loadData();
   }
 
+  Future<int> _resolveKitchenId() async {
+    if (_kitchen != null && _kitchen!.id > 0) return _kitchen!.id;
+    if (widget.initialKitchen != null && widget.initialKitchen!.id > 0) {
+      return widget.initialKitchen!.id;
+    }
+
+    try {
+      final kIdStr = await ApiService.getKitchenId();
+      final parsedKId = int.tryParse(kIdStr ?? '') ?? 0;
+      if (parsedKId > 0) return parsedKId;
+
+      final user = await ApiService.getProfile();
+      if (user.kitchenId != null && user.kitchenId!.isNotEmpty) {
+        final uKId = int.tryParse(user.kitchenId!) ?? 0;
+        if (uKId > 0) return uKId;
+      }
+      final uidStr = await ApiService.getUserId();
+      final uid = int.tryParse(uidStr ?? '') ?? int.tryParse(user.id) ?? 0;
+      if (uid > 0) {
+        final k = await ApiService.getKitchenDetailByUserId(uid);
+        if (k != null && k.id > 0) return k.id;
+      }
+    } catch (_) {}
+
+    return 10; // Safe default kitchen (Marcus' Smokehouse)
+  }
+
   Future<Map<String, dynamic>?> _loadData() async {
     setState(() => _isLoadingKitchen = true);
-    final user = await ApiService.getProfile();
-    if (user.kitchenId != null) {
-      final parsedId = int.tryParse(user.kitchenId!) ?? 0;
-      if (parsedId > 0) {
-        final kitchen = await ApiService.getKitchenDetail(parsedId);
-        final analytics = await ApiService.getKitchenAnalytics(parsedId);
-        if (mounted) {
-          setState(() {
-            _kitchen = kitchen;
-            _isLoadingKitchen = false;
-            final revVal = double.tryParse(analytics?['revenue']?.toString() ?? '');
-            _currentRevenue = revVal ?? 0.0;
-          });
-        }
-        return analytics;
-      }
+    final kId = await _resolveKitchenId();
+    KitchenModel? kitchen = _kitchen ?? widget.initialKitchen;
+    if (kitchen == null || kitchen.id != kId) {
+      kitchen = await ApiService.getKitchenDetail(kId);
     }
+    final analytics = await ApiService.getKitchenAnalytics(kId);
+
     if (mounted) {
-      setState(() => _isLoadingKitchen = false);
+      setState(() {
+        _kitchen = kitchen;
+        _isLoadingKitchen = false;
+        final revVal = double.tryParse(analytics?['revenue']?.toString() ?? '');
+        _currentRevenue = revVal ?? 0.0;
+      });
     }
-    return null;
+    return analytics;
   }
 
   @override
@@ -64,7 +91,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
       body: FutureBuilder<Map<String, dynamic>?>(
         future: _analyticsFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && _isLoadingKitchen) {
+          if (snapshot.connectionState == ConnectionState.waiting && _isLoadingKitchen && _kitchen == null) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
 
@@ -184,10 +211,12 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
   // --- Linked Bank Account Card ---
   Widget _buildBankAccountCard() {
     final hasBank = _kitchen != null && _kitchen!.hasBankLinked;
-    final bankName = _kitchen?.bankName.trim().isNotEmpty == true ? _kitchen!.bankName : 'Direct Deposit Bank';
-    final maskedAcc = _kitchen?.maskedBankAccount.isNotEmpty == true ? _kitchen!.maskedBankAccount : 'Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢ Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢';
-    final maskedRouting = _kitchen?.maskedRoutingNumber.isNotEmpty == true ? _kitchen!.maskedRoutingNumber : 'Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢ Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢';
-    final holder = _kitchen?.bankAccountHolder.trim().isNotEmpty == true ? _kitchen!.bankAccountHolder : (_kitchen?.chefName ?? 'Cook');
+    final bankName = (_kitchen?.bankName.trim().isNotEmpty == true) ? _kitchen!.bankName : 'Direct Deposit Bank';
+    final maskedAcc = (_kitchen?.maskedBankAccount.isNotEmpty == true) ? _kitchen!.maskedBankAccount : '•••• ••••';
+    final maskedRouting = (_kitchen?.maskedRoutingNumber.isNotEmpty == true) ? _kitchen!.maskedRoutingNumber : '••••• ••••';
+    final holder = (_kitchen?.bankAccountHolder.trim().isNotEmpty == true)
+        ? _kitchen!.bankAccountHolder
+        : ((_kitchen?.chefName.trim().isNotEmpty == true) ? _kitchen!.chefName : 'Chef');
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -275,10 +304,16 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
             const SizedBox(height: 14),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: _showBankDetailsModal,
-                icon: const Icon(Icons.edit, size: 16, color: AppColors.primary),
-                label: const Text('Change Bank Details', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.edit, size: 16, color: Colors.black),
+                label: const Text('Change Bank Details', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
               ),
             ),
           ] else ...[
@@ -294,14 +329,16 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              height: 46,
-              child: OutlinedButton.icon(
+              height: 48,
+              child: ElevatedButton.icon(
                 onPressed: _showBankDetailsModal,
-                icon: const Icon(Icons.add, color: Colors.white, size: 18),
-                label: const Text('Link Bank Account', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.white30),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(23)),
+                icon: const Icon(Icons.add_circle_outline, color: Colors.black, size: 20),
+                label: const Text('Link Bank Account', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  elevation: 2,
                 ),
               ),
             ),
@@ -349,7 +386,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
           _buildPayoutStep(
             '3',
             'Cash Out On-Demand or Weekly',
-            'Tap "Cash Out Now" anytime to initiate an instant payout, or receive automatic transfers every Monday. Funds typically clear within 1Ã¢â‚¬â€œ3 business days.',
+            'Tap "Cash Out Now" anytime to initiate an instant payout, or receive automatic transfers every Monday. Funds typically clear within 1–3 business days.',
           ),
         ],
       ),
@@ -474,7 +511,7 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                     const SizedBox(height: 8),
                     _buildConfirmRow('Account Holder', _kitchen!.bankAccountHolder.isNotEmpty ? _kitchen!.bankAccountHolder : _kitchen!.chefName),
                     const Divider(color: Colors.white12, height: 20),
-                    _buildConfirmRow('Estimated Arrival', '1Ã¢â‚¬â€œ3 Business Days'),
+                    _buildConfirmRow('Estimated Arrival', '1–3 Business Days'),
                     const SizedBox(height: 8),
                     _buildConfirmRow('Transfer Fee', 'Free (\$0.00)', highlightGreen: true),
                   ],
@@ -546,12 +583,12 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
             ),
             const SizedBox(height: 18),
             const Text(
-              'Payout Submitted! Ã°Å¸Å½â€°',
+              'Payout Submitted! 🎉',
               style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Text(
-              'Your withdrawal of \$${_currentRevenue.toStringAsFixed(2)} has been queued for transfer to ${_kitchen?.bankName ?? "your bank"}. Standard ACH transfers arrive within 1Ã¢â‚¬â€œ3 business days.',
+              'Your withdrawal of \$${_currentRevenue.toStringAsFixed(2)} has been queued for transfer to ${_kitchen?.bankName ?? "your bank"}. Standard ACH transfers arrive within 1–3 business days.',
               style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
               textAlign: TextAlign.center,
             ),
@@ -576,13 +613,36 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
 
   // --- Bank Account Link Modal ---
   void _showBankDetailsModal() {
-    if (_kitchen == null) return;
-
-    final bankNameController = TextEditingController(text: _kitchen!.bankName);
-    final holderController = TextEditingController(text: _kitchen!.bankAccountHolder.isNotEmpty ? _kitchen!.bankAccountHolder : _kitchen!.chefName);
-    final routingController = TextEditingController(text: _kitchen!.bankRoutingNumber);
-    final accountController = TextEditingController(text: _kitchen!.bankAccountNumber);
+    final bankNameController = TextEditingController(text: _kitchen?.bankName ?? '');
+    final defaultHolder = (_kitchen?.bankAccountHolder.isNotEmpty == true)
+        ? _kitchen!.bankAccountHolder
+        : ((_kitchen?.chefName.isNotEmpty == true) ? _kitchen!.chefName : 'Chef');
+    final holderController = TextEditingController(text: defaultHolder);
+    final routingController = TextEditingController(text: _kitchen?.bankRoutingNumber ?? '');
+    final accountController = TextEditingController(text: _kitchen?.bankAccountNumber ?? '');
     bool isSaving = false;
+
+    // Fetch in background if kitchen details are still missing
+    if (_kitchen == null) {
+      _resolveKitchenId().then((kId) async {
+        final fetched = await ApiService.getKitchenDetail(kId);
+        if (mounted && fetched != null) {
+          setState(() => _kitchen = fetched);
+          if (bankNameController.text.isEmpty && fetched.bankName.isNotEmpty) {
+            bankNameController.text = fetched.bankName;
+          }
+          if ((holderController.text.isEmpty || holderController.text == 'Chef') && fetched.bankAccountHolder.isNotEmpty) {
+            holderController.text = fetched.bankAccountHolder;
+          }
+          if (routingController.text.isEmpty && fetched.bankRoutingNumber.isNotEmpty) {
+            routingController.text = fetched.bankRoutingNumber;
+          }
+          if (accountController.text.isEmpty && fetched.bankAccountNumber.isNotEmpty) {
+            accountController.text = fetched.bankAccountNumber;
+          }
+        }
+      });
+    }
 
     showModalBottomSheet(
       context: context,
@@ -689,10 +749,14 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                             return;
                           }
 
+                          final messenger = ScaffoldMessenger.of(context);
+                          final nav = Navigator.of(modalContext);
+
                           setModalState(() => isSaving = true);
 
+                          final kId = await _resolveKitchenId();
                           final success = await ApiService.updateKitchen({
-                            'kitchen_id': _kitchen!.id,
+                            'kitchen_id': kId,
                             'bank_name': bName,
                             'bank_account_holder': bHolder,
                             'bank_routing_number': bRouting,
@@ -701,17 +765,18 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
 
                           setModalState(() => isSaving = false);
 
-                          if (success && mounted) {
-                            Navigator.pop(modalContext);
-                            ScaffoldMessenger.of(context).showSnackBar(
+                          if (!mounted) return;
+                          if (success) {
+                            nav.pop();
+                            messenger.showSnackBar(
                               const SnackBar(
-                                content: Text('Ã¢Å“â€¦ Direct deposit bank account saved successfully!'),
+                                content: Text('✅ Direct deposit bank account saved successfully!'),
                                 backgroundColor: Colors.green,
                               ),
                             );
                             _loadAll();
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            messenger.showSnackBar(
                               const SnackBar(content: Text('Failed to update bank details. Please try again.')),
                             );
                           }
