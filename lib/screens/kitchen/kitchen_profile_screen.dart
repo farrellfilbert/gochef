@@ -460,11 +460,11 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                 width: 10,
                                 height: 10,
                                 decoration: BoxDecoration(
-                                  color: kitchen.isOpen ? Colors.greenAccent : Colors.redAccent,
+                                  color: kitchen.isCurrentlyOpen ? Colors.greenAccent : Colors.redAccent,
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: (kitchen.isOpen ? Colors.greenAccent : Colors.redAccent).withValues(alpha: 0.6),
+                                      color: (kitchen.isCurrentlyOpen ? Colors.greenAccent : Colors.redAccent).withValues(alpha: 0.6),
                                       blurRadius: 6,
                                     )
                                   ],
@@ -472,9 +472,9 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                kitchen.isOpen ? 'Open Now' : 'Closed',
+                                kitchen.openStatusText,
                                 style: TextStyle(
-                                  color: kitchen.isOpen ? Colors.greenAccent : Colors.redAccent,
+                                  color: kitchen.isCurrentlyOpen ? Colors.greenAccent : Colors.redAccent,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
                                 ),

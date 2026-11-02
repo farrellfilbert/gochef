@@ -20,9 +20,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _pushNotifications = true;
   bool _emailNotifications = true;
   bool _smsAlerts = false;
-  String _language = 'English';
-  String _appearance = 'Dark';
-  String _cacheSize = '14.2 MB';
   bool _hasPromptedNotif = false;
 
   @override
@@ -40,10 +37,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _pushNotifications = prefs.getBool('pref_push_notif_$userId') ?? true;
           _emailNotifications = prefs.getBool('pref_email_notif_$userId') ?? true;
           _smsAlerts = prefs.getBool('pref_sms_alerts_$userId') ?? false;
-          _language = prefs.getString('pref_language_$userId') ?? 'English';
-          _appearance = prefs.getString('pref_appearance_$userId') ?? 'Dark';
           _hasPromptedNotif = prefs.getBool('pref_prompted_notif_$userId') ?? false;
         });
+      }
+
+      // Sync latest preferences from server
+      final profile = await ApiService.getProfile();
+      if (mounted) {
+        setState(() {
+          _pushNotifications = profile.pushNotifications;
+          _emailNotifications = profile.emailNotifications;
+          _smsAlerts = profile.smsAlerts;
+        });
+        await prefs.setBool('pref_push_notif_$userId', profile.pushNotifications);
+        await prefs.setBool('pref_email_notif_$userId', profile.emailNotifications);
+        await prefs.setBool('pref_sms_alerts_$userId', profile.smsAlerts);
       }
     } catch (_) {}
   }
@@ -73,10 +81,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     setState(() => _pushNotifications = val);
     await _savePreference('pref_push_notif', val);
+    await ApiService.updateProfile(pushNotifications: val);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(val ? 'Push notifications enabled' : 'Push notifications muted'),
+          content: Text(val ? 'Push notifications enabled ✅' : 'Push notifications muted 🔕'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -133,10 +142,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _onEmailToggle(bool val) async {
     setState(() => _emailNotifications = val);
     await _savePreference('pref_email_notif', val);
+    await ApiService.updateProfile(emailNotifications: val);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(val ? 'Email notifications enabled' : 'Email notifications unsubscribed'),
+          content: Text(val ? 'Email notifications enabled ✉️' : 'Email notifications unsubscribed'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -146,10 +156,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _onSmsToggle(bool val) async {
     setState(() => _smsAlerts = val);
     await _savePreference('pref_sms_alerts', val);
+    await ApiService.updateProfile(smsAlerts: val);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(val ? 'SMS alerts activated' : 'SMS alerts disabled'),
+          content: Text(val ? 'SMS order alerts activated 📱' : 'SMS order alerts disabled'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -375,7 +386,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () {
                           Navigator.pop(ctx);
-                          ScaffoldMessenger.of(this.context).showSnackBar(
+                          ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('A copy of your data has been prepared and will be sent to your email.'),
                               backgroundColor: Colors.green,
@@ -427,146 +438,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // ==========================================
-  // LANGUAGE MODAL
-  // ==========================================
-  void _showLanguageModal() {
-    final languages = [
-      {'name': 'English', 'flag': '🇺🇸', 'desc': 'English (United States)'},
-      {'name': 'Español', 'flag': '🇪🇸', 'desc': 'Spanish (Español)'},
-      {'name': 'Français', 'flag': '🇫🇷', 'desc': 'French (Français)'},
-      {'name': 'Bahasa Indonesia', 'flag': '🇮🇩', 'desc': 'Indonesian (Bahasa Indonesia)'},
-    ];
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text('Select Language', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
-              const SizedBox(height: 16),
-              ...languages.map((l) {
-                final isSelected = _language == l['name'];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isSelected ? AppColors.primary : Colors.white10),
-                  ),
-                  child: ListTile(
-                    leading: Text(l['flag']!, style: const TextStyle(fontSize: 24)),
-                    title: Text(l['name']!, style: TextStyle(color: Colors.white, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-                    subtitle: Text(l['desc']!, style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                    trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primary) : null,
-                    onTap: () {
-                      setState(() => _language = l['name']!);
-                      _savePreference('pref_language', l['name']!);
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Language set to ${l['name']}')),
-                      );
-                    },
-                  ),
-                );
-              }),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // ==========================================
-  // APPEARANCE MODAL
-  // ==========================================
-  void _showAppearanceModal() {
-    final themes = [
-      {'name': 'Dark', 'icon': Icons.dark_mode, 'desc': 'Midnight black aesthetic (Default)'},
-      {'name': 'Light', 'icon': Icons.light_mode, 'desc': 'Bright and crisp design'},
-      {'name': 'System', 'icon': Icons.settings_brightness, 'desc': 'Follow device system preference'},
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text('Appearance & Theme', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
-              const SizedBox(height: 16),
-              ...themes.map((t) {
-                final isSelected = _appearance == t['name'];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isSelected ? AppColors.primary : Colors.white10),
-                  ),
-                  child: ListTile(
-                    leading: Icon(t['icon'] as IconData, color: isSelected ? AppColors.primary : Colors.white70),
-                    title: Text(t['name'] as String, style: TextStyle(color: Colors.white, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-                    subtitle: Text(t['desc'] as String, style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                    trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primary) : null,
-                    onTap: () {
-                      setState(() => _appearance = t['name'] as String);
-                      _savePreference('pref_appearance', t['name']);
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Appearance updated to ${t['name']}')),
-                      );
-                    },
-                  ),
-                );
-              }),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _clearCache() {
-    setState(() => _cacheSize = '0 KB');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Temporary cache and images cleared successfully!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
 
   void _showDeleteAccountDialog(BuildContext context) {
     showDialog(
@@ -752,11 +624,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           padding: const EdgeInsets.only(left: 36),
                           child: Column(
                             children: [
-                              _buildToggleRow('Push Notifications', _pushNotifications, _onPushToggle),
+                              _buildToggleRow('Push Notifications', _pushNotifications, _onPushToggle, subtitle: 'Order status, preparation & alerts'),
                               const SizedBox(height: 16),
-                              _buildToggleRow('Email Notifications', _emailNotifications, _onEmailToggle),
+                              _buildToggleRow('Email Notifications', _emailNotifications, _onEmailToggle, subtitle: 'Order receipts & chef highlights'),
                               const SizedBox(height: 16),
-                              _buildToggleRow('SMS Alerts', _smsAlerts, _onSmsToggle),
+                              _buildToggleRow('SMS Alerts', _smsAlerts, _onSmsToggle, subtitle: 'Urgent delivery updates to your phone'),
                             ],
                           ),
                         )
@@ -768,62 +640,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Icons.lock,
                     'Privacy & Data',
                     _showPrivacyDataModal,
-                  ),
-                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTileWithValue(
-                    Icons.language,
-                    'Language',
-                    _language,
-                    _showLanguageModal,
-                  ),
-                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTileWithValue(
-                    Icons.dark_mode,
-                    'Appearance',
-                    _appearance,
-                    _showAppearanceModal,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // App Settings
-            _buildSectionTitle('App Settings'),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF1C2029).withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
-              ),
-              child: Column(
-                children: [
-                  _buildListTileWithValue(
-                    Icons.storage,
-                    'Storage & Cache',
-                    _cacheSize,
-                    _clearCache,
-                    valueIsMono: true,
-                  ),
-                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTileWithValue(
-                    Icons.info,
-                    'Version Info',
-                    'v2.4.0',
-                    null,
-                    valueIsMono: true,
-                  ),
-                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                  _buildListTile(
-                    Icons.history,
-                    'Clear Search History',
-                    () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Search history cleared.')),
-                      );
-                    },
-                    trailingIcon: Icons.delete,
                   ),
                 ],
               ),
@@ -934,41 +750,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildListTileWithValue(IconData icon, String title, String value, VoidCallback? onTap, {bool valueIsMono = false}) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white12,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: AppTextStyles.bodyMd(color: Colors.white),
-              ),
-            ),
-            Text(
-              value,
-              style: AppTextStyles.bodySm(color: Colors.white60).copyWith(
-                fontFamily: valueIsMono ? 'monospace' : null,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.chevron_right, color: Colors.white30, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildListTileNoLeading(String title, VoidCallback? onTap, {IconData trailingIcon = Icons.chevron_right}) {
     return InkWell(
@@ -986,11 +768,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildToggleRow(String label, bool value, Function(bool) onChanged) {
+  Widget _buildToggleRow(String label, bool value, Function(bool) onChanged, {String? subtitle}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.bodyMd(color: Colors.white70)),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: AppTextStyles.bodyMd(color: Colors.white)),
+              if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
         Switch(
           value: value,
           onChanged: onChanged,
@@ -998,7 +792,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           activeTrackColor: AppColors.primaryContainer,
           inactiveThumbColor: Colors.white,
           inactiveTrackColor: AppColors.surfaceContainerHighest,
-        )
+        ),
       ],
     );
   }

@@ -140,6 +140,58 @@ class KitchenModel {
     return '••••• ';
   }
 
+  /// Checks whether the kitchen is currently open based on both the manual toggle (isOpen)
+  /// and the defined business hours (e.g. "10:00 AM - 5:00 PM").
+  bool get isCurrentlyOpen {
+    if (!isOpen) return false;
+    final hours = businessHours.trim();
+    if (hours.isEmpty) return isOpen;
+
+    try {
+      final parts = hours.split(RegExp(r'\s*[-–toTO]+\s*'));
+      if (parts.length != 2) return isOpen;
+
+      final startMinutes = _parseTimeToMinutes(parts[0]);
+      final endMinutes = _parseTimeToMinutes(parts[1]);
+      if (startMinutes == null || endMinutes == null) return isOpen;
+
+      final now = DateTime.now();
+      final currentMinutes = now.hour * 60 + now.minute;
+
+      if (startMinutes <= endMinutes) {
+        // Standard daytime range (e.g., 10:00 AM to 5:00 PM)
+        return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+      } else {
+        // Overnight range (e.g., 6:00 PM to 2:00 AM)
+        return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
+      }
+    } catch (_) {
+      return isOpen;
+    }
+  }
+
+  static int? _parseTimeToMinutes(String timeStr) {
+    final clean = timeStr.trim().toUpperCase();
+    final match = RegExp(r'(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?').firstMatch(clean);
+    if (match == null) return null;
+
+    int hour = int.parse(match.group(1)!);
+    int minute = match.group(2) != null ? int.parse(match.group(2)!) : 0;
+    final meridian = match.group(3);
+
+    if (meridian != null) {
+      if (meridian == 'PM' && hour < 12) hour += 12;
+      if (meridian == 'AM' && hour == 12) hour = 0;
+    }
+
+    return hour * 60 + minute;
+  }
+
+  String get openStatusText {
+    if (!isOpen) return 'Closed';
+    return isCurrentlyOpen ? 'Open Now' : 'Closed';
+  }
+
   String get approximateLocation {
     if (location.trim().isEmpty) return '';
     final rawParts = location.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();

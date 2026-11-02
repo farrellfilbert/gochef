@@ -30,9 +30,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   bool _isLoading = true;
   AddressModel? _selectedAddress;
 
-  // Base location (defaults to Jakarta, updated by GPS)
-  LatLng _baseLocation = const LatLng(-6.200000, 106.816666);
-  bool _hasRealLocation = false;
+  // Base location (defaults to Studio City, CA, updated by GPS)
+  LatLng _baseLocation = const LatLng(34.1458, -118.3965);
+
   bool _isMapReady = false;
 
   void _safeMove(LatLng target, double zoom) {
@@ -84,7 +84,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   }
 
   void _addNewAddress({LatLng? latLng}) {
-    final labelController = TextEditingController(text: latLng != null ? 'Pinpoint Location' : '');
+    final labelController = TextEditingController(text: latLng != null ? 'Delivery Location' : '');
     final addressController = TextEditingController(
       text: latLng != null ? 'Location (${latLng.latitude.toStringAsFixed(5)}, ${latLng.longitude.toStringAsFixed(5)})' : '',
     );
@@ -243,7 +243,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                   if (success) {
                     await _loadAddresses();
                     if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alamat berhasil diupdate', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green));
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Address updated successfully', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green));
                     }
                   } else {
                     setState(() => _isLoading = false);
@@ -286,7 +286,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Text('Pilih Hasil Pencarian', style: AppTextStyles.headlineMd(color: Colors.white)),
+                      child: Text('Search Results', style: AppTextStyles.headlineMd(color: Colors.white)),
                     ),
                     Expanded(
                       child: ListView.builder(
@@ -318,13 +318,13 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
           }
         } else {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lokasi tidak ditemukan', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location not found', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
           }
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mencari lokasi', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to search location', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -348,7 +348,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Cari lokasi',
+              hintText: 'Search city, street or ZIP code...',
               hintStyle: const TextStyle(color: Colors.white70),
               prefixIcon: const Icon(Icons.search, color: Colors.white),
               suffixIcon: IconButton(

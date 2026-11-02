@@ -9,6 +9,9 @@ class UserModel {
   final String? role;
   final String? kitchenId;
   final String? kitchenName;
+  final bool pushNotifications;
+  final bool emailNotifications;
+  final bool smsAlerts;
 
   UserModel({
     required this.id,
@@ -19,6 +22,9 @@ class UserModel {
     this.role,
     this.kitchenId,
     this.kitchenName,
+    this.pushNotifications = true,
+    this.emailNotifications = true,
+    this.smsAlerts = false,
   });
 
   String get effectiveAvatar {
@@ -37,6 +43,9 @@ class UserModel {
       role: json['role']?.toString(),
       kitchenId: json['kitchen_id']?.toString(),
       kitchenName: json['kitchen_name']?.toString(),
+      pushNotifications: json['push_notifications'] == null || json['push_notifications'].toString() == '1' || json['push_notifications'] == true,
+      emailNotifications: json['email_notifications'] == null || json['email_notifications'].toString() == '1' || json['email_notifications'] == true,
+      smsAlerts: json['sms_alerts'] != null && (json['sms_alerts'].toString() == '1' || json['sms_alerts'] == true),
     );
   }
 }

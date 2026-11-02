@@ -174,7 +174,14 @@ class ApiService {
     throw Exception('Failed to get profile');
   }
 
-  static Future<bool> updateProfile({String? name, String? phone, XFile? avatarImage}) async {
+  static Future<bool> updateProfile({
+    String? name,
+    String? phone,
+    XFile? avatarImage,
+    bool? pushNotifications,
+    bool? emailNotifications,
+    bool? smsAlerts,
+  }) async {
     final userId = await getUserId();
     if (userId == null) return false;
 
@@ -182,6 +189,15 @@ class ApiService {
     request.fields['user_id'] = userId;
     if (name != null) request.fields['name'] = name;
     if (phone != null) request.fields['phone'] = phone;
+    if (pushNotifications != null) {
+      request.fields['push_notifications'] = pushNotifications ? '1' : '0';
+    }
+    if (emailNotifications != null) {
+      request.fields['email_notifications'] = emailNotifications ? '1' : '0';
+    }
+    if (smsAlerts != null) {
+      request.fields['sms_alerts'] = smsAlerts ? '1' : '0';
+    }
 
     if (avatarImage != null) {
       final bytes = await avatarImage.readAsBytes();
@@ -1555,6 +1571,45 @@ class ApiService {
     } catch (e) {
       debugPrint('Error deleting promotion: $e');
       return false;
+    }
+  }
+
+  static Future<bool> reorderPromotions(List<int> orderedIds) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_promotions.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'reorder',
+          'order': orderedIds,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error reordering promotions: $e');
+      return false;
+    }
+  }
+
+  static Future<Map<String, dynamic>?> getAdminPlatformStats() async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_stats.php');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting admin platform stats: $e');
+      return null;
     }
   }
 

@@ -28,6 +28,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   String _chefFilter = 'pending';
   String _userTypeFilter = 'all';
   String _supportFilter = 'all';
+  Map<String, dynamic>? _platformStats;
+  bool _isLoadingStats = true;
+  bool _isReorderingBanners = false;
   final TextEditingController _userSearchController = TextEditingController();
   final TextEditingController _supportSearchController = TextEditingController();
   Timer? _supportPollingTimer;
@@ -42,12 +45,51 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     _loadChefs();
     _loadUsers();
     _loadPromotions();
+    _loadPlatformStats();
     _loadSupportChats();
     _supportPollingTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (_tabController.index == 4) {
         _loadSupportChats(isPolling: true);
       }
     });
+  }
+
+  Future<void> _loadPlatformStats() async {
+    setState(() => _isLoadingStats = true);
+    final stats = await ApiService.getAdminPlatformStats();
+    if (mounted) {
+      setState(() {
+        _platformStats = stats;
+        _isLoadingStats = false;
+      });
+    }
+  }
+
+  Future<void> _movePromotion(int index, int delta) async {
+    final targetIndex = index + delta;
+    if (targetIndex < 0 || targetIndex >= _promotions.length) return;
+
+    setState(() {
+      final item = _promotions.removeAt(index);
+      _promotions.insert(targetIndex, item);
+      _isReorderingBanners = true;
+    });
+
+    final ids = _promotions
+        .map((p) => int.tryParse(p['id']?.toString() ?? '0') ?? 0)
+        .where((id) => id > 0)
+        .toList();
+    final success = await ApiService.reorderPromotions(ids);
+
+    if (mounted) {
+      setState(() => _isReorderingBanners = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '✅ Banner display order updated' : 'Failed to update banner order'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   @override
@@ -1332,7 +1374,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Active Home Banners', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
-                  Text('These banners appear below the Search bar', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                  Text('Use ↑ / ↓ buttons to arrange banner display order', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
                 ],
               ),
               ElevatedButton.icon(
@@ -1347,6 +1389,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             ],
           ),
         ),
+        if (_isReorderingBanners)
+          const LinearProgressIndicator(color: AppColors.primary, minHeight: 2),
         Expanded(
           child: _isLoadingPromos
               ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -1387,12 +1431,75 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Arrange Order Bar
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.04),
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                    border: Border(
+                                      bottom: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.15)),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary.withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.swap_vert, size: 14, color: AppColors.primary),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Order #${index + 1}',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        index == 0 ? 'First in Carousel' : 'Position ${index + 1}',
+                                        style: TextStyle(
+                                          color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      IconButton(
+                                        icon: const Icon(Icons.arrow_upward, size: 18),
+                                        color: index > 0 ? Colors.white : AppColors.onSurfaceVariant.withValues(alpha: 0.25),
+                                        tooltip: 'Move Up in Carousel',
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                        onPressed: index > 0 && !_isReorderingBanners ? () => _movePromotion(index, -1) : null,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      IconButton(
+                                        icon: const Icon(Icons.arrow_downward, size: 18),
+                                        color: index < _promotions.length - 1 ? Colors.white : AppColors.onSurfaceVariant.withValues(alpha: 0.25),
+                                        tooltip: 'Move Down in Carousel',
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                        onPressed: index < _promotions.length - 1 && !_isReorderingBanners ? () => _movePromotion(index, 1) : null,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 // Banner Preview
                                 Container(
                                   height: 150,
                                   width: double.infinity,
                                   decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                                     image: DecorationImage(
                                       image: NetworkImage(ApiService.formatImageUrl(promo['image'] ?? '')),
                                       fit: BoxFit.cover,
@@ -1535,51 +1642,388 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     final pendingChefs = _chefApplications.where((c) => c['is_verified']?.toString() == '0').length;
     final activePromos = _promotions.where((p) => p['is_active']?.toString() == '1').length;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Platform Overview', style: AppTextStyles.headlineLgMobile(color: Colors.white)),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard('Active Kitchens', '$approvedChefs', Icons.restaurant, Colors.greenAccent),
+    final completedVolume = double.tryParse(_platformStats?['completed_volume']?.toString() ?? '0') ?? 0.0;
+    final totalVolume = double.tryParse(_platformStats?['total_volume']?.toString() ?? '0') ?? 0.0;
+    final totalOrders = int.tryParse(_platformStats?['total_orders']?.toString() ?? '0') ?? 0;
+    final completedOrders = int.tryParse(_platformStats?['completed_orders']?.toString() ?? '0') ?? 0;
+    final avgOrderValue = double.tryParse(_platformStats?['avg_order_value']?.toString() ?? '0') ?? 0.0;
+    final List<dynamic> kitchens = (_platformStats?['kitchens'] as List<dynamic>?) ?? [];
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        await Future.wait([
+          _loadPlatformStats(),
+          _loadChefs(),
+          _loadPromotions(),
+        ]);
+      },
+      color: AppColors.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ==========================================
+            // EXECUTIVE FINANCIAL OVERVIEW
+            // ==========================================
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Platform Financials', style: AppTextStyles.headlineLgMobile(color: Colors.white)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.bolt, color: Colors.greenAccent, size: 14),
+                      SizedBox(width: 4),
+                      Text('Real-time', style: TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Main Earnings Hero Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF1B2332),
+                    AppColors.surfaceContainerLow,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard('Pending Chefs', '$pendingChefs', Icons.pending_actions, Colors.amberAccent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 22),
+                          ),
+                          const SizedBox(width: 12),
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Total Kitchens Earnings', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                              Text('Realized from completed orders', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white10,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '$completedOrders of $totalOrders Paid',
+                          style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    '\$${completedVolume.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Colors.greenAccent,
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Gross Volume', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11)),
+                            const SizedBox(height: 4),
+                            Text('\$${totalVolume.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      Container(width: 1, height: 28, color: Colors.white.withValues(alpha: 0.08)),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Avg Order Ticket', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11)),
+                              const SizedBox(height: 4),
+                              Text('\$${avgOrderValue.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Container(width: 1, height: 28, color: Colors.white.withValues(alpha: 0.08)),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Total Orders', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11)),
+                              const SizedBox(height: 4),
+                              Text('$totalOrders', style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard('Live Banners', '$activePromos', Icons.campaign, Colors.blueAccent),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard('Total Applicants', '${_chefApplications.length}', Icons.groups, Colors.purpleAccent),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          Text('Admin Actions Quick Links', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
-          const SizedBox(height: 12),
-          _buildQuickActionTile(Icons.how_to_reg, 'Review Pending Applications', 'Approve or reject new chefs', () {
-            setState(() {
-              _chefFilter = 'pending';
-              _tabController.animateTo(0);
-            });
-            _loadChefs();
-          }),
-          const SizedBox(height: 10),
-          _buildQuickActionTile(Icons.add_photo_alternate, 'Create New Promo Banner', 'Add discounts for home screen', () {
-            _showAddPromotionModal();
-          }),
-        ],
+            ),
+            const SizedBox(height: 28),
+
+            // ==========================================
+            // KITCHENS EARNINGS BREAKDOWN
+            // ==========================================
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Kitchens Earnings Breakdown', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '${kitchens.length} Kitchens',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            if (_isLoadingStats)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              )
+            else if (kitchens.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Center(
+                  child: Column(
+                    children: [
+                      const Icon(Icons.storefront_outlined, color: AppColors.onSurfaceVariant, size: 40),
+                      const SizedBox(height: 10),
+                      Text('No kitchens earnings recorded yet', style: AppTextStyles.bodyMd(color: Colors.white70)),
+                      const SizedBox(height: 4),
+                      const Text('When orders are completed, kitchen payouts will appear here.',
+                          style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12)),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...kitchens.map((k) {
+                final earned = double.tryParse(k['total_earned']?.toString() ?? '0') ?? 0.0;
+                final pending = double.tryParse(k['pending_balance']?.toString() ?? '0') ?? 0.0;
+                final totalKOrders = int.tryParse(k['total_orders']?.toString() ?? '0') ?? 0;
+                final compKOrders = int.tryParse(k['completed_orders']?.toString() ?? '0') ?? 0;
+                final hasBank = k['has_bank_account']?.toString() == '1';
+                final isOpen = k['is_open']?.toString() == '1';
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 22,
+                            backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+                            backgroundImage: k['avatar'] != null && k['avatar'].toString().isNotEmpty
+                                ? NetworkImage(ApiService.formatImageUrl(k['avatar']))
+                                : null,
+                            child: k['avatar'] == null || k['avatar'].toString().isEmpty
+                                ? const Icon(Icons.restaurant, color: AppColors.primary, size: 22)
+                                : null,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  k['name'] ?? 'Kitchen',
+                                  style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  k['chef_name'] ?? 'Chef',
+                                  style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '\$${earned.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  color: Colors.greenAccent,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$compKOrders / $totalKOrders Orders',
+                                style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isOpen ? Colors.green.withValues(alpha: 0.15) : Colors.red.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isOpen ? '🟢 Open Now' : '🔴 Closed',
+                              style: TextStyle(
+                                color: isOpen ? Colors.greenAccent : Colors.redAccent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: hasBank ? Colors.teal.withValues(alpha: 0.15) : Colors.amber.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              hasBank ? '🏦 Bank Linked' : '⚠️ Bank Missing',
+                              style: TextStyle(
+                                color: hasBank ? Colors.tealAccent : Colors.amberAccent,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          if (pending > 0) ...[
+                            const Spacer(),
+                            Text(
+                              'In-flight: \$${pending.toStringAsFixed(2)}',
+                              style: const TextStyle(color: Colors.white54, fontSize: 11),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
+
+            const SizedBox(height: 28),
+
+            // ==========================================
+            // PLATFORM OPERATION COUNTS
+            // ==========================================
+            Text('Platform Overview', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard('Active Kitchens', '$approvedChefs', Icons.restaurant, Colors.greenAccent),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard('Pending Chefs', '$pendingChefs', Icons.pending_actions, Colors.amberAccent),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard('Live Banners', '$activePromos', Icons.campaign, Colors.blueAccent),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard('Total Applicants', '${_chefApplications.length}', Icons.groups, Colors.purpleAccent),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+
+            // ==========================================
+            // ADMIN ACTIONS QUICK LINKS
+            // ==========================================
+            Text('Admin Actions Quick Links', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+            const SizedBox(height: 12),
+            _buildQuickActionTile(Icons.how_to_reg, 'Review Pending Applications', 'Approve or reject new chefs', () {
+              setState(() {
+                _chefFilter = 'pending';
+                _tabController.animateTo(0);
+              });
+              _loadChefs();
+            }),
+            const SizedBox(height: 10),
+            _buildQuickActionTile(Icons.add_photo_alternate, 'Create New Promo Banner', 'Add discounts for home screen', () {
+              _showAddPromotionModal();
+            }),
+          ],
+        ),
       ),
     );
   }
