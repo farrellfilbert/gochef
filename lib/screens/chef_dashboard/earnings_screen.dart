@@ -865,9 +865,41 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
     );
   }
 
+  static const List<String> _usBankOptions = [
+    'JPMorgan Chase Bank',
+    'Bank of America',
+    'Wells Fargo',
+    'Citibank',
+    'Capital One',
+    'U.S. Bank',
+    'PNC Bank',
+    'TD Bank',
+    'Truist Bank',
+    'Charles Schwab',
+    'Ally Bank',
+    'Chime',
+    'SoFi Bank',
+    'Discover Bank',
+    'Goldman Sachs (Marcus)',
+    'Navy Federal Credit Union',
+    'Regions Bank',
+    'Huntington National Bank',
+    'KeyBank',
+    'Other / Credit Union',
+  ];
+
   // --- Bank Account Link Modal ---
   void _showBankDetailsModal() {
-    final bankNameController = TextEditingController(text: _kitchen?.bankName ?? '');
+    final availableBanks = List<String>.from(_usBankOptions);
+    final initialBank = _kitchen?.bankName.trim() ?? '';
+    if (initialBank.isNotEmpty && !availableBanks.contains(initialBank)) {
+      availableBanks.insert(availableBanks.length - 1, initialBank);
+    }
+    String selectedBank = initialBank.isNotEmpty ? initialBank : availableBanks.first;
+
+    final customBankController = TextEditingController(
+      text: selectedBank == 'Other / Credit Union' ? initialBank : '',
+    );
     final defaultHolder = (_kitchen?.bankAccountHolder.isNotEmpty == true)
         ? _kitchen!.bankAccountHolder
         : ((_kitchen?.chefName.isNotEmpty == true) ? _kitchen!.chefName : 'Chef');
@@ -882,8 +914,12 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
         final fetched = await ApiService.getKitchenDetail(kId);
         if (mounted && fetched != null) {
           setState(() => _kitchen = fetched);
-          if (bankNameController.text.isEmpty && fetched.bankName.isNotEmpty) {
-            bankNameController.text = fetched.bankName;
+          final fBank = fetched.bankName.trim();
+          if (fBank.isNotEmpty) {
+            if (!availableBanks.contains(fBank)) {
+              availableBanks.insert(availableBanks.length - 1, fBank);
+            }
+            selectedBank = fBank;
           }
           if ((holderController.text.isEmpty || holderController.text == 'Chef') && fetched.bankAccountHolder.isNotEmpty) {
             holderController.text = fetched.bankAccountHolder;
@@ -948,13 +984,25 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Bank Name
-                    _buildBankTextField(
-                      controller: bankNameController,
-                      label: 'Bank Name',
-                      hint: 'e.g. Chase, Bank of America, Wells Fargo',
-                      icon: Icons.account_balance,
+                    // Bank Dropdown
+                    _buildBankDropdown(
+                      selectedValue: selectedBank,
+                      items: availableBanks,
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() => selectedBank = val);
+                        }
+                      },
                     ),
+                    if (selectedBank == 'Other / Credit Union') ...[
+                      const SizedBox(height: 14),
+                      _buildBankTextField(
+                        controller: customBankController,
+                        label: 'Custom Bank / Credit Union Name',
+                        hint: 'Enter your bank or credit union name',
+                        icon: Icons.account_balance,
+                      ),
+                    ],
                     const SizedBox(height: 14),
 
                     // Account Holder Name
@@ -991,7 +1039,9 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
                       height: 50,
                       child: ElevatedButton(
                         onPressed: isSaving ? null : () async {
-                          final bName = bankNameController.text.trim();
+                          final bName = selectedBank == 'Other / Credit Union'
+                              ? customBankController.text.trim()
+                              : selectedBank.trim();
                           final bHolder = holderController.text.trim();
                           final bRouting = routingController.text.trim();
                           final bAcc = accountController.text.trim();
@@ -1053,6 +1103,60 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildBankDropdown({
+    required String selectedValue,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Bank Name',
+          style: TextStyle(color: Colors.white70, fontSize: 12.5, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: items.contains(selectedValue) ? selectedValue : items.first,
+              isExpanded: true,
+              dropdownColor: const Color(0xFF1E1E26),
+              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white70),
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+              borderRadius: BorderRadius.circular(14),
+              items: items.map((bank) {
+                return DropdownMenuItem<String>(
+                  value: bank,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.account_balance, color: Colors.white60, size: 18),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          bank,
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
