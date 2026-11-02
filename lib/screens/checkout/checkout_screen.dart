@@ -8,6 +8,9 @@ import '../../services/api_service.dart';
 import '../../models/address_model.dart';
 import '../../models/cart_item_model.dart';
 import '../profile/address_selection_screen.dart';
+import '../legal/terms_of_service_screen.dart';
+import '../legal/privacy_policy_screen.dart';
+import '../legal/disclaimer_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final int kitchenId;
@@ -22,6 +25,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool isAsap = true;
   String selectedPayment = 'stripe'; // 'stripe', 'apple', 'google'
   bool isOrdering = false;
+  bool _acceptedTerms = true;
   
   // Dine-in fields
   bool isDineIn = false;
@@ -43,7 +47,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Map<String, dynamic>? _selectedVoucher;
 
   // Available vouchers
-  List<Map<String, dynamic>> _availableVouchers = [
+  final List<Map<String, dynamic>> _availableVouchers = [
     {
       'code': 'FIRST50',
       'discount': '50% OFF',
@@ -527,6 +531,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _placeOrder() async {
+    if (!_acceptedTerms) {
+      await _showErrorDialog(
+        'Agreement Required',
+        'Please review and agree to our Terms of Use, Privacy Policy, and Disclaimer before placing your order.',
+      );
+      return;
+    }
+
     if (!isDineIn && _primaryAddress == null) {
       await _showErrorDialog('Address Required', 'Please add or select a delivery address first.');
       return;
@@ -1363,6 +1375,95 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ],
                   ),
                 ),
+                // Chef/Customer Bulleted Checklist & Agreement Before Purchase
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: _acceptedTerms
+                          ? AppColors.outlineVariant.withValues(alpha: 0.2)
+                          : AppColors.primary,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Checkbox(
+                              value: _acceptedTerms,
+                              activeColor: AppColors.primary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                              onChanged: (val) {
+                                setState(() {
+                                  _acceptedTerms = val ?? false;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _acceptedTerms = !_acceptedTerms;
+                                });
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Customer & Chef Policy Checklist',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'By making this purchase, you agree to our policies:',
+                                    style: TextStyle(
+                                      color: AppColors.onSurfaceVariant,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 36),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLegalBulletLink('Terms of Use / Terms & Conditions', () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const TermsOfServiceScreen()));
+                            }),
+                            const SizedBox(height: 8),
+                            _buildLegalBulletLink('Privacy Policy', () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()));
+                            }),
+                            const SizedBox(height: 8),
+                            _buildLegalBulletLink('Disclaimer (Food Safety & MEHKO)', () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const DisclaimerScreen()));
+                            }),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -1381,43 +1482,124 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 20, offset: const Offset(0, -5))
                 ],
               ),
-              child: isOrdering
-                  ? Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      child: const Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        ),
-                      ),
-                    )
-                  : ElevatedButton(
-                      onPressed: _placeOrder,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                        elevation: 8,
-                        shadowColor: AppColors.primary.withValues(alpha: 0.5),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Center(
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          const Icon(Icons.lock, size: 18),
-                          const SizedBox(width: 8),
-                          Text('Place Order • \$${_grandTotal.toStringAsFixed(2)}',
-                              style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
+                          Text(
+                            'By purchasing you agree to ',
+                            style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                          ),
+                          GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen())),
+                            child: const Text(
+                              'Terms',
+                              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11, decoration: TextDecoration.underline),
+                            ),
+                          ),
+                          Text(
+                            ', ',
+                            style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                          ),
+                          GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
+                            child: const Text(
+                              'Privacy',
+                              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11, decoration: TextDecoration.underline),
+                            ),
+                          ),
+                          Text(
+                            ' & ',
+                            style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                          ),
+                          GestureDetector(
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DisclaimerScreen())),
+                            child: const Text(
+                              'Disclaimer',
+                              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11, decoration: TextDecoration.underline),
+                            ),
+                          ),
                         ],
                       ),
                     ),
+                  ),
+                  isOrdering
+                      ? Container(
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            ),
+                          ),
+                        )
+                      : ElevatedButton(
+                          onPressed: _placeOrder,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(double.infinity, 56),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                            elevation: 8,
+                            shadowColor: AppColors.primary.withValues(alpha: 0.5),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.lock, size: 18),
+                              const SizedBox(width: 8),
+                              Text('Place Order • \$${_grandTotal.toStringAsFixed(2)}',
+                                  style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
+                            ],
+                          ),
+                        ),
+                ],
+              ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegalBulletLink(String title, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              decoration: TextDecoration.underline,
+              decorationColor: AppColors.primary,
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(Icons.arrow_outward, size: 12, color: AppColors.primary),
         ],
       ),
     );

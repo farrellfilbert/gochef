@@ -32,10 +32,16 @@ $image = isset($data->image) ? $data->image : '';
 $is_popular = isset($data->is_popular) ? intval($data->is_popular) : 0;
 $calories = isset($data->calories) ? intval($data->calories) : 650;
 
-$query = "INSERT INTO menu_items (kitchen_id, category_id, name, description, price, image, is_popular, calories) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+$is_available = isset($data->is_available) ? ((intval($data->is_available) === 1 || $data->is_available === true) ? 1 : 0) : 1;
+
+try {
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN is_available TINYINT(1) DEFAULT 1");
+} catch (Exception $e) {}
+
+$query = "INSERT INTO menu_items (kitchen_id, category_id, name, description, price, image, is_popular, calories, is_available) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $pdo->prepare($query);
 
-if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular, $calories])) {
+if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular, $calories, $is_available])) {
     $menu_item_id = $pdo->lastInsertId();
     
     // Process addon categories if provided

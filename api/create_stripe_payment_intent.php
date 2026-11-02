@@ -28,7 +28,7 @@ if ($method === 'POST') {
     try {
         // Get cart items for specific kitchen
         $stmt = $pdo->prepare("
-            SELECT ci.*, mi.name, mi.price, mi.image, 
+            SELECT ci.*, mi.name, mi.price, mi.image, COALESCE(mi.is_available, 1) as is_available,
                    k.name as kitchen_name, k.avatar as kitchen_avatar, k.id as kitchen_id
             FROM cart_items ci
             JOIN menu_items mi ON ci.menu_item_id = mi.id
@@ -41,6 +41,17 @@ if ($method === 'POST') {
         if (empty($cartItems)) {
             echo json_encode(['success' => false, 'error' => 'Cart is empty for this kitchen']);
             exit;
+        }
+
+        // Verify all items are currently in stock
+        foreach ($cartItems as $item) {
+            if (isset($item['is_available']) && ($item['is_available'] === 0 || $item['is_available'] === '0')) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => '"' . $item['name'] . '" is currently out of stock. Please remove it from your cart to proceed.'
+                ]);
+                exit;
+            }
         }
 
         // Calculate total

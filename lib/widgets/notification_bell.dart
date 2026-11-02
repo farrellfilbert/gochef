@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import '../theme/app_colors.dart';
 import '../services/api_service.dart';
 import '../screens/notifications/notifications_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';

@@ -1,5 +1,6 @@
 <?php
 require_once 'db_connect.php';
+require_once 'email_helper.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -28,10 +29,10 @@ if ($method === 'POST') {
     }
 
     try {
-        // Get cart items for specific kitchen (with notes)
+        // Get cart items for specific kitchen (with availability and chef info)
         $stmt = $pdo->prepare("
-            SELECT ci.*, mi.name, mi.price, mi.image, 
-                   k.name as kitchen_name, k.avatar as kitchen_avatar, k.id as kitchen_id
+            SELECT ci.*, mi.name, mi.price, mi.image, COALESCE(mi.is_available, 1) as is_available,
+                   k.name as kitchen_name, k.avatar as kitchen_avatar, k.id as kitchen_id, k.user_id as chef_user_id
             FROM cart_items ci
             JOIN menu_items mi ON ci.menu_item_id = mi.id
             JOIN kitchens k ON mi.kitchen_id = k.id
@@ -43,6 +44,17 @@ if ($method === 'POST') {
         if (empty($cartItems)) {
             echo json_encode(['success' => false, 'error' => 'Cart is empty for this kitchen']);
             exit;
+        }
+
+        // Verify that all items are currently in stock / available
+        foreach ($cartItems as $item) {
+            if (isset($item['is_available']) && ($item['is_available'] === 0 || $item['is_available'] === '0')) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => '"' . $item['name'] . '" is currently out of stock. Please remove it from your cart to proceed.'
+                ]);
+                exit;
+            }
         }
 
         // Calculate total
@@ -85,9 +97,10 @@ if ($method === 'POST') {
         // Create order ID
         $orderId = 'ORD-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-        // Get kitchen name (from first item)
+        // Get kitchen name & chef info
         $kitchenName = $cartItems[0]['kitchen_name'] ?? 'Kitchen';
         $kitchenAvatar = $cartItems[0]['kitchen_avatar'] ?? $cartItems[0]['image'] ?? 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500';
+        $chefUserId = $cartItems[0]['chef_user_id'] ?? null;
         $status = 'Pending';
 
         // Ensure orders table has all columns
@@ -118,7 +131,8 @@ if ($method === 'POST') {
             $kitchenAvatar, $deliveryAddress, $notes
         ]);
 
-        // Insert order items
+        // Insert order items & build email summary HTML
+        $itemsHtml = '';
         $itemStmt = $pdo->prepare("INSERT INTO order_items (order_id, name, options, quantity, price) VALUES (?, ?, ?, ?, ?)");
         foreach ($cartItems as $item) {
             // Get addons for this cart item
@@ -146,6 +160,14 @@ if ($method === 'POST') {
             $finalPrice = $item['price'] + $addonTotal;
             
             $itemStmt->execute([$orderId, $item['name'], $optionsString, $item['quantity'], $finalPrice]);
+
+            $itemsHtml .= "<div style='padding:6px 0; border-bottom:1px solid #282A3A; font-size:13px; color:#ffffff;'>";
+            $itemsHtml .= "<strong>" . intval($item['quantity']) . "x</strong> " . htmlspecialchars($item['name']);
+            if (!empty($optionsString)) {
+                $itemsHtml .= "<br><span style='font-size:11px; color:#8E92A4;'>" . htmlspecialchars($optionsString) . "</span>";
+            }
+            $itemsHtml .= "<span style='float:right; color:#22C55E; font-weight:bold;'>$" . number_format($finalPrice * $item['quantity'], 2) . "</span>";
+            $itemsHtml .= "</div>";
         }
 
         // Clear cart items for this kitchen only
@@ -155,12 +177,75 @@ if ($method === 'POST') {
             WHERE ci.user_id = ? AND mi.kitchen_id = ?
         ")->execute([$user_id, $kitchen_id]);
 
-        // Create notification
+        // Customer Details
+        $custStmt = $pdo->prepare("SELECT name, email, phone FROM users WHERE id = ?");
+        $custStmt->execute([$user_id]);
+        $customer = $custStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $customerName = $customer['name'] ?? 'Customer';
+        $customerEmail = $customer['email'] ?? '';
+
+        // Chef Details
+        $chefEmail = '';
+        $chefName = 'Chef';
+        if ($chefUserId) {
+            $chefStmt = $pdo->prepare("SELECT name, email FROM users WHERE id = ?");
+            $chefStmt->execute([$chefUserId]);
+            $chef = $chefStmt->fetch(PDO::FETCH_ASSOC);
+            if ($chef) {
+                $chefName = $chef['name'] ?? 'Chef';
+                $chefEmail = $chef['email'] ?? '';
+            }
+        }
+
+        // In-App Notification: Customer
         $pdo->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'order')")->execute([
             $user_id,
-            'Order Confirmed!',
+            'Order Confirmed! 🎉',
             "Your order $orderId from $kitchenName has been confirmed."
         ]);
+
+        // In-App Notification: Chef (Kitchen Owner)
+        if ($chefUserId) {
+            $pdo->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'order')")->execute([
+                $chefUserId,
+                'New Order Received! 🍳',
+                "New order $orderId from $customerName ($itemsCount items, $" . number_format($total, 2) . "). Tap to accept and prepare."
+            ]);
+        }
+
+        // Email: Customer
+        if (!empty($customerEmail)) {
+            $detailsHtml = "<p style='margin:0; font-size:13px; color:#A0A5B5;'>Type: <strong>" . strtoupper($order_type) . "</strong>" . ($deliveryAddress ? "<br>Address: " . htmlspecialchars($deliveryAddress) : "") . "</p>";
+            @sendOrderNotificationEmail(
+                $customerEmail,
+                $customerName,
+                "GoChef Order Confirmation - $orderId",
+                "Your Order is Confirmed!",
+                "Thank you for ordering with GoChef. Your chef has received the order and will begin preparing it shortly.",
+                $orderId,
+                $kitchenName,
+                $itemsHtml,
+                $total,
+                $detailsHtml
+            );
+        }
+
+        // Email: Chef
+        if (!empty($chefEmail)) {
+            $chefDetailsHtml = "<p style='margin:0; font-size:13px; color:#A0A5B5;'>Customer: <strong>" . htmlspecialchars($customerName) . "</strong> (" . htmlspecialchars($customer['phone'] ?? '-') . ")<br>Type: <strong>" . strtoupper($order_type) . "</strong>" . ($deliveryAddress ? "<br>Delivery Address: " . htmlspecialchars($deliveryAddress) : "") . "</p>";
+            @sendOrderNotificationEmail(
+                $chefEmail,
+                $chefName,
+                "New Order Received: $orderId - GoChef",
+                "New Order Received!",
+                "A customer just placed a new order for your kitchen. Please review the details below and prepare their meal.",
+                $orderId,
+                $kitchenName,
+                $itemsHtml,
+                $total,
+                $chefDetailsHtml
+            );
+        }
 
         echo json_encode([
             'success' => true,

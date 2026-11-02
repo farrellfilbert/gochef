@@ -2,6 +2,7 @@
 // api/verify_payment.php
 require_once 'db_connect.php';
 require_once 'config.php';
+require_once 'email_helper.php';
 
 header('Content-Type: application/json');
 
@@ -111,12 +112,76 @@ if ($method === 'POST') {
                     WHERE ci.user_id = ? AND mi.kitchen_id = ?
                 ")->execute([$order['user_id'], $order['kitchen_id']]);
 
-                // Create customer notification
+                // Customer details
+                $custStmt = $pdo->prepare("SELECT name, email, phone FROM users WHERE id = ?");
+                $custStmt->execute([$order['user_id']]);
+                $customer = $custStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+                $customerName = $customer['name'] ?? 'Customer';
+                $customerEmail = $customer['email'] ?? '';
+
+                // Create customer in-app notification
                 $pdo->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'order')")->execute([
                     $order['user_id'],
                     'Payment Successful!',
                     "Your order $order_id has been confirmed and is being prepared."
                 ]);
+
+                // Create chef in-app notification & send emails
+                $chefStmt = $pdo->prepare("SELECT u.id as chef_user_id, u.name as chef_name, u.email as chef_email FROM kitchens k JOIN users u ON k.user_id = u.id WHERE k.id = ?");
+                $chefStmt->execute([$order['kitchen_id']]);
+                $chef = $chefStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($chef && !empty($chef['chef_user_id'])) {
+                    $pdo->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'order')")->execute([
+                        $chef['chef_user_id'],
+                        'New Paid Order Received!',
+                        "New paid order $order_id ($" . number_format((float)$order['total_amount'], 2) . ") has been received. Tap to review."
+                    ]);
+                }
+
+                // Get order items for email summary
+                $oiStmt = $pdo->prepare("SELECT name, quantity, price, options FROM order_items WHERE order_id = ?");
+                $oiStmt->execute([$order_id]);
+                $orderItems = $oiStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+                $itemsHtml = '';
+                foreach ($orderItems as $oi) {
+                    $itemsHtml .= "<div style='padding:6px 0; border-bottom:1px solid #282A3A; font-size:13px; color:#ffffff;'>";
+                    $itemsHtml .= "<strong>" . intval($oi['quantity']) . "x</strong> " . htmlspecialchars($oi['name']);
+                    if (!empty($oi['options'])) {
+                        $itemsHtml .= "<br><span style='font-size:11px; color:#8E92A4;'>" . htmlspecialchars($oi['options']) . "</span>";
+                    }
+                    $itemsHtml .= "<span style='float:right; color:#22C55E; font-weight:bold;'>$" . number_format($oi['price'] * $oi['quantity'], 2) . "</span>";
+                    $itemsHtml .= "</div>";
+                }
+
+                if (!empty($customerEmail)) {
+                    @sendOrderNotificationEmail(
+                        $customerEmail,
+                        $customerName,
+                        "Payment Confirmed - Order $order_id",
+                        "Payment Successful & Order Confirmed!",
+                        "Your payment of $" . number_format((float)$order['total_amount'], 2) . " has been received. Your chef is now preparing your order.",
+                        $order_id,
+                        $order['kitchen_name'] ?? 'Kitchen',
+                        $itemsHtml,
+                        (float)$order['total_amount']
+                    );
+                }
+
+                if ($chef && !empty($chef['chef_email'])) {
+                    @sendOrderNotificationEmail(
+                        $chef['chef_email'],
+                        $chef['chef_name'] ?? 'Chef',
+                        "New Paid Order Received: $order_id - GoChef",
+                        "New Paid Order Received!",
+                        "A new paid order has been placed for your kitchen by " . htmlspecialchars($customerName) . ". Please prepare the meal.",
+                        $order_id,
+                        $order['kitchen_name'] ?? 'Kitchen',
+                        $itemsHtml,
+                        (float)$order['total_amount']
+                    );
+                }
 
                 echo json_encode([
                     'success' => true, 

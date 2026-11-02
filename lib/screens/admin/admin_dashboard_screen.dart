@@ -1460,7 +1460,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
                                           ),
                                           Switch(
                                             value: isActive,
-                                            activeColor: AppColors.primary,
+                                            activeThumbColor: AppColors.primary,
                                             onChanged: (val) async {
                                               await ApiService.togglePromotion(promoId, val);
                                               _loadPromotions();

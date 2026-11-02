@@ -16,6 +16,7 @@ import '../auth/login_screen.dart';
 import 'reviews_screen.dart';
 import '../chat/inbox_screen.dart';
 import '../../widgets/kitchen_location_picker_dialog.dart';
+import '../../utils/kitchen_compliance.dart';
 
 class ChefProfileScreen extends StatefulWidget {
   const ChefProfileScreen({super.key});
@@ -343,7 +344,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                         Text('Kitchen Status', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                         Switch(
                           value: isOpen,
-                          activeColor: AppColors.primary,
+                          activeThumbColor: AppColors.primary,
                           onChanged: (val) => setModalState(() => isOpen = val),
                         ),
                       ],
@@ -674,6 +675,522 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     );
   }
 
+  void _showUploadDocumentModal([String? initialType]) {
+    final List<String> docTypes = [
+      'MEHKO Permit',
+      'Safe Serv Certification',
+      'Health Permit',
+      'Cottage Food Permit',
+      'Business License (Biz License)',
+      'Insurance Certificate',
+      'Latest Inspection Report',
+      'Commissioners Agreement',
+      'Kitchen Verified Document',
+      'Other Credential',
+    ];
+
+    String selectedType = initialType ?? docTypes.first;
+    if (!docTypes.contains(selectedType)) {
+      final match = docTypes.firstWhere(
+        (t) => t.toLowerCase().contains(selectedType.toLowerCase()),
+        orElse: () => docTypes.first,
+      );
+      selectedType = match;
+    }
+
+    final titleController = TextEditingController(text: selectedType);
+    XFile? pickedDocument;
+    bool isUploading = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.upload_file, color: Colors.greenAccent, size: 22),
+                      const SizedBox(width: 8),
+                      Text('Upload Credential / Document', style: AppTextStyles.headlineMd(color: Colors.white)),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white70),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Submit documents to earn your verified green dot on your profile.',
+                style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+              ),
+              const SizedBox(height: 20),
+
+              // Dropdown
+              const Text('Document Type', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: selectedType,
+                dropdownColor: AppColors.surfaceContainerHigh,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppColors.surfaceContainerLow,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+                items: docTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setModalState(() {
+                      selectedType = val;
+                      titleController.text = val;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Custom Title
+              const Text('Document Name / Details', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: titleController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppColors.surfaceContainerLow,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  hintText: 'e.g. Los Angeles County MEHKO #12345',
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // File / Photo Picker
+              const Text('Photo / Document Scan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () async {
+                  final picker = ImagePicker();
+                  final picked = await picker.pickImage(source: ImageSource.gallery);
+                  if (picked != null) {
+                    setModalState(() => pickedDocument = picked);
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: pickedDocument != null ? Colors.greenAccent : Colors.white24,
+                      width: pickedDocument != null ? 2 : 1,
+                    ),
+                  ),
+                  child: pickedDocument != null
+                      ? Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(11),
+                              child: kIsWeb
+                                  ? Image.network(pickedDocument!.path, fit: BoxFit.cover, width: double.infinity, height: 120)
+                                  : Image.file(File(pickedDocument!.path), fit: BoxFit.cover, width: double.infinity, height: 120),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(16)),
+                              child: const Text('Tap to Change Photo', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.add_photo_alternate_outlined, color: Colors.white70, size: 36),
+                            const SizedBox(height: 6),
+                            const Text('Select Certificate Photo or Document Scan', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                            const SizedBox(height: 2),
+                            Text('Supports JPG, PNG (Max 10MB)', style: AppTextStyles.labelSm(color: Colors.white38)),
+                          ],
+                        ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Upload Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                  ),
+                  onPressed: isUploading
+                      ? null
+                      : () async {
+                          if (titleController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please enter a document title')),
+                            );
+                            return;
+                          }
+                          if (pickedDocument == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please select a photo or document scan to upload')),
+                            );
+                            return;
+                          }
+
+                          setModalState(() => isUploading = true);
+                          try {
+                            String? uploadedUrl = await ApiService.uploadImage(pickedDocument!);
+                            if (uploadedUrl == null || uploadedUrl.isEmpty) {
+                              throw Exception('Failed to upload document image.');
+                            }
+
+                            final newCert = {
+                              'title': titleController.text.trim(),
+                              'type': selectedType,
+                              'url': uploadedUrl,
+                              'issue_date': DateTime.now().toString().substring(0, 10),
+                            };
+
+                            List<Map<String, dynamic>> updatedList = [];
+                            if (_kitchen != null) {
+                              for (var c in _kitchen!.certificates) {
+                                updatedList.add(c.toJson());
+                              }
+                            }
+                            updatedList.add(newCert);
+
+                            final success = await ApiService.updateKitchen({
+                              'kitchen_id': _kitchenId,
+                              'certificates': jsonEncode(updatedList),
+                            });
+
+                            if (success) {
+                              if (mounted) {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${titleController.text.trim()} uploaded! Green dot verification updated.'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                                _loadProfile();
+                              }
+                            } else {
+                              throw Exception('Server rejected kitchen update.');
+                            }
+                          } catch (e) {
+                            setModalState(() => isUploading = false);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Upload failed: $e')),
+                              );
+                            }
+                          }
+                        },
+                  child: isUploading
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Submit & Upload Document', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteDocument(ChefCertificate cert) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceContainerHigh,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete Document?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Text('Are you sure you want to delete "${cert.title}"? Your green dot verification for this document will be removed.', style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _isLoading = true);
+      try {
+        List<Map<String, dynamic>> updatedList = [];
+        for (var c in _kitchen!.certificates) {
+          if (c.title != cert.title || c.url != cert.url) {
+            updatedList.add(c.toJson());
+          }
+        }
+
+        await ApiService.updateKitchen({
+          'kitchen_id': _kitchenId,
+          'certificates': jsonEncode(updatedList),
+        });
+        _loadProfile();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Document deleted.'), backgroundColor: Colors.orange),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  void _viewDocumentImage(String url, String title) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.greenAccent,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.9), blurRadius: 4),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: InteractiveViewer(
+                      child: Image.network(
+                        url,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 200,
+                          color: Colors.black26,
+                          child: const Center(child: Text('Document image not available', style: TextStyle(color: Colors.white54))),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Center(
+                    child: Text('Verified by GoChef Compliance Team', style: TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.pop(ctx),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChefComplianceRow(KitchenComplianceItem item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: item.isSubmitted
+            ? Colors.greenAccent.withValues(alpha: 0.05)
+            : AppColors.surfaceContainerLowest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: item.isSubmitted
+              ? Colors.greenAccent.withValues(alpha: 0.3)
+              : Colors.white12,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Icon with Dot Indicator
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: item.isSubmitted
+                      ? Colors.greenAccent.withValues(alpha: 0.15)
+                      : Colors.white.withValues(alpha: 0.05),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  item.icon,
+                  color: item.isSubmitted ? Colors.greenAccent : Colors.white38,
+                  size: 20,
+                ),
+              ),
+              Positioned(
+                top: -2,
+                right: -2,
+                child: Container(
+                  width: 9,
+                  height: 9,
+                  decoration: BoxDecoration(
+                    color: item.isSubmitted ? Colors.greenAccent : Colors.grey.shade600,
+                    shape: BoxShape.circle,
+                    boxShadow: item.isSubmitted
+                        ? [
+                            BoxShadow(
+                              color: Colors.greenAccent.withValues(alpha: 0.9),
+                              blurRadius: 4,
+                            ),
+                          ]
+                        : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 12),
+          // Title & Status
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: item.isSubmitted ? Colors.greenAccent : Colors.grey.shade500,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Text(
+                        item.isSubmitted ? item.statusText : 'Not Submitted (Action Required)',
+                        style: TextStyle(
+                          color: item.isSubmitted ? Colors.greenAccent : Colors.white54,
+                          fontSize: 11,
+                          fontWeight: item.isSubmitted ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Actions
+          if (item.isSubmitted) ...[
+            if (item.documentUrl != null && item.documentUrl!.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.visibility_outlined, color: AppColors.primary, size: 20),
+                tooltip: 'View Document',
+                onPressed: () => _viewDocumentImage(item.documentUrl!, item.title),
+              ),
+            if (item.certificate != null)
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                tooltip: 'Delete Document',
+                onPressed: () => _confirmDeleteDocument(item.certificate!),
+              ),
+          ] else ...[
+            TextButton.icon(
+              onPressed: () {
+                if (item.id == 'kitchen_photos') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please upload at least 3 photos in the Atmosphere Photos section above.')),
+                  );
+                } else {
+                  _showUploadDocumentModal(item.title);
+                }
+              },
+              icon: const Icon(Icons.add, size: 14, color: AppColors.primary),
+              label: const Text('Upload', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   void _openLocationPicker() async {
     if (_kitchen == null || _kitchenId == null) return;
     final result = await showDialog<Map<String, dynamic>>(
@@ -920,7 +1437,31 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
-                              )
+                              ),
+                              if (_kitchen!.certificates.isNotEmpty || _kitchen!.isVerified)
+                                Positioned(
+                                  top: -2,
+                                  right: -2,
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      color: Colors.greenAccent,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: AppColors.surface, width: 2.5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.greenAccent.withValues(alpha: 0.9),
+                                          blurRadius: 8,
+                                          spreadRadius: 1,
+                                        )
+                                      ],
+                                    ),
+                                    child: const Center(
+                                      child: Icon(Icons.check, size: 11, color: Colors.black),
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -929,7 +1470,45 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(_kitchen!.name, style: AppTextStyles.headlineLgMobile(color: Colors.white)),
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(_kitchen!.name, style: AppTextStyles.headlineLgMobile(color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  ),
+                                  if (_kitchen!.certificates.isNotEmpty || _kitchen!.isVerified) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.greenAccent.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            width: 7,
+                                            height: 7,
+                                            decoration: BoxDecoration(
+                                              color: Colors.greenAccent,
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.9), blurRadius: 4),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          const Text(
+                                            'Verified',
+                                            style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
                               const SizedBox(height: 4),
                               Row(
                                 children: [
@@ -1115,6 +1694,66 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                 ),
                 const SizedBox(height: 24),
 
+                // Documents & Credentials Section (Green Dot Uploads & Compliance)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.verified_user, color: Colors.greenAccent, size: 20),
+                        const SizedBox(width: 8),
+                        Text('Documents & Credentials', style: AppTextStyles.headlineMd(color: Colors.white)),
+                      ],
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => _showUploadDocumentModal(),
+                      icon: const Icon(Icons.upload_file, size: 16, color: Colors.white),
+                      label: const Text('Upload', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: Colors.greenAccent,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.9), blurRadius: 4),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${KitchenComplianceHelper.countSubmitted(_kitchen!)}/10 Verified • Green dot indicates provided credentials',
+                      style: AppTextStyles.labelSm(color: Colors.greenAccent).copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Column(
+                    children: KitchenComplianceHelper.getComplianceItems(_kitchen!).map((item) {
+                      return _buildChefComplianceRow(item);
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
                 // Operational Settings
                 Text('Operational Settings', style: AppTextStyles.headlineMd(color: Colors.white)),
                 const SizedBox(height: 12),
@@ -1157,7 +1796,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.local_shipping, 'Delivery Radius', 'Set your service area (currently ${_deliveryRadius.toStringAsFixed(0)}mi)', onTap: _showDeliveryRadiusDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.shield, 'Kitchen Inspection', 'Renew your safety certifications', onTap: _showKitchenInspectionDialog),
+                      _buildSettingsTile(context, Icons.shield, 'Kitchen Inspection & Permits', '${KitchenComplianceHelper.countSubmitted(_kitchen!)}/10 Credentials & Permits Verified', onTap: _showKitchenInspectionDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       ListTile(
                         leading: const Icon(Icons.person, color: Colors.white),

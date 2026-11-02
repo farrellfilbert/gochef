@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
-import '../notifications/notifications_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/order_model.dart';
 import '../../widgets/custom_app_bar_title.dart';

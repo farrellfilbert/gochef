@@ -674,6 +674,16 @@ class _CartScreenState extends State<CartScreen> {
                             color: Colors.transparent,
                             child: InkWell(
                               onTap: _selectedKitchenId == null ? null : () {
+                                final hasUnavailable = selectedItems.any((i) => !i.isAvailable);
+                                if (hasUnavailable) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Please remove out of stock items from your cart before proceeding.'),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                  return;
+                                }
                                 final typedPromo = _promoController.text.trim().toUpperCase();
                                 final promoToPass = _appliedPromoCode ?? (typedPromo.isNotEmpty ? typedPromo : null);
                                 Navigator.push(
@@ -793,6 +803,28 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                   ],
                 ),
+                if (!item.isAvailable) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 12),
+                        SizedBox(width: 4),
+                        Text(
+                          'OUT OF STOCK - Please remove',
+                          style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 if (addonsText.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(

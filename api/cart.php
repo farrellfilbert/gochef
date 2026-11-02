@@ -22,7 +22,7 @@ if ($method === 'GET') {
 
     $stmt = $pdo->prepare("
         SELECT ci.id as cart_item_id, ci.quantity, ci.notes, 
-               mi.id as menu_item_id, mi.name, mi.price, mi.image, mi.prep_time,
+               mi.id as menu_item_id, mi.name, mi.price, mi.image, mi.prep_time, COALESCE(mi.is_available, 1) as is_available,
                k.name as kitchen_name, k.avatar as kitchen_avatar, k.id as kitchen_id
         FROM cart_items ci
         JOIN menu_items mi ON ci.menu_item_id = mi.id
@@ -72,6 +72,16 @@ if ($method === 'GET') {
         echo json_encode(['success' => false, 'error' => 'user_id and menu_item_id required']);
         exit;
     }
+
+    // Verify item is available / in stock
+    $stockCheck = $pdo->prepare("SELECT name, is_available FROM menu_items WHERE id = ?");
+    $stockCheck->execute([$menu_item_id]);
+    $dish = $stockCheck->fetch();
+    if ($dish && isset($dish['is_available']) && ($dish['is_available'] === 0 || $dish['is_available'] === '0')) {
+        echo json_encode(['success' => false, 'error' => '"' . $dish['name'] . '" is currently out of stock']);
+        exit;
+    }
+
 
     // Check if item already in cart
     $stmt = $pdo->prepare("SELECT id, quantity FROM cart_items WHERE user_id = ? AND menu_item_id = ?");

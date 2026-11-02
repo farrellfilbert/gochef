@@ -309,7 +309,7 @@ class _SecurityPasswordScreenState extends State<SecurityPasswordScreen> {
                           await _toggleTwoFactor(val);
                           setModalState(() {});
                         },
-                        activeColor: Colors.white,
+                        activeThumbColor: Colors.white,
                         activeTrackColor: Colors.green,
                         inactiveThumbColor: Colors.white,
                         inactiveTrackColor: AppColors.surfaceContainerHighest,

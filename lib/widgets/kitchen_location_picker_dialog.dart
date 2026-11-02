@@ -4,7 +4,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
 import '../services/api_service.dart';
 import '../services/location_service.dart';
 

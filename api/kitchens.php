@@ -79,6 +79,11 @@ if ($method === 'GET') {
         if (empty($k['avatar'])) {
             $k['avatar'] = 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=400&q=80';
         }
+        if (isset($k['certificates']) && !empty($k['certificates'])) {
+            $k['certificates'] = is_string($k['certificates']) ? (json_decode($k['certificates'], true) ?: []) : $k['certificates'];
+        } else {
+            $k['certificates'] = [];
+        }
     }
 
     echo json_encode(['success' => true, 'data' => $kitchens]);

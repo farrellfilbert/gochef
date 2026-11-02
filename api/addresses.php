@@ -54,7 +54,7 @@ if ($method === 'GET') {
 
     $stmt = $pdo->prepare("UPDATE addresses SET label = ?, address = ? WHERE id = ?");
     $stmt->execute([$label, $address, $id]);
-    
+
     echo json_encode(['success' => true]);
 }
 ?>

@@ -10,6 +10,7 @@ import '../../models/kitchen_model.dart';
 import '../../models/menu_item_model.dart';
 import '../chat/chat_screen.dart';
 import '../cart/cart_screen.dart';
+import '../../utils/kitchen_compliance.dart';
 
 class KitchenProfileScreen extends StatefulWidget {
   final int kitchenId;
@@ -221,7 +222,10 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                             // Avatar - tap to fullscreen
                             GestureDetector(
                               onTap: () => _openFullscreenImage(context, kitchen.avatar, 'avatar_' + kitchen.id.toString()),
-                              child: Hero(
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Hero(
                                 tag: 'avatar_' + kitchen.id.toString(),
                                 child: Container(
                                   width: 76, height: 76,
@@ -241,7 +245,33 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                   ),
                                 ),
                               ),
-                            ),
+                              if (kitchen.certificates.isNotEmpty || kitchen.isVerified)
+                                Positioned(
+                                  top: -2,
+                                  right: -2,
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      color: Colors.greenAccent,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: AppColors.surface, width: 2.5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.greenAccent.withValues(alpha: 0.9),
+                                          blurRadius: 8,
+                                          spreadRadius: 1,
+                                        )
+                                      ],
+                                    ),
+                                    child: const Center(
+                                      child: Icon(Icons.check, size: 11, color: Colors.black),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                             const SizedBox(width: 16),
                             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                               Text(
@@ -253,7 +283,45 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                 style: AppTextStyles.labelMono(color: AppColors.primary).copyWith(letterSpacing: 1, fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 2),
-                              Text(kitchen.name, style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface).copyWith(height: 1.15), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(kitchen.name, style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface).copyWith(height: 1.15), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  ),
+                                  if (kitchen.certificates.isNotEmpty || kitchen.isVerified) ...[
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.greenAccent.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            width: 7,
+                                            height: 7,
+                                            decoration: BoxDecoration(
+                                              color: Colors.greenAccent,
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.9), blurRadius: 4),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          const Text(
+                                            'Verified',
+                                            style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
                               if (kitchen.location.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Row(
@@ -479,33 +547,74 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                   ]),
                 ),
                 const SizedBox(height: 32),
-                // Certificates & Accreditations Section
-                if (kitchen.certificates.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.workspace_premium_rounded, color: Colors.amber, size: 22),
-                        const SizedBox(width: 8),
-                        Text('Certificates & Accreditations', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-                      ],
-                    ),
+                // Verified Credentials & Safety Standards (Green Dot / Grey Dot Checklist)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.verified_user, color: Colors.greenAccent, size: 22),
+                              const SizedBox(width: 8),
+                              Text('Verified Credentials', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.greenAccent.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: Colors.greenAccent,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.8), blurRadius: 4),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${KitchenComplianceHelper.countSubmitted(kitchen)}/10 Verified',
+                                  style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Green dots indicate credentials submitted and verified on GoChef platform.',
+                        style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        height: 105,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: KitchenComplianceHelper.getComplianceItems(kitchen).length,
+                          itemBuilder: (context, index) {
+                            final item = KitchenComplianceHelper.getComplianceItems(kitchen)[index];
+                            return _buildComplianceCard(context, item);
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: 90,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: kitchen.certificates.length,
-                      itemBuilder: (context, index) {
-                        final cert = kitchen.certificates[index];
-                        return _buildCertificateBadge(context, cert);
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                ],
+                ),
+                const SizedBox(height: 32),
                 // Atmosphere Gallery
                 if (kitchen.atmosphereImages.isNotEmpty) ...[
                   Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Text('Atmosphere', style: AppTextStyles.headlineMd(color: AppColors.onSurface))),
@@ -690,11 +799,11 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
     );
   }
 
-  Widget _buildCertificateBadge(BuildContext context, ChefCertificate cert) {
+  Widget _buildComplianceCard(BuildContext context, KitchenComplianceItem item) {
     return GestureDetector(
       onTap: () {
-        if (cert.url.isNotEmpty) {
-          _openFullscreenImage(context, cert.url, 'cert_${cert.hashCode}');
+        if (item.documentUrl != null && item.documentUrl!.isNotEmpty) {
+          _openFullscreenImage(context, item.documentUrl!, 'doc_${item.id}_${item.hashCode}');
         } else {
           showDialog(
             context: context,
@@ -703,24 +812,48 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: Row(
                 children: [
-                  const Icon(Icons.verified, color: Colors.amber, size: 24),
+                  Icon(
+                    item.isSubmitted ? Icons.verified : Icons.info_outline,
+                    color: item.isSubmitted ? Colors.greenAccent : Colors.grey,
+                    size: 24,
+                  ),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(cert.title, style: AppTextStyles.headlineMd(color: Colors.white))),
+                  Expanded(child: Text(item.title, style: AppTextStyles.headlineMd(color: Colors.white))),
                 ],
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Category: ${cert.type}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text('This certificate has been verified by the GoChef platform compliance team.', style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
+                  Row(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: item.isSubmitted ? Colors.greenAccent : Colors.grey,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        item.isSubmitted ? 'Status: Active & Verified' : 'Status: In Review / Pending Submission',
+                        style: TextStyle(
+                          color: item.isSubmitted ? Colors.greenAccent : Colors.white70,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(item.description, style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant)),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Close', style: const TextStyle(color: Colors.white)),
+                  child: const Text('Close', style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
@@ -730,61 +863,124 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
       child: Container(
         width: 220,
         margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.glassBackground,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.amber.withValues(alpha: 0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            )
-          ],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: item.isSubmitted
+                ? Colors.greenAccent.withValues(alpha: 0.5)
+                : Colors.white12,
+            width: item.isSubmitted ? 1.5 : 1,
+          ),
+          boxShadow: item.isSubmitted
+              ? [
+                  BoxShadow(
+                    color: Colors.greenAccent.withValues(alpha: 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.verified, color: Colors.amber, size: 22),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    cert.title,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: item.isSubmitted
+                        ? Colors.greenAccent.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.05),
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    cert.type,
-                    style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: Icon(
+                    item.icon,
+                    color: item.isSubmitted ? Colors.greenAccent : Colors.white38,
+                    size: 18,
                   ),
-                  const SizedBox(height: 4),
-                  Row(
+                ),
+                const Spacer(),
+                // Green Dot if submitted, Greyed out dot if not
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: item.isSubmitted
+                        ? Colors.greenAccent.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: item.isSubmitted
+                          ? Colors.greenAccent.withValues(alpha: 0.5)
+                          : Colors.white12,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.visibility_outlined, color: AppColors.primary, size: 12),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: item.isSubmitted ? Colors.greenAccent : Colors.grey.shade500,
+                          shape: BoxShape.circle,
+                          boxShadow: item.isSubmitted
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.greenAccent.withValues(alpha: 0.9),
+                                    blurRadius: 5,
+                                    spreadRadius: 1,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        cert.url.isNotEmpty ? 'View Certificate' : 'Verified',
-                        style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.bold),
+                        item.isSubmitted ? 'Active' : 'Pending',
+                        style: TextStyle(
+                          color: item.isSubmitted ? Colors.greenAccent : Colors.white54,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              item.title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    item.statusText,
+                    style: TextStyle(
+                      color: item.isSubmitted ? Colors.greenAccent.shade100 : Colors.white38,
+                      fontSize: 11,
+                      fontWeight: item.isSubmitted ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (item.documentUrl != null && item.documentUrl!.isNotEmpty)
+                  const Icon(Icons.zoom_in, color: AppColors.primary, size: 16),
+              ],
             ),
           ],
         ),
@@ -832,13 +1028,42 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                image: DecorationImage(image: NetworkImage(menuItem.image), fit: BoxFit.cover),
-              ),
+            Stack(
+              children: [
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(
+                      image: NetworkImage(menuItem.image),
+                      fit: BoxFit.cover,
+                      colorFilter: !menuItem.isAvailable ? const ColorFilter.mode(Colors.black54, BlendMode.darken) : null,
+                    ),
+                  ),
+                ),
+                if (!menuItem.isAvailable)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      alignment: Alignment.center,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'OUT OF STOCK',
+                          style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -937,48 +1162,62 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                               ),
                             ),
                           ),
-                          // Add to cart button
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: menuItem.id)),
-                              ).then((_) => _loadCartCount());
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          // Add to cart button or Out of stock badge
+                          if (!menuItem.isAvailable)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                color: AppColors.primary,
+                                color: Colors.white.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withValues(alpha: 0.3),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  )
-                                ],
+                                border: Border.all(color: Colors.white24),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.add, color: AppColors.onPrimary, size: 13),
-                                  const SizedBox(width: 3),
-                                  Text('Add', style: AppTextStyles.labelSm(color: AppColors.onPrimary).copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
-                                ],
+                              child: Text(
+                                'Out of stock',
+                                style: AppTextStyles.labelSm(color: Colors.white54).copyWith(fontSize: 11, fontWeight: FontWeight.w600),
+                              ),
+                            )
+                          else
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: menuItem.id)),
+                                ).then((_) => _loadCartCount());
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.3),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    )
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.add, color: AppColors.onPrimary, size: 13),
+                                    const SizedBox(width: 3),
+                                    Text('Add', style: AppTextStyles.labelSm(color: AppColors.onPrimary).copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      ],
+    ),
+  ),
+);
   }
 }
 

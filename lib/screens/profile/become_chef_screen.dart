@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
-import '../chef_dashboard/chef_main_navigation.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
@@ -96,7 +95,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: selectedType,
+                    initialValue: selectedType,
                     dropdownColor: AppColors.surfaceContainerHigh,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(

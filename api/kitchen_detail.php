@@ -11,6 +11,10 @@ if (!$id && !$user_id) {
 }
 
 try {
+    try {
+        $pdo->exec("ALTER TABLE kitchens ADD COLUMN certificates TEXT DEFAULT NULL");
+    } catch (Exception $e) {}
+
     if ($id > 0) {
         $stmt = $pdo->prepare("SELECT k.*, u.name as chef_name FROM kitchens k LEFT JOIN users u ON k.user_id = u.id WHERE k.id = ?");
         $stmt->execute([$id]);
@@ -45,9 +49,12 @@ try {
     $kitchen['has_purchased'] = $has_purchased;
 
     // Get menu items for this kitchen
-    $stmt = $pdo->prepare("SELECT mi.*, c.name as category_name FROM menu_items mi LEFT JOIN categories c ON mi.category_id = c.id WHERE mi.kitchen_id = ? ORDER BY mi.is_popular DESC, mi.name ASC");
+    $stmt = $pdo->prepare("SELECT mi.*, COALESCE(mi.is_available, 1) as is_available, c.name as category_name FROM menu_items mi LEFT JOIN categories c ON mi.category_id = c.id WHERE mi.kitchen_id = ? ORDER BY mi.is_popular DESC, mi.name ASC");
     $stmt->execute([$id]);
     $menuItems = $stmt->fetchAll() ?: [];
+    foreach ($menuItems as &$mItem) {
+        $mItem['is_available'] = isset($mItem['is_available']) ? (int)$mItem['is_available'] : 1;
+    }
 
     // Get reviews for this kitchen
     $stmt = $pdo->prepare("SELECT r.*, u.name as user_name, u.avatar as user_avatar FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.kitchen_id = ? ORDER BY r.created_at DESC LIMIT 10");
@@ -60,6 +67,11 @@ try {
         $kitchen['atmosphere_images'] = json_decode($kitchen['atmosphere_images'], true) ?: [];
     } else {
         $kitchen['atmosphere_images'] = [];
+    }
+    if (isset($kitchen['certificates']) && !empty($kitchen['certificates'])) {
+        $kitchen['certificates'] = is_string($kitchen['certificates']) ? (json_decode($kitchen['certificates'], true) ?: []) : $kitchen['certificates'];
+    } else {
+        $kitchen['certificates'] = [];
     }
 
     echo json_encode(['success' => true, 'data' => $kitchen]);

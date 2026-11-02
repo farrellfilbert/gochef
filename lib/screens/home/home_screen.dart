@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -9,7 +8,6 @@ import '../kitchen/kitchen_profile_screen.dart';
 import '../food/food_details_screen.dart';
 import '../search/search_results_screen.dart';
 import '../search/search_modal.dart';
-import '../cart/cart_screen.dart';
 import '../../services/api_service.dart';
 import '../../models/kitchen_model.dart';
 import '../../models/menu_item_model.dart';

@@ -1,21 +1,49 @@
+Security & password, unable to access:
+-change password, two factor authentication, or active sessions
+
+Settings:
+-can’t proceed into personal information (from settings > personal information, but I can edit it from profile >
+personal information )
+-can’t click into password & security
+-can’t click into social accounts
+
+
+Preferences
+-unable to toggle off the push & email notifications (auto set to on)
+-unable to toggle on sms alerts
+
+Note: I don’t remember the app asking if I wanted the notifications on or off to begin with
+
+-unable to access privacy data
+
+-language auto set to English, can’t click into it to change
+
+-i can’t click into appearance either, it’s set to dark
+
+Couldn’t add a pic after register/login
 <!DOCTYPE html>
 <html>
-<head><title>Clearing Cache...</title></head>
+
+<head>
+  <title>Clearing Cache...</title>
+</head>
+
 <body>
-<h2>Updating GoChef...</h2>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-      for(let registration of registrations) {
-        registration.unregister();
-      }
-      setTimeout(() => {
-        window.location.href = '/?timestamp=' + new Date().getTime();
-      }, 1000);
-    });
-  } else {
-    window.location.href = '/?timestamp=' + new Date().getTime();
-  }
-</script>
+  <h2>Updating GoChef...</h2>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+        setTimeout(() => {
+          window.location.href = '/?timestamp=' + new Date().getTime();
+        }, 1000);
+      });
+    } else {
+      window.location.href = '/?timestamp=' + new Date().getTime();
+    }
+  </script>
 </body>
+
 </html>

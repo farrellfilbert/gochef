@@ -74,7 +74,7 @@ class _SearchScreenState extends State<SearchScreen> {
   ];
 
   // Active user vouchers
-  List<Map<String, dynamic>> _userVouchers = [
+  final List<Map<String, dynamic>> _userVouchers = [
     {
       'code': 'GOCHEF40',
       'discount': '40% OFF',

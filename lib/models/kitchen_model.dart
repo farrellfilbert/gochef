@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../services/api_service.dart';
 import 'menu_item_model.dart';
 import 'review_model.dart';
@@ -19,7 +20,7 @@ class ChefCertificate {
     return ChefCertificate(
       title: json['title'] ?? json['name'] ?? 'Certificate',
       type: json['type'] ?? 'Accreditation',
-      url: ApiService.formatImageUrl(json['url'] ?? json['image_url'] ?? json['file']),
+      url: ApiService.formatImageUrl(json['url'] ?? json['image'] ?? json['image_url'] ?? json['file']),
       issueDate: json['issue_date'] ?? '',
     );
   }
@@ -59,6 +60,11 @@ class KitchenModel {
   final List<MenuItemModel>? menuItems;
   final List<ReviewModel>? reviews;
   final bool hasPurchased;
+  final String bankName;
+  final String bankAccountHolder;
+  final String bankAccountNumber;
+  final String bankRoutingNumber;
+  final String stripeAccountId;
 
   KitchenModel({
     required this.id,
@@ -85,6 +91,11 @@ class KitchenModel {
     this.menuItems,
     this.reviews,
     this.hasPurchased = false,
+    this.bankName = '',
+    this.bankAccountHolder = '',
+    this.bankAccountNumber = '',
+    this.bankRoutingNumber = '',
+    this.stripeAccountId = '',
   });
 
   String get effectiveCoverImage {
@@ -113,6 +124,22 @@ class KitchenModel {
 
   /// Returns an approximate location (City, State / Area) similar to Airbnb
   /// to protect chef privacy until an order/purchase is made.
+  bool get hasBankLinked => bankAccountNumber.trim().isNotEmpty || stripeAccountId.trim().isNotEmpty;
+
+  String get maskedBankAccount {
+    final clean = bankAccountNumber.trim();
+    if (clean.isEmpty) return '';
+    if (clean.length <= 4) return '•••• ';
+    return '•••• ';
+  }
+
+  String get maskedRoutingNumber {
+    final clean = bankRoutingNumber.trim();
+    if (clean.isEmpty) return '';
+    if (clean.length <= 4) return '••••• ';
+    return '••••• ';
+  }
+
   String get approximateLocation {
     if (location.trim().isEmpty) return '';
     final rawParts = location.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
@@ -176,12 +203,26 @@ class KitchenModel {
       isVerified: json['is_verified']?.toString() == '1',
       isFeatured: json['is_featured']?.toString() == '1',
       createdAt: json['created_at'] ?? '',
-      atmosphereImages: json['atmosphere_images'] != null && json['atmosphere_images'] is List
-          ? (json['atmosphere_images'] as List).map((e) => ApiService.formatImageUrl(e.toString())).toList()
-          : [],
-      certificates: json['certificates'] != null && json['certificates'] is List
-          ? (json['certificates'] as List).map((e) => ChefCertificate.fromJson(e is Map<String, dynamic> ? e : {})).toList()
-          : [],
+      atmosphereImages: () {
+        var raw = json['atmosphere_images'];
+        if (raw is String && raw.trim().startsWith('[')) {
+          try { raw = jsonDecode(raw); } catch (_) {}
+        }
+        if (raw is List) {
+          return raw.map((e) => ApiService.formatImageUrl(e.toString())).toList();
+        }
+        return <String>[];
+      }(),
+      certificates: () {
+        var raw = json['certificates'];
+        if (raw is String && raw.trim().startsWith('[')) {
+          try { raw = jsonDecode(raw); } catch (_) {}
+        }
+        if (raw is List) {
+          return raw.map((e) => ChefCertificate.fromJson(e is Map<String, dynamic> ? e : {})).toList();
+        }
+        return <ChefCertificate>[];
+      }(),
       menuItems: json['menu_items'] != null
           ? (json['menu_items'] as List).map((e) => MenuItemModel.fromJson(e)).toList()
           : null,
@@ -189,6 +230,11 @@ class KitchenModel {
           ? (json['reviews'] as List).map((e) => ReviewModel.fromJson(e)).toList()
           : null,
       hasPurchased: json['has_purchased'] == true || json['has_purchased']?.toString() == '1',
+      bankName: json['bank_name']?.toString() ?? '',
+      bankAccountHolder: json['bank_account_holder']?.toString() ?? '',
+      bankAccountNumber: json['bank_account_number']?.toString() ?? '',
+      bankRoutingNumber: json['bank_routing_number']?.toString() ?? '',
+      stripeAccountId: json['stripe_account_id']?.toString() ?? '',
     );
   }
 }

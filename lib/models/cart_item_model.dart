@@ -13,6 +13,7 @@ class CartItemModel {
   final String kitchenAvatar;
   final int kitchenId;
   final List<CartAddonModel> addons;
+  final bool isAvailable;
 
   CartItemModel({
     required this.cartItemId,
@@ -27,6 +28,7 @@ class CartItemModel {
     this.kitchenAvatar = '',
     this.kitchenId = 0,
     this.addons = const [],
+    this.isAvailable = true,
   });
 
   double get totalPrice {
@@ -50,6 +52,9 @@ class CartItemModel {
       addons: json['addons'] != null
           ? (json['addons'] as List).map((e) => CartAddonModel.fromJson(e)).toList()
           : [],
+      isAvailable: json['is_available'] == null
+          ? true
+          : (json['is_available'].toString() != '0' && json['is_available'].toString().toLowerCase() != 'false'),
     );
   }
 }

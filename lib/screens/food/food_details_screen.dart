@@ -5,8 +5,6 @@ import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
 import '../../models/menu_item_model.dart';
 import '../../models/menu_addon_model.dart';
-import '../../models/review_model.dart';
-import '../cart/cart_screen.dart';
 import '../kitchen/kitchen_profile_screen.dart';
 import '../../widgets/cart_icon_button.dart';
 
@@ -96,6 +94,12 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   }
 
   void _addToCart(MenuItemModel item) async {
+    if (!item.isAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This item is currently out of stock'), backgroundColor: AppColors.error),
+      );
+      return;
+    }
     if (item.addonCategories != null) {
       for (var category in item.addonCategories!) {
         if (category.isRequired) {
@@ -330,6 +334,77 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                             ),
                             const SizedBox(height: 32),
 
+                            // Ingredients & Allergens Section
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceContainerLow,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.glassBorder),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.restaurant_menu, color: AppColors.primary, size: 20),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Ingredients & Allergens',
+                                        style: AppTextStyles.headlineMd(color: AppColors.onSurface).copyWith(fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Freshly prepared using authentic culinary techniques and quality ingredients sourced by Chef ${item.kitchenName}.',
+                                    style: AppTextStyles.bodyMd(color: AppColors.onSurfaceVariant).copyWith(fontSize: 13, height: 1.4),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      _buildAllergenChip('Dairy', Icons.water_drop_outlined),
+                                      _buildAllergenChip('Eggs', Icons.egg_outlined),
+                                      _buildAllergenChip('Nuts', Icons.eco_outlined),
+                                      _buildAllergenChip('Gluten/Wheat', Icons.grain_outlined),
+                                      _buildAllergenChip('Soy', Icons.spa_outlined),
+                                      _buildAllergenChip('100% Halal', Icons.check_circle_outline, isGreen: true),
+                                      _buildAllergenChip('Fresh Ingredients', Icons.verified_outlined, isGreen: true),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 18),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Allergen Advisory: Prepared in an artisanal kitchen. If you have severe food allergies, specify them in Special Instructions below before placing your order.',
+                                            style: TextStyle(
+                                              color: Colors.amber.shade200,
+                                              fontSize: 11.5,
+                                              height: 1.35,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+
                             // Add-ons
                             if (item.addonCategories != null && item.addonCategories!.isNotEmpty) ...[
                               Text('Personalize Your Dish', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
@@ -366,21 +441,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                         '+\$${addon.price.toStringAsFixed(2)}',
                                         isSelected: isSelected,
                                         isMultiple: category.isMultiple,
-                                        onTap: () {
-                                          setState(() {
-                                            if (isSelected) {
-                                              _selectedAddonIds.remove(addon.id);
-                                            } else {
-                                              if (!category.isMultiple) {
-                                                // Remove other selections from this category
-                                                for (var opt in category.options) {
-                                                  _selectedAddonIds.remove(opt.id);
-                                                }
-                                              }
-                                              _selectedAddonIds.add(addon.id);
-                                            }
-                                          });
-                                        },
+                                        onTap: () => _toggleAddon(category, addon),
                                       );
                                     }),
                                     const SizedBox(height: 24),
@@ -538,7 +599,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                           // Add to Cart Button
                           Expanded(
                             child: GestureDetector(
-                              onTap: () {
+                              onTap: !item.isAvailable ? null : () {
                                   bool canAddToCart = true;
                                   if (item.addonCategories != null) {
                                     for (var cat in item.addonCategories!) {
@@ -562,9 +623,9 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                               child: Container(
                                 height: 56,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary,
+                                  color: !item.isAvailable ? Colors.white12 : AppColors.primary,
                                   borderRadius: BorderRadius.circular(28),
-                                  boxShadow: [
+                                  boxShadow: !item.isAvailable ? [] : [
                                     BoxShadow(
                                       color: AppColors.primary.withValues(alpha: 0.3),
                                       blurRadius: 12,
@@ -575,11 +636,11 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.shopping_cart, color: AppColors.onPrimary),
+                                    Icon(!item.isAvailable ? Icons.block : Icons.shopping_cart, color: !item.isAvailable ? Colors.white38 : AppColors.onPrimary),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Add • \$${totalPrice.toStringAsFixed(2)}',
-                                      style: AppTextStyles.bodyLg(color: AppColors.onPrimary)
+                                      !item.isAvailable ? 'Out of Stock' : 'Add • \$${totalPrice.toStringAsFixed(2)}',
+                                      style: AppTextStyles.bodyLg(color: !item.isAvailable ? Colors.white38 : AppColors.onPrimary)
                                           .copyWith(fontWeight: FontWeight.bold),
                                     ),
                                   ],
@@ -621,6 +682,26 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
       width: 1,
       height: 40,
       color: AppColors.outlineVariant.withValues(alpha: 0.2),
+    );
+  }
+
+  Widget _buildAllergenChip(String label, IconData icon, {bool isGreen = false}) {
+    final color = isGreen ? Colors.greenAccent : AppColors.onSurfaceVariant;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isGreen ? Colors.greenAccent.withValues(alpha: 0.12) : AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isGreen ? Colors.greenAccent.withValues(alpha: 0.3) : Colors.white12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 5),
+          Text(label, style: TextStyle(color: isGreen ? Colors.greenAccent : Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w500)),
+        ],
+      ),
     );
   }
 

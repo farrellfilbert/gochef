@@ -52,3 +52,4 @@ android/local.properties
 *.aab
 *.mp4
 scratch/
+app-release.apk

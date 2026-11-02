@@ -22,6 +22,10 @@ if (!isset($data->id) || !isset($data->kitchen_id)) {
 $id = intval($data->id);
 $kitchen_id = intval($data->kitchen_id);
 
+try {
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN is_available TINYINT(1) DEFAULT 1");
+} catch (Exception $e) {}
+
 // Quick toggle: if only is_available is provided without name
 if (isset($data->is_available) && !isset($data->name)) {
     $is_available = (intval($data->is_available) === 1 || $data->is_available === true) ? 1 : 0;

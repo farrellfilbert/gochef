@@ -9,7 +9,6 @@ import 'package:image_cropper/image_cropper.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
-import '../chef_dashboard/chef_main_navigation.dart';
 import 'login_screen.dart';
 
 class ChefRegisterScreen extends StatefulWidget {

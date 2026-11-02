@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
-import '../../models/user_model.dart';
 import '../../widgets/notification_bell.dart';
 
 class ChefAnalyticsScreen extends StatefulWidget {
@@ -24,7 +23,7 @@ class _ChefAnalyticsScreenState extends State<ChefAnalyticsScreen> {
 
   Future<Map<String, dynamic>?> _loadData() async {
     final user = await ApiService.getProfile();
-    if (user != null && user.kitchenId != null) {
+    if (user.kitchenId != null) {
       final parsedId = int.tryParse(user.kitchenId!) ?? 0;
       if (parsedId > 0) {
         final kitchen = await ApiService.getKitchenDetail(parsedId);

@@ -3,11 +3,7 @@ require_header();
 require_once 'db_connect.php';
 
 function require_header() {
-    
     header("Content-Type: application/json; charset=UTF-8");
-    
-    
-    
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -87,6 +83,39 @@ if (isset($data->longitude)) {
     $updateFields[] = "longitude = ?";
     $params[] = floatval($data->longitude);
     $types .= "d";
+}
+if (isset($data->certificates)) {
+    try {
+        $pdo->exec("ALTER TABLE kitchens ADD COLUMN certificates TEXT DEFAULT NULL");
+    } catch (Exception $e) {}
+    $updateFields[] = "certificates = ?";
+    $params[] = is_string($data->certificates) ? $data->certificates : json_encode($data->certificates);
+    $types .= "s";
+}
+if (isset($data->bank_name)) {
+    $updateFields[] = "bank_name = ?";
+    $params[] = $data->bank_name;
+    $types .= "s";
+}
+if (isset($data->bank_account_holder)) {
+    $updateFields[] = "bank_account_holder = ?";
+    $params[] = $data->bank_account_holder;
+    $types .= "s";
+}
+if (isset($data->bank_account_number)) {
+    $updateFields[] = "bank_account_number = ?";
+    $params[] = $data->bank_account_number;
+    $types .= "s";
+}
+if (isset($data->bank_routing_number)) {
+    $updateFields[] = "bank_routing_number = ?";
+    $params[] = $data->bank_routing_number;
+    $types .= "s";
+}
+if (isset($data->stripe_account_id)) {
+    $updateFields[] = "stripe_account_id = ?";
+    $params[] = $data->stripe_account_id;
+    $types .= "s";
 }
 
 if (empty($updateFields)) {

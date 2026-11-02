@@ -9,11 +9,6 @@ import '../../models/category_model.dart';
 import '../../models/menu_addon_model.dart';
 import '../../services/api_service.dart';
 import 'addon_category_manager.dart';
-import '../../services/api_service.dart';
-import '../../models/menu_item_model.dart';
-import '../../models/category_model.dart';
-import '../../models/menu_addon_model.dart';
-import 'dart:io';
 import 'package:flutter/foundation.dart'; // for kIsWeb
 
 class ChefMenuScreen extends StatefulWidget {
@@ -859,7 +854,7 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                                 );
                               }
                             },
-                            activeColor: AppColors.primary,
+                            activeThumbColor: AppColors.primary,
                             activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
                           ),
                         ],

@@ -100,7 +100,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           _orderItems = order.items;
           _orderType = order.orderType;
           _dineInDate = order.dineInDate ?? '';
-          _deliveryAddress = order.deliveryAddress ?? '';
+          _deliveryAddress = order.deliveryAddress;
           _uberTrackingUrl = order.uberTrackingUrl;
           _isLoadingItems = false;
         });
@@ -138,7 +138,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           _currentStatus = currentOrder.status;
           _orderType = currentOrder.orderType;
           _dineInDate = currentOrder.dineInDate ?? '';
-          _deliveryAddress = currentOrder.deliveryAddress ?? '';
+          _deliveryAddress = currentOrder.deliveryAddress;
           _uberTrackingUrl = currentOrder.uberTrackingUrl;
         });
         _updateCourierPosition();
@@ -979,7 +979,42 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                     Text('Total', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
                                     Text('\$${widget.totalAmount.toStringAsFixed(2)}', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
                                   ],
-                                )
+                                ),
+                                if (_deliveryAddress.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.location_on_outlined, size: 16, color: AppColors.primary),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Dropoff Address: $_deliveryAddress',
+                                          style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                                if (_orderType == 'dine_in' && _dineInDate.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.table_restaurant_outlined, size: 16, color: AppColors.primary),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Reservation: $_dineInDate',
+                                          style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ],
                             ),
                           )
