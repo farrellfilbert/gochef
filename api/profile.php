@@ -16,7 +16,23 @@ try {
         exit();
     }
     
-    $stmt = $pdo->prepare("SELECT id, name, email, phone, avatar, role FROM users WHERE id = ? LIMIT 1");
+    // Ensure notification columns exist
+    try {
+        $cols = $pdo->query("SHOW COLUMNS FROM users LIKE 'push_notifications'")->fetchAll();
+        if (empty($cols)) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN push_notifications TINYINT(1) DEFAULT 1");
+        }
+        $cols = $pdo->query("SHOW COLUMNS FROM users LIKE 'email_notifications'")->fetchAll();
+        if (empty($cols)) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN email_notifications TINYINT(1) DEFAULT 1");
+        }
+        $cols = $pdo->query("SHOW COLUMNS FROM users LIKE 'sms_alerts'")->fetchAll();
+        if (empty($cols)) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN sms_alerts TINYINT(1) DEFAULT 0");
+        }
+    } catch (Exception $e) {}
+    
+    $stmt = $pdo->prepare("SELECT id, name, email, phone, avatar, role, push_notifications, email_notifications, sms_alerts FROM users WHERE id = ? LIMIT 1");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -35,6 +51,7 @@ try {
         if (empty($avatar)) {
             $avatar = 'https://ui-avatars.com/api/?name=' . urlencode($user['name']);
         }
+        $phone = (!empty($user['phone']) && trim($user['phone']) !== '') ? $user['phone'] : '+1 (818) 555-0199';
         
         echo json_encode([
             'success' => true,
@@ -42,11 +59,14 @@ try {
                 'id' => $user['id'],
                 'name' => $user['name'],
                 'email' => $user['email'],
-                'phone' => $user['phone'] ?? '+00 000 0000 0000',
+                'phone' => $phone,
                 'avatar' => $avatar,
                 'role' => $user['role'],
                 'kitchen_id' => $kitchen_id,
-                'kitchen_name' => $kitchen_name
+                'kitchen_name' => $kitchen_name,
+                'push_notifications' => isset($user['push_notifications']) ? (int)$user['push_notifications'] : 1,
+                'email_notifications' => isset($user['email_notifications']) ? (int)$user['email_notifications'] : 1,
+                'sms_alerts' => isset($user['sms_alerts']) ? (int)$user['sms_alerts'] : 0
             ]
         ]);
     } else {

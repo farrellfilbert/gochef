@@ -10,6 +10,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 try {
+    // Ensure notification columns exist
+    try {
+        $cols = $pdo->query("SHOW COLUMNS FROM users LIKE 'push_notifications'")->fetchAll();
+        if (empty($cols)) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN push_notifications TINYINT(1) DEFAULT 1");
+        }
+        $cols = $pdo->query("SHOW COLUMNS FROM users LIKE 'email_notifications'")->fetchAll();
+        if (empty($cols)) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN email_notifications TINYINT(1) DEFAULT 1");
+        }
+        $cols = $pdo->query("SHOW COLUMNS FROM users LIKE 'sms_alerts'")->fetchAll();
+        if (empty($cols)) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN sms_alerts TINYINT(1) DEFAULT 0");
+        }
+    } catch (Exception $e) {}
+
     $rawInput = file_get_contents('php://input');
     $jsonData = json_decode($rawInput, true) ?? [];
 
@@ -91,6 +107,22 @@ try {
         $params[] = $avatarUrl;
     }
     
+    $pushNotif = $_POST['push_notifications'] ?? $jsonData['push_notifications'] ?? null;
+    if ($pushNotif !== null) {
+        $updates[] = 'push_notifications = ?';
+        $params[] = (int)$pushNotif;
+    }
+    $emailNotif = $_POST['email_notifications'] ?? $jsonData['email_notifications'] ?? null;
+    if ($emailNotif !== null) {
+        $updates[] = 'email_notifications = ?';
+        $params[] = (int)$emailNotif;
+    }
+    $smsNotif = $_POST['sms_alerts'] ?? $jsonData['sms_alerts'] ?? null;
+    if ($smsNotif !== null) {
+        $updates[] = 'sms_alerts = ?';
+        $params[] = (int)$smsNotif;
+    }
+    
     if (empty($updates)) {
         echo json_encode(['success' => true, 'message' => 'No changes made']);
         exit();
@@ -101,7 +133,7 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     
-    $stmt = $pdo->prepare("SELECT id, name, email, phone, avatar, role FROM users WHERE id = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, name, email, phone, avatar, role, push_notifications, email_notifications, sms_alerts FROM users WHERE id = ? LIMIT 1");
     $stmt->execute([$user_id]);
     $updatedUser = $stmt->fetch(PDO::FETCH_ASSOC);
     
