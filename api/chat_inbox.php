@@ -6,7 +6,15 @@ require_once 'db_connect.php';
 
 $user_id = isset($_GET['user_id']) ? $_GET['user_id'] : null;
 $role = isset($_GET['role']) ? $_GET['role'] : 'user'; // 'user', 'chef', 'admin'
-$is_support_desk = isset($_GET['is_support_desk']) && $_GET['is_support_desk'] == '1';
+$is_support_desk = (isset($_GET['is_support_desk']) && ($_GET['is_support_desk'] == '1' || $_GET['is_support_desk'] === 'true'));
+
+// Find dedicated support user ID
+$suppStmt = $pdo->query("SELECT id FROM users WHERE email = 'support@thegrubnextdoor.com' OR role = 'support' LIMIT 1");
+$support_user_id = $suppStmt->fetchColumn();
+
+if (!$user_id && $is_support_desk && $support_user_id) {
+    $user_id = $support_user_id;
+}
 
 if (!$user_id) {
     echo json_encode(['success' => false, 'error' => 'Missing user ID']);

@@ -140,23 +140,41 @@ class KitchenModel {
     return '••••• ';
   }
 
-  /// Checks whether the kitchen is currently open based on both the manual toggle (isOpen)
-  /// and the defined business hours (e.g. "10:00 AM - 5:00 PM").
-  bool get isCurrentlyOpen {
+  /// Converts a UTC DateTime to Pacific Time (PST/PDT), the operating timezone
+  /// for GoChef kitchens in Los Angeles, California.
+  static DateTime getPacificTime([DateTime? utcNow]) {
+    final utc = (utcNow ?? DateTime.now().toUtc());
+    final year = utc.year;
+    // US Daylight Saving Time:
+    // Starts second Sunday in March (2:00 AM PST = 10:00 UTC)
+    final marchFirst = DateTime.utc(year, 3, 1);
+    final dstStartDay = 1 + (7 - marchFirst.weekday) % 7 + 7;
+    final dstStart = DateTime.utc(year, 3, dstStartDay, 10);
+    // Ends first Sunday in November (2:00 AM PDT = 9:00 UTC)
+    final novFirst = DateTime.utc(year, 11, 1);
+    final dstEndDay = 1 + (7 - novFirst.weekday) % 7;
+    final dstEnd = DateTime.utc(year, 11, dstEndDay, 9);
+
+    final isDst = utc.isAfter(dstStart) && utc.isBefore(dstEnd);
+    final offsetHours = isDst ? -7 : -8;
+    return utc.add(Duration(hours: offsetHours));
+  }
+
+  /// Checks whether the kitchen is open at a specific time (in Pacific Time).
+  bool isCurrentlyOpenAt(DateTime targetTime) {
     if (!isOpen) return false;
     final hours = businessHours.trim();
     if (hours.isEmpty) return isOpen;
 
     try {
-      final parts = hours.split(RegExp(r'\s*[-–toTO]+\s*'));
+      final parts = hours.split(RegExp(r'\s*[-–—]\s*|\s+(?:to|TO|To)\s+'));
       if (parts.length != 2) return isOpen;
 
       final startMinutes = _parseTimeToMinutes(parts[0]);
       final endMinutes = _parseTimeToMinutes(parts[1]);
       if (startMinutes == null || endMinutes == null) return isOpen;
 
-      final now = DateTime.now();
-      final currentMinutes = now.hour * 60 + now.minute;
+      final currentMinutes = targetTime.hour * 60 + targetTime.minute;
 
       if (startMinutes <= endMinutes) {
         // Standard daytime range (e.g., 10:00 AM to 5:00 PM)
@@ -169,6 +187,10 @@ class KitchenModel {
       return isOpen;
     }
   }
+
+  /// Checks whether the kitchen is currently open based on both the manual toggle (isOpen)
+  /// and the defined business hours in California Pacific Time.
+  bool get isCurrentlyOpen => isCurrentlyOpenAt(getPacificTime());
 
   static int? _parseTimeToMinutes(String timeStr) {
     final clean = timeStr.trim().toUpperCase();
@@ -187,10 +209,12 @@ class KitchenModel {
     return hour * 60 + minute;
   }
 
-  String get openStatusText {
+  String getOpenStatusTextAt(DateTime targetTime) {
     if (!isOpen) return 'Closed';
-    return isCurrentlyOpen ? 'Open Now' : 'Closed';
+    return isCurrentlyOpenAt(targetTime) ? 'Open Now' : 'Closed';
   }
+
+  String get openStatusText => getOpenStatusTextAt(getPacificTime());
 
   String get approximateLocation {
     if (location.trim().isEmpty) return '';
