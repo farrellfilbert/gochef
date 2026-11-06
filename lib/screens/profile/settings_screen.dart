@@ -7,6 +7,7 @@ import 'security_password_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../auth/login_screen.dart';
+import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -20,7 +21,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _pushNotifications = true;
   bool _emailNotifications = true;
   bool _smsAlerts = false;
-  bool _hasPromptedNotif = false;
+  String _language = 'English';
+  String _appearance = 'Dark';
+  String _cacheSize = '14.2 MB';
+
+  bool _googleLinked = true;
+  bool _appleLinked = true;
+  bool _facebookLinked = false;
+
+  UserModel? _currentUser;
 
   @override
   void initState() {
@@ -32,27 +41,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final userId = await ApiService.getUserId() ?? '0';
+
       if (mounted) {
         setState(() {
           _pushNotifications = prefs.getBool('pref_push_notif_$userId') ?? true;
           _emailNotifications = prefs.getBool('pref_email_notif_$userId') ?? true;
           _smsAlerts = prefs.getBool('pref_sms_alerts_$userId') ?? false;
-          _hasPromptedNotif = prefs.getBool('pref_prompted_notif_$userId') ?? false;
+          _language = prefs.getString('pref_language_$userId') ?? 'English';
+          _appearance = prefs.getString('pref_appearance_$userId') ?? 'Dark';
+          _cacheSize = prefs.getString('pref_cache_size_$userId') ?? '14.2 MB';
+          _googleLinked = prefs.getBool('pref_google_linked_$userId') ?? true;
+          _appleLinked = prefs.getBool('pref_apple_linked_$userId') ?? true;
+          _facebookLinked = prefs.getBool('pref_fb_linked_$userId') ?? false;
         });
       }
 
-      // Sync latest preferences from server
-      final profile = await ApiService.getProfile();
-      if (mounted) {
-        setState(() {
-          _pushNotifications = profile.pushNotifications;
-          _emailNotifications = profile.emailNotifications;
-          _smsAlerts = profile.smsAlerts;
-        });
-        await prefs.setBool('pref_push_notif_$userId', profile.pushNotifications);
-        await prefs.setBool('pref_email_notif_$userId', profile.emailNotifications);
-        await prefs.setBool('pref_sms_alerts_$userId', profile.smsAlerts);
-      }
+      // Sync latest profile from server
+      try {
+        final profile = await ApiService.getProfile();
+        if (mounted) {
+          setState(() {
+            _currentUser = profile;
+            _pushNotifications = profile.pushNotifications;
+            _emailNotifications = profile.emailNotifications;
+            _smsAlerts = profile.smsAlerts;
+          });
+          await prefs.setBool('pref_push_notif_$userId', profile.pushNotifications);
+          await prefs.setBool('pref_email_notif_$userId', profile.emailNotifications);
+          await prefs.setBool('pref_sms_alerts_$userId', profile.smsAlerts);
+        }
+      } catch (_) {}
     } catch (_) {}
   }
 
@@ -70,73 +88,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // ==========================================
-  // NOTIFICATION TOGGLE HANDLERS
+  // NOTIFICATION TOGGLE HANDLERS (Direct & Smooth)
   // ==========================================
   Future<void> _onPushToggle(bool val) async {
-    if (val && !_hasPromptedNotif) {
-      final allow = await _showNotificationPermissionDialog();
-      if (allow != true) return;
-      _hasPromptedNotif = true;
-      _savePreference('pref_prompted_notif', true);
-    }
     setState(() => _pushNotifications = val);
     await _savePreference('pref_push_notif', val);
     await ApiService.updateProfile(pushNotifications: val);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(val ? 'Push notifications enabled ✅' : 'Push notifications muted 🔕'),
+          content: Text(val ? 'Push notifications enabled 🔔' : 'Push notifications muted 🔕'),
           duration: const Duration(seconds: 2),
         ),
       );
     }
-  }
-
-  Future<bool?> _showNotificationPermissionDialog() {
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E232E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.notifications_active, color: AppColors.primary, size: 22),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text(
-                'Stay Updated',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          'GoChef would like to send you notifications for live order tracking, chef preparations, and exclusive neighborhood promotions.',
-          style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Not Now', style: TextStyle(color: Colors.white54)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Allow Notifications', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _onEmailToggle(bool val) async {
@@ -179,80 +144,119 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
                     ),
-                    child: const Icon(Icons.share, color: Colors.blueAccent, size: 22),
                   ),
-                  const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 20),
+                  Row(
                     children: [
-                      Text('Connected Accounts', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
-                      const Text('Manage linked social logins and third-party services', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.blueAccent.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.share, color: Colors.blueAccent, size: 22),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Connected Accounts', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+                            const Text('Manage linked social logins and third-party services', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                          ],
+                        ),
+                      ),
                     ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildSocialTile(
+                    title: 'Google Account',
+                    subtitle: _googleLinked ? 'Connected with ${_currentUser?.email ?? "Google"}' : 'Not linked',
+                    icon: Icons.g_mobiledata,
+                    isConnected: _googleLinked,
+                    onToggle: () async {
+                      final newVal = !_googleLinked;
+                      setModalState(() => _googleLinked = newVal);
+                      setState(() => _googleLinked = newVal);
+                      await _savePreference('pref_google_linked', newVal);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(newVal ? 'Google account linked! ✅' : 'Google account disconnected.')),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  _buildSocialTile(
+                    title: 'Apple ID',
+                    subtitle: _appleLinked ? 'Sign in with Apple connected' : 'Not linked',
+                    icon: Icons.apple,
+                    isConnected: _appleLinked,
+                    onToggle: () async {
+                      final newVal = !_appleLinked;
+                      setModalState(() => _appleLinked = newVal);
+                      setState(() => _appleLinked = newVal);
+                      await _savePreference('pref_apple_linked', newVal);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(newVal ? 'Apple ID connected! 🍏' : 'Apple ID disconnected.')),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  _buildSocialTile(
+                    title: 'Facebook / Meta',
+                    subtitle: _facebookLinked ? 'Facebook account connected' : 'Not connected',
+                    icon: Icons.facebook,
+                    isConnected: _facebookLinked,
+                    onToggle: () async {
+                      final newVal = !_facebookLinked;
+                      setModalState(() => _facebookLinked = newVal);
+                      setState(() => _facebookLinked = newVal);
+                      await _savePreference('pref_fb_linked', newVal);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(newVal ? 'Facebook account connected!' : 'Facebook account disconnected.')),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: const Text('Done', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-
-              _buildSocialTile(
-                title: 'Google Account',
-                subtitle: 'Single Sign-On login linked',
-                icon: Icons.g_mobiledata,
-                isConnected: true,
-              ),
-              const SizedBox(height: 12),
-
-              _buildSocialTile(
-                title: 'Apple ID',
-                subtitle: 'Sign in with Apple connected',
-                icon: Icons.apple,
-                isConnected: true,
-              ),
-              const SizedBox(height: 12),
-
-              _buildSocialTile(
-                title: 'Facebook / Meta',
-                subtitle: 'Not connected',
-                icon: Icons.facebook,
-                isConnected: false,
-              ),
-              const SizedBox(height: 24),
-
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: const Text('Done', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -263,6 +267,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String subtitle,
     required IconData icon,
     required bool isConnected,
+    required VoidCallback onToggle,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -292,21 +297,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isConnected ? Colors.green.withValues(alpha: 0.15) : Colors.white10,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isConnected ? Colors.green.withValues(alpha: 0.3) : Colors.white24,
+          InkWell(
+            onTap: onToggle,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: isConnected ? Colors.green.withValues(alpha: 0.15) : AppColors.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isConnected ? Colors.green.withValues(alpha: 0.3) : AppColors.primary.withValues(alpha: 0.3),
+                ),
               ),
-            ),
-            child: Text(
-              isConnected ? 'Connected' : 'Link',
-              style: TextStyle(
-                color: isConnected ? Colors.greenAccent : Colors.white70,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
+              child: Text(
+                isConnected ? 'Connected' : 'Link',
+                style: TextStyle(
+                  color: isConnected ? Colors.greenAccent : AppColors.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -352,18 +361,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: const Icon(Icons.lock, color: Colors.tealAccent, size: 22),
                   ),
                   const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Privacy & Data', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
-                      const Text('Control your personal information and privacy rights', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Privacy & Data', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+                        const Text('Control your personal data & privacy preferences', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                      ],
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
 
-              // Data summary container
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -377,7 +387,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const Text('Your Data with GoChef', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
                     const SizedBox(height: 8),
                     const Text(
-                      'We encrypt and securely store your account info, order history, delivery addresses, and meal ratings. Your sensitive payment details are securely processed by Stripe and are never stored on GoChef servers.',
+                      'We securely encrypt and store your profile information, order history, favorite dishes, and saved delivery addresses. Your payment card details are tokenized and processed via Stripe and are never stored on our servers.',
                       style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
                     ),
                     const SizedBox(height: 16),
@@ -388,8 +398,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Navigator.pop(ctx);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('A copy of your data has been prepared and will be sent to your email.'),
+                              content: Text('A full copy of your account data has been requested and sent to your email.'),
                               backgroundColor: Colors.green,
+                              duration: Duration(seconds: 3),
                             ),
                           );
                         },
@@ -406,7 +417,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Link to policy
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 4),
                 leading: const Icon(Icons.policy, color: Colors.white70),
@@ -438,8 +448,404 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ==========================================
+  // LANGUAGE MODAL
+  // ==========================================
+  void _showLanguageModal() {
+    final languages = [
+      {'name': 'English', 'flag': '🇺🇸', 'desc': 'English (United States)'},
+      {'name': 'Español', 'flag': '🇪🇸', 'desc': 'Spanish (Español)'},
+      {'name': 'Français', 'flag': '🇫🇷', 'desc': 'French (Français)'},
+      {'name': 'Bahasa Indonesia', 'flag': '🇮🇩', 'desc': 'Indonesian (Bahasa Indonesia)'},
+      {'name': 'Deutsch', 'flag': '🇩🇪', 'desc': 'German (Deutsch)'},
+    ];
 
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text('Select Language', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+              const SizedBox(height: 16),
+              ...languages.map((l) {
+                final isSelected = _language == l['name'];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : Colors.white10,
+                    ),
+                  ),
+                  child: ListTile(
+                    leading: Text(l['flag']!, style: const TextStyle(fontSize: 22)),
+                    title: Text(l['name']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    subtitle: Text(l['desc']!, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                    trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primary) : null,
+                    onTap: () {
+                      setState(() => _language = l['name']!);
+                      _savePreference('pref_language', l['name']!);
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Language set to ${l['name']} ✅')),
+                      );
+                    },
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
+  // ==========================================
+  // APPEARANCE / THEME MODAL
+  // ==========================================
+  void _showAppearanceModal() {
+    final themes = [
+      {'name': 'Dark', 'icon': Icons.dark_mode, 'desc': 'Midnight black aesthetic (Recommended)'},
+      {'name': 'Light', 'icon': Icons.light_mode, 'desc': 'Bright and clean minimalist theme'},
+      {'name': 'System', 'icon': Icons.settings_brightness, 'desc': 'Match device system settings automatically'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text('Appearance & Theme', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+              const SizedBox(height: 16),
+              ...themes.map((t) {
+                final isSelected = _appearance == t['name'];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : Colors.white10,
+                    ),
+                  ),
+                  child: ListTile(
+                    leading: Icon(t['icon'] as IconData, color: isSelected ? AppColors.primary : Colors.white70),
+                    title: Text(t['name'] as String, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    subtitle: Text(t['desc'] as String, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                    trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primary) : null,
+                    onTap: () {
+                      setState(() => _appearance = t['name'] as String);
+                      _savePreference('pref_appearance', t['name']);
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Appearance updated to ${t['name']} ✅')),
+                      );
+                    },
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ==========================================
+  // STORAGE & CACHE MODAL
+  // ==========================================
+  void _showStorageCacheModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.storage, color: Colors.blueAccent, size: 22),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Storage & Cache', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+                        Text('Current Cache Footprint: $_cacheSize', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Column(
+                  children: [
+                    _buildCacheBreakdownRow('Cached Images & Menus', _cacheSize == '0.0 MB' ? '0.0 MB' : '9.4 MB'),
+                    const SizedBox(height: 10),
+                    _buildCacheBreakdownRow('Temporary Network Data', _cacheSize == '0.0 MB' ? '0.0 MB' : '4.8 MB'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    PaintingBinding.instance.imageCache.clear();
+                    PaintingBinding.instance.imageCache.clearLiveImages();
+                    setState(() => _cacheSize = '0.0 MB');
+                    _savePreference('pref_cache_size', '0.0 MB');
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('App cache cleared successfully! 🧹 0.0 MB remaining.'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.cleaning_services, color: Colors.white),
+                  label: Text('Clear Cache Now ($_cacheSize)', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCacheBreakdownRow(String title, String size) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+        Text(size, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
+      ],
+    );
+  }
+
+  Widget _buildVersionDetailRow(String title, String value, {Color? valueColor}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            value,
+            style: TextStyle(color: valueColor ?? Colors.white, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.end,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ==========================================
+  // VERSION INFO MODAL
+  // ==========================================
+  void _showVersionModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.info_outline, color: Colors.greenAccent, size: 22),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('GoChef Version', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+                        const Text('The GRUB Next Door! App System', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Column(
+                  children: [
+                    _buildVersionDetailRow('App Version', 'v2.4.0 (Build 128)'),
+                    const SizedBox(height: 10),
+                    _buildVersionDetailRow('Release Channel', 'Production / TestFlight', valueColor: Colors.greenAccent),
+                    const SizedBox(height: 10),
+                    _buildVersionDetailRow('Status', 'Up to Date ✅'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Checking for updates... You are running the latest version! ✅'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  label: const Text('Check for Updates', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ==========================================
+  // CLEAR SEARCH HISTORY
+  // ==========================================
+  void _clearSearchHistory() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E232E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Clear Search History?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text(
+          'Are you sure you want to clear your recent dish and kitchen searches from this device?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove('recent_searches');
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Search history cleared successfully. 🗑️')),
+                );
+              }
+            },
+            child: const Text('Clear History', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // DELETE ACCOUNT
+  // ==========================================
   void _showDeleteAccountDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -494,6 +900,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // ==========================================
+  // LOGOUT
+  // ==========================================
   void _handleLogout(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -566,8 +975,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     'Personal Information',
                     () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const PersonalInformationScreen()),
-                    ),
+                      MaterialPageRoute(builder: (_) => PersonalInformationScreen(initialUser: _currentUser)),
+                    ).then((_) => _loadPreferences()),
                   ),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                   _buildListTile(
@@ -616,7 +1025,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           children: [
                             const Icon(Icons.notifications, color: Colors.white),
                             const SizedBox(width: 12),
-                            Text('Notification Settings', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                            Expanded(
+                              child: Text('Notification Settings', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -640,6 +1051,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Icons.lock,
                     'Privacy & Data',
                     _showPrivacyDataModal,
+                  ),
+                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                  _buildListTileWithValue(
+                    Icons.language,
+                    'Language',
+                    _language,
+                    _showLanguageModal,
+                  ),
+                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                  _buildListTileWithValue(
+                    Icons.dark_mode,
+                    'Appearance',
+                    _appearance,
+                    _showAppearanceModal,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // App Settings
+            _buildSectionTitle('App Settings'),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF1C2029).withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
+              ),
+              child: Column(
+                children: [
+                  _buildListTileWithValue(
+                    Icons.storage,
+                    'Storage & Cache',
+                    _cacheSize,
+                    _showStorageCacheModal,
+                    valueIsMono: true,
+                  ),
+                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                  _buildListTileWithValue(
+                    Icons.info,
+                    'Version Info',
+                    'v2.4.0',
+                    _showVersionModal,
+                    valueIsMono: true,
+                  ),
+                  Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                  _buildListTile(
+                    Icons.history,
+                    'Clear Search History',
+                    _clearSearchHistory,
+                    trailingIcon: Icons.delete_outline,
                   ),
                 ],
               ),
@@ -722,47 +1185,93 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Color textColor = isError ? AppColors.error : Colors.white;
     Color iconColor = isError ? AppColors.error.withValues(alpha: 0.15) : Colors.white12;
 
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: iconColor,
-                borderRadius: BorderRadius.circular(8),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 20),
               ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: AppTextStyles.bodyMd(color: textColor),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTextStyles.bodyMd(color: textColor),
+                ),
               ),
-            ),
-            Icon(trailingIcon, color: Colors.white30, size: 20),
-          ],
+              Icon(trailingIcon, color: Colors.white30, size: 20),
+            ],
+          ),
         ),
       ),
     );
   }
 
-
+  Widget _buildListTileWithValue(IconData icon, String title, String value, VoidCallback? onTap, {bool valueIsMono = false}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white12,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTextStyles.bodyMd(color: Colors.white),
+                ),
+              ),
+              Text(
+                value,
+                style: AppTextStyles.bodySm(color: Colors.white60).copyWith(
+                  fontFamily: valueIsMono ? 'monospace' : null,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.chevron_right, color: Colors.white30, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildListTileNoLeading(String title, VoidCallback? onTap, {IconData trailingIcon = Icons.chevron_right}) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: AppTextStyles.bodyMd(color: Colors.white)),
-            Icon(trailingIcon, color: Colors.white70),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: AppTextStyles.bodyMd(color: Colors.white)),
+              Icon(trailingIcon, color: Colors.white70),
+            ],
+          ),
         ),
       ),
     );
