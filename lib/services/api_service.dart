@@ -1287,6 +1287,24 @@ class ApiService {
       }
   }
 
+  static Future<bool> deleteAddress(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/addresses.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'id': id}),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error deleting address: $e');
+      return false;
+    }
+  }
+
   static Future<String?> uploadImageBase64(String base64Str) async {
     try {
       final url = Uri.parse('$baseUrl/upload.php');

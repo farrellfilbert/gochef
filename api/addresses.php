@@ -1,7 +1,18 @@
 <?php
 require_once 'db_connect.php';
 
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
 $method = $_SERVER['REQUEST_METHOD'];
+
+if ($method === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 if ($method === 'GET') {
     if (!isset($_GET['user_id'])) {
@@ -11,16 +22,19 @@ if ($method === 'GET') {
     $user_id = intval($_GET['user_id']);
     $stmt = $pdo->prepare("SELECT * FROM addresses WHERE user_id = ? ORDER BY is_default DESC, created_at DESC");
     $stmt->execute([$user_id]);
-    echo json_encode(['success' => true, 'data' => $stmt->fetchAll()]);
+    echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
 
 } elseif ($method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
+    if (!$input) $input = $_POST;
+    
     $user_id = intval($input['user_id'] ?? 0);
-    $label = $input['label'] ?? 'Home';
-    $address = $input['address'] ?? '';
+    $label = trim($input['label'] ?? 'Home');
+    $address = trim($input['address'] ?? '');
     $is_default = intval($input['is_default'] ?? 0);
 
     if (!$user_id || !$address) {
+        http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'user_id and address required']);
         exit;
     }
@@ -36,18 +50,26 @@ if ($method === 'GET') {
 
 } elseif ($method === 'DELETE') {
     $input = json_decode(file_get_contents('php://input'), true);
-    $id = intval($input['id'] ?? 0);
+    $id = intval($input['id'] ?? $_GET['id'] ?? 0);
+    
+    if (!$id) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'id required']);
+        exit;
+    }
+    
     $stmt = $pdo->prepare("DELETE FROM addresses WHERE id = ?");
     $stmt->execute([$id]);
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'message' => 'Address deleted']);
 
 } elseif ($method === 'PUT') {
     $input = json_decode(file_get_contents('php://input'), true);
     $id = intval($input['id'] ?? 0);
-    $label = $input['label'] ?? '';
-    $address = $input['address'] ?? '';
+    $label = trim($input['label'] ?? 'Home');
+    $address = trim($input['address'] ?? '');
 
     if (!$id || !$address) {
+        http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'id and address required']);
         exit;
     }
@@ -55,6 +77,6 @@ if ($method === 'GET') {
     $stmt = $pdo->prepare("UPDATE addresses SET label = ?, address = ? WHERE id = ?");
     $stmt->execute([$label, $address, $id]);
 
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'message' => 'Address updated']);
 }
 ?>

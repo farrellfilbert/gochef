@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../models/address_model.dart';
+import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 
 class AddressSelectionScreen extends StatefulWidget {
@@ -29,11 +30,24 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   List<AddressModel> _addresses = [];
   bool _isLoading = true;
   AddressModel? _selectedAddress;
+  UserModel? _currentUser;
 
-  // Base location (defaults to Studio City, CA, updated by GPS)
+  // Base location (defaults to Studio City, CA, updated by selection/GPS)
   LatLng _baseLocation = const LatLng(34.1458, -118.3965);
 
   bool _isMapReady = false;
+
+  LatLng? _parseLatLngFromAddress(String address) {
+    final match = RegExp(r'Location\s*\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)').firstMatch(address);
+    if (match != null) {
+      final lat = double.tryParse(match.group(1)!);
+      final lng = double.tryParse(match.group(2)!);
+      if (lat != null && lng != null) {
+        return LatLng(lat, lng);
+      }
+    }
+    return null;
+  }
 
   void _safeMove(LatLng target, double zoom) {
     if (_isMapReady) {
@@ -53,7 +67,17 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   }
 
   Future<void> _initData() async {
-    await _loadAddresses();
+    await Future.wait([
+      _loadAddresses(),
+      _loadUserProfile(),
+    ]);
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final user = await ApiService.getProfile();
+      if (mounted) setState(() => _currentUser = user);
+    } catch (_) {}
   }
 
   Future<void> _loadAddresses() async {
@@ -65,6 +89,13 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
         if (_selectedAddress == null && addresses.isNotEmpty) {
           _selectedAddress = addresses.firstWhere((a) => a.isDefault, orElse: () => addresses.first);
         }
+        if (_selectedAddress != null) {
+          final loc = _parseLatLngFromAddress(_selectedAddress!.address);
+          if (loc != null) {
+            _baseLocation = loc;
+            _safeMove(loc, 15.0);
+          }
+        }
       });
     } catch (e) {
       debugPrint('Error loading addresses: $e');
@@ -74,12 +105,73 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   }
 
   void _onAddressSelected(AddressModel address) {
-    if (widget.isSelectionMode) {
-      Navigator.pop(context, address);
+    final loc = _parseLatLngFromAddress(address.address);
+    if (loc != null) {
+      setState(() {
+        _baseLocation = loc;
+        _selectedAddress = address;
+      });
+      _safeMove(loc, 15.0);
     } else {
       setState(() {
         _selectedAddress = address;
       });
+    }
+
+    if (widget.isSelectionMode) {
+      Navigator.pop(context, address);
+    }
+  }
+
+  Future<void> _confirmDeleteAddress(AddressModel address) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Delete Address?', style: AppTextStyles.headlineMd(color: Colors.white)),
+        content: Text(
+          'Are you sure you want to remove "${address.label}" from your saved addresses?',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isLoading = true);
+      final ok = await ApiService.deleteAddress(address.id);
+      if (ok) {
+        if (_selectedAddress?.id == address.id) {
+          _selectedAddress = null;
+        }
+        await _loadAddresses();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Address deleted successfully'), backgroundColor: Colors.green),
+          );
+        }
+      } else {
+        setState(() => _isLoading = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to delete address'), backgroundColor: Colors.red),
+          );
+        }
+      }
     }
   }
 
@@ -543,7 +635,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // Distance placeholder
+                                      // Address icon & status indicator
                                       Column(
                                         children: [
                                           Icon(
@@ -553,8 +645,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            '${(1.5 + index * 0.9).toStringAsFixed(1)} mi', 
-                                            style: AppTextStyles.labelSm(color: Colors.white70)
+                                            address.isDefault ? 'Default' : 'Saved', 
+                                            style: AppTextStyles.labelSm(color: address.isDefault ? AppColors.primary : Colors.white54)
+                                                .copyWith(fontSize: 10, fontWeight: address.isDefault ? FontWeight.bold : FontWeight.normal)
                                           ),
                                         ],
                                       ),
@@ -581,7 +674,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                                       border: Border.all(color: Colors.white24),
                                                     ),
                                                     child: const Text(
-                                                      'Last Used',
+                                                      'Selected',
                                                       style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                                                     ),
                                                   ),
@@ -594,18 +687,27 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                             ),
                                             const SizedBox(height: 8),
                                             Text(
-                                              'User Name | (+62) 812-3456-7890',
+                                              '${_currentUser?.name.isNotEmpty == true ? _currentUser!.name : 'Account'} | ${_currentUser?.phone.isNotEmpty == true ? _currentUser!.phone : '+1 (818) 555-0199'}',
                                               style: AppTextStyles.labelSm(color: Colors.white60),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      const SizedBox(width: 16),
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, color: Colors.white70, size: 18),
-                                        onPressed: () {
-                                          _editAddress(address);
-                                        },
+                                      const SizedBox(width: 8),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.edit, color: Colors.white70, size: 18),
+                                            tooltip: 'Edit Address',
+                                            onPressed: () => _editAddress(address),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                                            tooltip: 'Delete Address',
+                                            onPressed: () => _confirmDeleteAddress(address),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),

@@ -2,11 +2,22 @@
 // admin_promotions.php - Admin endpoint to manage promo banners and vouchers
 require_once 'db_connect.php';
 
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
 $method = $_SERVER['REQUEST_METHOD'];
+
+if ($method === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 if ($method === 'GET') {
     try {
-        $stmt = $pdo->query("SELECT * FROM promotions ORDER BY created_at DESC");
+        $stmt = $pdo->query("SELECT * FROM promotions ORDER BY sort_order ASC, created_at DESC");
         $promos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $promos]);
     } catch (PDOException $e) {
@@ -39,7 +50,7 @@ if ($method === 'POST') {
                 exit;
             }
             
-            $stmt = $pdo->prepare("INSERT INTO promotions (title, subtitle, image, discount_percent, code, is_active) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO promotions (title, subtitle, image, discount_percent, code, is_active, sort_order) VALUES (?, ?, ?, ?, ?, ?, 0)");
             $stmt->execute([$title, $subtitle, $image, $discount_percent, $code, $is_active]);
             $promo_id = $pdo->lastInsertId();
             
@@ -77,6 +88,25 @@ if ($method === 'POST') {
             $stmt->execute([$promo_id]);
             
             echo json_encode(['success' => true, 'message' => 'Promotion deleted']);
+            
+        } elseif ($action === 'reorder') {
+            $order = $input['order'] ?? [];
+            if (!is_array($order) || empty($order)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Valid order array is required']);
+                exit;
+            }
+            
+            $stmt = $pdo->prepare("UPDATE promotions SET sort_order = ? WHERE id = ?");
+            foreach ($order as $index => $id) {
+                $stmt->execute([$index, intval($id)]);
+            }
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Promotions reordered successfully',
+                'order' => $order
+            ]);
             
         } else {
             http_response_code(400);

@@ -17,6 +17,9 @@ function Run-Test {
     try {
         if ($Method -eq "GET") {
             $response = Invoke-RestMethod -Uri $Url -Method Get -TimeoutSec 10
+        } elseif ($Method -eq "POST_JSON") {
+            $jsonBody = $Body | ConvertTo-Json
+            $response = Invoke-RestMethod -Uri $Url -Method Post -Body $jsonBody -ContentType "application/json" -TimeoutSec 10
         } else {
             $response = Invoke-RestMethod -Uri $Url -Method Post -Body $Body -TimeoutSec 10
         }
@@ -162,6 +165,18 @@ Run-Test -TestId "API-19" -Description "Search for 'burger' Dishes & Kitchens" `
 Run-Test -TestId "API-20" -Description "Fetch User Favorites" `
     -Url "$baseUrl/favorites.php?user_id=1" `
     -Validator { param($r) $r.success -eq $true }
+
+# Test 21: Reorder Promo Banners
+Run-Test -TestId "API-21" -Description "Reorder Promo Banners (admin_promotions.php)" `
+    -Url "$baseUrl/admin_promotions.php" -Method "POST_JSON" `
+    -Body @{ action = "reorder"; order = @(16, 7, 8) } `
+    -Validator { param($r) $r.success -eq $true }
+
+# Test 22: Add Delivery Address
+Run-Test -TestId "API-22" -Description "Add Saved Delivery Address (addresses.php)" `
+    -Url "$baseUrl/addresses.php" -Method "POST_JSON" `
+    -Body @{ user_id = 1; label = "Test Suite Loc"; address = "Location (34.14580, -118.39650)"; is_default = 0 } `
+    -Validator { param($r) $r.success -eq $true -and $r.id -gt 0 }
 
 Write-Host "======================================================"
 Write-Host "TEST SUITE COMPLETE"

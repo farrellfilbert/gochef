@@ -1131,30 +1131,85 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
           if (snapshot.hasError) {
+            final errorStr = snapshot.error.toString();
+            final isNotLoggedIn = errorStr.contains('Not logged in') || errorStr.contains('user_id');
+
+            if (isNotLoggedIn) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                        ),
+                        child: const Icon(Icons.person_outline, size: 56, color: AppColors.primary),
+                      ),
+                      const SizedBox(height: 24),
+                      Text('Welcome to GoChef', style: AppTextStyles.headlineLgMobile(color: Colors.white)),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Sign in to manage your profile, view orders, and redeem dining rewards.',
+                        style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 28),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                          child: const Text('Sign In / Register', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Failed to load profile:\n${snapshot.error}',
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await ApiService.logout();
-                      if (context.mounted) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const LoginScreen()),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                    child: const Text('Logout & Relogin'),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.cloud_off, size: 48, color: Colors.white54),
+                    const SizedBox(height: 16),
+                    Text('Connection Problem', style: AppTextStyles.headlineMd(color: Colors.white)),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Unable to load your profile at the moment. Please check your connection and tap retry.',
+                      style: TextStyle(color: Colors.white60, fontSize: 13),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: _refreshProfile,
+                      icon: const Icon(Icons.refresh, color: Colors.white),
+                      label: const Text('Retry', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
