@@ -697,11 +697,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         const SizedBox(height: 14),
         // Sign Up link
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Don't have an account? ",
+        Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [Text("Don't have an account? ",
               style: AppTextStyles.bodyMd(color: Colors.white70),
             ),
             GestureDetector(
@@ -724,11 +720,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         const SizedBox(height: 16),
         // Login as Chef link
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Are you a chef? ",
+        Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [Text("Are you a chef? ",
               style: AppTextStyles.bodyMd(color: Colors.white70),
             ),
             GestureDetector(

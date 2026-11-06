@@ -107,7 +107,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.primary),
+                        borderSide: const BorderSide(color: Colors.white, width: 1.5),
                       ),
                     ),
                     items: _certTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
@@ -281,10 +281,11 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Got It', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text('Got It', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -322,7 +323,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
             children: [
               Text(
                 'Open Your Kitchen',
-                style: AppTextStyles.headlineLgMobile(color: AppColors.primary),
+                style: AppTextStyles.headlineLgMobile(color: Colors.white),
               ),
               const SizedBox(height: 8),
               Text(
@@ -339,7 +340,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surfaceContainerHighest,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
+                      border: Border.all(color: Colors.white24, width: 2),
                       image: _kitchenImage != null && !kIsWeb
                           ? DecorationImage(image: FileImage(File(_kitchenImage!.path)), fit: BoxFit.cover)
                           : _kitchenImage != null && kIsWeb
@@ -350,9 +351,9 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                         ? const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_a_photo, color: AppColors.primary, size: 32),
+                              Icon(Icons.add_a_photo, color: Colors.white, size: 32),
                               SizedBox(height: 4),
-                              Text('Add Photo', style: TextStyle(color: AppColors.primary, fontSize: 12)),
+                              Text('Add Photo', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
                             ],
                           )
                         : null,
@@ -366,14 +367,14 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                 decoration: InputDecoration(
                   labelText: 'Kitchen Name',
                   labelStyle: const TextStyle(color: AppColors.onSurfaceVariant),
-                  prefixIcon: const Icon(Icons.store, color: AppColors.primary),
+                  prefixIcon: const Icon(Icons.store, color: Colors.white70),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.primary),
+                    borderSide: const BorderSide(color: Colors.white, width: 1.5),
                   ),
                 ),
                 validator: (v) => v!.isEmpty ? 'Kitchen name is required' : null,
@@ -388,7 +389,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                   labelStyle: const TextStyle(color: AppColors.onSurfaceVariant),
                   prefixIcon: const Padding(
                     padding: EdgeInsets.only(bottom: 40),
-                    child: Icon(Icons.description, color: AppColors.primary),
+                    child: Icon(Icons.description, color: Colors.white70),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -396,7 +397,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.primary),
+                    borderSide: const BorderSide(color: Colors.white, width: 1.5),
                   ),
                 ),
                 validator: (v) => v!.isEmpty ? 'Description is required' : null,
@@ -409,14 +410,14 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                   labelText: 'Kitchen Location / Address',
                   hintText: 'e.g. North Hollywood, CA',
                   labelStyle: const TextStyle(color: AppColors.onSurfaceVariant),
-                  prefixIcon: const Icon(Icons.location_on, color: AppColors.primary),
+                  prefixIcon: const Icon(Icons.location_on, color: Colors.white70),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.primary),
+                    borderSide: const BorderSide(color: Colors.white, width: 1.5),
                   ),
                 ),
                 validator: (v) => v!.isEmpty ? 'Location address is required' : null,
@@ -430,8 +431,8 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                   Text('Certificates & Accreditations', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 16)),
                   TextButton.icon(
                     onPressed: _showAddCertificateDialog,
-                    icon: const Icon(Icons.add, size: 18, color: AppColors.primary),
-                    label: const Text('Add Document', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                    icon: const Icon(Icons.add, size: 18, color: Colors.white),
+                    label: const Text('Add Document', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -474,7 +475,7 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.surfaceContainerHigh,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                        border: Border.all(color: Colors.white24),
                       ),
                       child: Row(
                         children: [
@@ -508,13 +509,13 @@ class _BecomeChefScreenState extends State<BecomeChefScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _upgradeToChef,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.onPrimary,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: AppColors.onPrimary)
-                      : Text('Open Kitchen', style: AppTextStyles.bodyLg(color: AppColors.onPrimary).copyWith(fontWeight: FontWeight.bold)),
+                      ? const CircularProgressIndicator(color: Colors.black)
+                      : const Text('Open Kitchen', style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

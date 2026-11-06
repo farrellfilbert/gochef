@@ -7,7 +7,6 @@ import 'package:go_chef_app/theme/app_text_styles.dart';
 import 'package:go_chef_app/services/api_service.dart';
 import 'package:go_chef_app/services/support_helper.dart';
 import 'package:go_chef_app/main.dart';
-import 'order_review_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_chef_app/utils/web_js.dart';
@@ -405,17 +404,14 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         
         if (_currentStatus == 'Completed' && !_isAutoArriveTriggered) {
           _isAutoArriveTriggered = true;
-          Future.delayed(const Duration(seconds: 15), () {
+          Future.delayed(const Duration(seconds: 1), () {
             if (mounted) {
-              Navigator.pushReplacement(
+              RateOrderDialog.show(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => OrderReviewScreen(
-                    orderId: widget.orderId,
-                    kitchenId: widget.kitchenId,
-                    kitchenName: widget.kitchenName,
-                  ),
-                ),
+                orderId: widget.orderId,
+                kitchenId: int.tryParse(widget.kitchenId),
+                kitchenName: widget.kitchenName,
+                kitchenAvatar: widget.kitchenAvatar,
               );
             }
           });
@@ -995,15 +991,15 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         onPressed: _currentStatus == 'Completed' ? null : () async {
                           await ApiService.updateOrderStatus(widget.orderId, 'Completed');
                           if (!context.mounted) return;
-                          Navigator.pushReplacement(
+                          setState(() {
+                            _currentStatus = 'Completed';
+                          });
+                          RateOrderDialog.show(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => OrderReviewScreen(
-                                orderId: widget.orderId,
-                                kitchenId: widget.kitchenId,
-                                kitchenName: widget.kitchenName,
-                              ),
-                            ),
+                            orderId: widget.orderId,
+                            kitchenId: int.tryParse(widget.kitchenId),
+                            kitchenName: widget.kitchenName,
+                            kitchenAvatar: widget.kitchenAvatar,
                           );
                         },
                         style: ElevatedButton.styleFrom(

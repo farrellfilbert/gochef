@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -19,6 +20,57 @@ class CheckoutScreen extends StatefulWidget {
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
+}
+
+
+class CardNumberInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    var text = newValue.text.replaceAll(' ', '').replaceAll(RegExp(r'\D'), '');
+    if (text.length > 16) {
+      text = text.substring(0, 16);
+    }
+    final buffer = StringBuffer();
+    for (int i = 0; i < text.length; i++) {
+      if (i > 0 && i % 4 == 0) {
+        buffer.write(' ');
+      }
+      buffer.write(text[i]);
+    }
+    final string = buffer.toString();
+    return TextEditingValue(
+      text: string,
+      selection: TextSelection.collapsed(offset: string.length),
+    );
+  }
+}
+
+class CardExpiryInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.length < oldValue.text.length) {
+      return newValue;
+    }
+    var clean = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.length > 4) {
+      clean = clean.substring(0, 4);
+    }
+    final buffer = StringBuffer();
+    for (int i = 0; i < clean.length; i++) {
+      if (i == 2) {
+        buffer.write('/');
+      }
+      buffer.write(clean[i]);
+    }
+    if (clean.length == 2) {
+      buffer.write('/');
+    }
+    final string = buffer.toString();
+    return TextEditingValue(
+      text: string,
+      selection: TextSelection.collapsed(offset: string.length),
+    );
+  }
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
@@ -625,13 +677,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   TextField(
                     controller: cardNumController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      CardNumberInputFormatter(),
+                    ],
+                    maxLength: 19,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Card Number',
                       labelStyle: const TextStyle(color: Colors.white70),
-                      hintText: '4532 •••• •••• 8921',
+                      hintText: '4242 4242 4242 4242',
                       hintStyle: const TextStyle(color: Colors.white30),
                       filled: true,
+                      counterText: '',
                       fillColor: AppColors.surfaceContainerLow,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       prefixIcon: const Icon(Icons.payment, color: AppColors.primary),
@@ -643,14 +700,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       Expanded(
                         child: TextField(
                           controller: expController,
-                          keyboardType: TextInputType.datetime,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            CardExpiryInputFormatter(),
+                          ],
+                          maxLength: 5,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                             labelText: 'MM/YY',
                             labelStyle: const TextStyle(color: Colors.white70),
-                            hintText: '08/28',
+                            hintText: '09/30',
                             hintStyle: const TextStyle(color: Colors.white30),
                             filled: true,
+                            counterText: '',
                             fillColor: AppColors.surfaceContainerLow,
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                           ),
@@ -662,6 +724,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           controller: cvcController,
                           keyboardType: TextInputType.number,
                           obscureText: true,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(4),
+                          ],
+                          maxLength: 4,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                             labelText: 'CVC / CVV',
@@ -669,6 +736,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             hintText: '123',
                             hintStyle: const TextStyle(color: Colors.white30),
                             filled: true,
+                            counterText: '',
                             fillColor: AppColors.surfaceContainerLow,
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                           ),
@@ -679,6 +747,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: nameController,
+                    textCapitalization: TextCapitalization.words,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: 'Cardholder Name',
@@ -702,6 +771,44 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       onPressed: isProcessingCard
                           ? null
                           : () async {
+                              final rawNum = cardNumController.text.replaceAll(' ', '');
+                              if (rawNum.length < 15) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please enter a valid 16-digit card number'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                                return;
+                              }
+                              if (expController.text.length < 5 || !expController.text.contains('/')) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please enter a valid expiry date (MM/YY)'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                                return;
+                              }
+                              if (cvcController.text.length < 3) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please enter a valid 3 or 4-digit CVC/CVV'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                                return;
+                              }
+                              if (nameController.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Please enter the cardholder name'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                                return;
+                              }
+
                               setSheetState(() => isProcessingCard = true);
                               Navigator.pop(ctx);
                               await _processNativeCheckout(orderNotes);

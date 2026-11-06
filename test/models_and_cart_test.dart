@@ -1,3 +1,4 @@
+import 'package:go_chef_app/screens/checkout/checkout_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_chef_app/models/kitchen_model.dart';
 import 'package:go_chef_app/models/user_model.dart';
@@ -166,5 +167,24 @@ void main() {
       final finalSubtotal = cartItem.totalPrice - discountAmount;
       expect(finalSubtotal, equals(24.00));
     });
+
+    test('Card Number Formatter formats 16 digits into 4 groups', () {
+      final formatter = CardNumberInputFormatter();
+      const input = TextEditingValue(text: '4242424242424242');
+      final result = formatter.formatEditUpdate(TextEditingValue.empty, input);
+      expect(result.text, equals('4242 4242 4242 4242'));
+    });
+
+    test('Card Expiry Formatter auto-inserts slash after 2 digits', () {
+      final formatter = CardExpiryInputFormatter();
+      // User types '09'
+      final r1 = formatter.formatEditUpdate(TextEditingValue.empty, const TextEditingValue(text: '09'));
+      expect(r1.text, equals('09/'));
+
+      // User types full '0930'
+      final r2 = formatter.formatEditUpdate(TextEditingValue.empty, const TextEditingValue(text: '0930'));
+      expect(r2.text, equals('09/30'));
+    });
   });
 }
+

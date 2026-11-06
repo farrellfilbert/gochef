@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
@@ -17,6 +19,63 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  Map<String, dynamic>? _selectedVoucher;
+  final List<Map<String, dynamic>> _availableVouchers = [
+    {
+      'code': 'FIRST50',
+      'discount': '50% OFF',
+      'title': '50% Off Your First Order',
+      'subtitle': 'Exclusive University student voucher',
+      'discountType': 'percent',
+      'discountValue': 50.0,
+      'minSpend': 0.0,
+    },
+    {
+      'code': 'FREEDEL',
+      'discount': 'FREE DELIVERY',
+      'title': 'Free Delivery This Week',
+      'subtitle': 'On all orders above \$20',
+      'discountType': 'free_delivery',
+      'discountValue': 4.0,
+      'minSpend': 20.0,
+    },
+    {
+      'code': 'FREEDELIV',
+      'discount': 'FREE DELIVERY',
+      'title': 'Free Delivery This Week',
+      'subtitle': 'On all orders above \$20',
+      'discountType': 'free_delivery',
+      'discountValue': 4.0,
+      'minSpend': 20.0,
+    },
+    {
+      'code': 'B2G1RAMEN',
+      'discount': 'BUY 2 GET 1',
+      'title': 'Buy 2 Get 1 Free Promo',
+      'subtitle': 'Special discount voucher',
+      'discountType': 'fixed',
+      'discountValue': 12.0,
+      'minSpend': 15.0,
+    },
+    {
+      'code': 'GOCHEF40',
+      'discount': '40% OFF',
+      'title': 'Gourmet Feast Special',
+      'subtitle': '40% discount on entire order',
+      'discountType': 'percent',
+      'discountValue': 40.0,
+      'minSpend': 20.0,
+    },
+    {
+      'code': 'PLUSVIP15',
+      'discount': '15% OFF',
+      'title': 'GoChef PLUS VIP Member',
+      'subtitle': 'VIP 15% discount',
+      'discountType': 'percent',
+      'discountValue': 15.0,
+      'minSpend': 0.0,
+    },
+  ];
   bool _isLoading = true;
   List<CartItemModel> _cartItems = [];
   List<MenuItemModel> _recommendedItems = [];
@@ -41,10 +100,67 @@ class _CartScreenState extends State<CartScreen> {
     super.dispose();
   }
 
-  void _applyPromoCode() {
-    final code = _promoController.text.trim().toUpperCase();
-    if (code.isEmpty) return;
+  void _applyVoucherMap(Map<String, dynamic> v) {
+    final code = (v['code'] ?? '').toString().toUpperCase();
+    final minSpend = double.tryParse(v['minSpend']?.toString() ?? '0') ?? 0.0;
+    
+    final selectedItems = _cartItems.where((i) => i.kitchenId == _selectedKitchenId).toList();
+    double currentSubtotal = 0;
+    for (var item in selectedItems) {
+      currentSubtotal += item.totalPrice;
+    }
+    if (currentSubtotal <= 0) {
+      for (var item in _cartItems) {
+        currentSubtotal += item.totalPrice;
+      }
+    }
 
+    if (currentSubtotal < minSpend) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('⚠️ "${v['title']}" requires a minimum order of \$${minSpend.toStringAsFixed(2)}. (Current subtotal: \$${currentSubtotal.toStringAsFixed(2)})'),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    final isFree = v['discountType'] == 'free_delivery';
+    final discountVal = double.tryParse(v['discountValue']?.toString() ?? '0') ?? 0.0;
+    
+    setState(() {
+      _selectedVoucher = v;
+      _appliedPromoCode = code;
+      _promoController.text = code;
+      if (isFree) {
+        _isFreeDelivery = true;
+        _discountPercent = 0.0;
+        _appliedPromoTitle = v['title'] ?? '$code (Free Delivery)';
+      } else if (v['discountType'] == 'percent') {
+        _isFreeDelivery = false;
+        _discountPercent = discountVal;
+        _appliedPromoTitle = v['title'] ?? '$code (${discountVal.toInt()}% OFF)';
+      } else {
+        _isFreeDelivery = false;
+        _discountPercent = 0.0;
+        _appliedPromoTitle = v['title'] ?? '$code (Special Promo)';
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('🎉 Promo "${v['title']}" applied! ${isFree ? "Free Delivery activated!" : ""}'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _applyCodeDirectly(String code) {
+    code = code.trim().toUpperCase();
+    if (code.isEmpty) return;
+    
     final isFree = (code == 'FREEDEL' || code == 'FREEDELIV' || code == 'FREESHIP');
     final is50 = (code == 'FIRST50' || code == 'GOCHEF50');
     final minSpend = isFree ? 20.0 : (code == 'GOCHEF40' ? 20.0 : 0.0);
@@ -71,30 +187,203 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
-    setState(() {
-      _appliedPromoCode = code;
-      if (isFree) {
-        _isFreeDelivery = true;
-        _discountPercent = 0.0;
-        _appliedPromoTitle = '$code (Free Delivery)';
-      } else {
-        _isFreeDelivery = false;
-        _discountPercent = is50 ? 50.0 : 20.0;
-        _appliedPromoTitle = '$code (${_discountPercent.toInt()}% OFF)';
-      }
-    });
+    final matched = _availableVouchers.firstWhere(
+      (v) => (v['code']?.toString().toUpperCase() == code),
+      orElse: () => {
+        'code': code,
+        'discount': isFree ? 'FREE DELIVERY' : (is50 ? '50% OFF' : '20% OFF'),
+        'title': isFree ? 'Free Delivery This Week' : '$code Promo Code',
+        'subtitle': isFree ? 'On all orders above \$20' : 'Applied from code',
+        'discountType': isFree ? 'free_delivery' : 'percent',
+        'discountValue': isFree ? 4.0 : (is50 ? 50.0 : 20.0),
+        'minSpend': minSpend,
+      },
+    );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('🎉 Promo Code "$code" applied! ${isFree ? "Free Delivery activated!" : ""}'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
+    _applyVoucherMap(matched);
+  }
+
+  void _showVoucherSelectionModal() {
+    final promoInputController = TextEditingController(text: _appliedPromoCode ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.outlineVariant.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Apply Voucher / Promo', style: AppTextStyles.headlineMd(color: Colors.white)),
+                      if (_selectedVoucher != null || _appliedPromoCode != null)
+                        TextButton(
+                          onPressed: () {
+                            _removePromoCode();
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text('Remove', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Promo Code Input
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: promoInputController,
+                          textCapitalization: TextCapitalization.characters,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          decoration: InputDecoration(
+                            hintText: 'Enter Promo Code (e.g. FIRST50)',
+                            hintStyle: TextStyle(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 13),
+                            filled: true,
+                            fillColor: AppColors.surfaceContainerLow,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          final code = promoInputController.text.trim().toUpperCase();
+                          if (code.isEmpty) return;
+                          Navigator.pop(ctx);
+                          _applyCodeDirectly(code);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.onPrimary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Apply'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Your Available Vouchers', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                  const SizedBox(height: 10),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 280),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: _availableVouchers.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 10),
+                      itemBuilder: (context, idx) {
+                        final v = _availableVouchers[idx];
+                        final isApplied = (_selectedVoucher != null && _selectedVoucher!['code'] == v['code']) ||
+                            (_appliedPromoCode != null && _appliedPromoCode == v['code']);
+                        return Material(
+                          color: isApplied ? AppColors.primary.withValues(alpha: 0.15) : AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(14),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () {
+                              Navigator.pop(ctx);
+                              _applyVoucherMap(v);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: isApplied ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.1),
+                                  width: isApplied ? 1.5 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: isApplied ? AppColors.primary.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(Icons.confirmation_number, color: isApplied ? AppColors.primary : Colors.orange, size: 20),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(v['discount'] ?? 'PROMO', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                                            const SizedBox(width: 6),
+                                            Text('• ${v['code']}', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11)),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(v['title'] ?? '', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold, fontSize: 13)),
+                                        if (v['subtitle'] != null)
+                                          Text(v['subtitle'], style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11)),
+                                      ],
+                                    ),
+                                  ),
+                                  if (isApplied)
+                                    const Icon(Icons.check_circle, color: AppColors.primary, size: 22)
+                                  else
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.pop(ctx);
+                                        _applyVoucherMap(v);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary,
+                                        foregroundColor: Colors.white,
+                                        visualDensity: VisualDensity.compact,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      child: const Text('Apply', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
   void _removePromoCode() {
     setState(() {
+      _selectedVoucher = null;
       _appliedPromoCode = null;
       _appliedPromoTitle = null;
       _discountPercent = 0.0;
@@ -143,6 +432,24 @@ class _CartScreenState extends State<CartScreen> {
     try {
       final items = await ApiService.getCart();
       final addresses = await ApiService.getAddresses();
+      
+      // Load claimed vouchers from storage
+      try {
+        final userId = await ApiService.getUserId();
+        if (userId != null && userId.isNotEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          final savedVouchersJson = prefs.getString('user_claimed_vouchers_$userId');
+          if (savedVouchersJson != null) {
+            final List decoded = jsonDecode(savedVouchersJson);
+            final customVouchers = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+            for (var v in customVouchers) {
+              if (!_availableVouchers.any((existing) => existing['code'] == v['code'])) {
+                _availableVouchers.insert(0, v);
+              }
+            }
+          }
+        }
+      } catch (_) {}
       
       setState(() {
         _cartItems = items;
@@ -238,7 +545,22 @@ class _CartScreenState extends State<CartScreen> {
     }
     double deliveryFee = selectedItems.isNotEmpty ? (_isFreeDelivery ? 0.0 : 4.00) : 0.00;
     double serviceFee = selectedItems.isNotEmpty ? 2.50 : 0.00;
-    double discountAmount = _discountPercent > 0 ? (subtotal * (_discountPercent / 100.0)) : 0.0;
+    double discountAmount = 0.0;
+    if (_selectedVoucher != null) {
+      if (_selectedVoucher!['discountType'] == 'free_delivery') {
+        deliveryFee = 0.0;
+      } else if (_selectedVoucher!['discountType'] == 'percent') {
+        final p = double.tryParse(_selectedVoucher!['discountValue']?.toString() ?? '0') ?? 0.0;
+        discountAmount = subtotal * (p / 100.0);
+      } else if (_selectedVoucher!['discountType'] == 'fixed') {
+        discountAmount = double.tryParse(_selectedVoucher!['discountValue']?.toString() ?? '0') ?? 0.0;
+      }
+    } else if (_discountPercent > 0) {
+      discountAmount = subtotal * (_discountPercent / 100.0);
+    }
+    if (discountAmount > subtotal) {
+      discountAmount = subtotal;
+    }
     double grandTotal = (subtotal - discountAmount + deliveryFee + serviceFee).clamp(0.0, 999999.0);
 
     return Scaffold(
@@ -465,23 +787,22 @@ class _CartScreenState extends State<CartScreen> {
                                       const Icon(Icons.loyalty, color: Colors.white70, size: 20),
                                       const SizedBox(width: 10),
                                       Expanded(
-                                        child: TextField(
-                                          controller: _promoController,
-                                          textCapitalization: TextCapitalization.characters,
-                                          style: AppTextStyles.bodyMd(color: AppColors.onSurface),
-                                          decoration: InputDecoration(
-                                            hintText: 'Promo code (e.g. FIRST50)',
-                                            hintStyle: AppTextStyles.bodyMd(
-                                              color: AppColors.onSurfaceVariant.withValues(alpha: 0.4),
+                                        child: InkWell(
+                                          onTap: _showVoucherSelectionModal,
+                                          child: Text(
+                                            _promoController.text.isNotEmpty 
+                                                ? _promoController.text 
+                                                : 'Apply Voucher / Promo Code',
+                                            style: AppTextStyles.bodyMd(
+                                              color: _promoController.text.isNotEmpty 
+                                                  ? AppColors.onSurface 
+                                                  : AppColors.onSurfaceVariant.withValues(alpha: 0.6),
                                             ),
-                                            border: InputBorder.none,
-                                            isDense: true,
-                                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
                                           ),
                                         ),
                                       ),
                                       ElevatedButton(
-                                        onPressed: _applyPromoCode,
+                                        onPressed: _showVoucherSelectionModal,
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: AppColors.primary,
                                           foregroundColor: Colors.white,
@@ -685,7 +1006,7 @@ class _CartScreenState extends State<CartScreen> {
                                   return;
                                 }
                                 final typedPromo = _promoController.text.trim().toUpperCase();
-                                final promoToPass = _appliedPromoCode ?? (typedPromo.isNotEmpty ? typedPromo : null);
+                                final promoToPass = _appliedPromoCode ?? (_selectedVoucher != null ? _selectedVoucher!['code'] as String? : (typedPromo.isNotEmpty ? typedPromo : null));
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
