@@ -10,6 +10,9 @@ import '../../models/cart_item_model.dart';
 import '../../models/address_model.dart';
 import '../../models/menu_item_model.dart';
 import '../profile/address_selection_screen.dart';
+import '../legal/terms_of_service_screen.dart';
+import '../legal/privacy_policy_screen.dart';
+import '../legal/disclaimer_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -975,6 +978,50 @@ class _CartScreenState extends State<CartScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Center(
+                            child: Wrap(
+                              alignment: WrapAlignment.center,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  'By purchasing you agree to GoChef’s: ',
+                                  style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                                ),
+                                GestureDetector(
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen())),
+                                  child: const Text(
+                                    'Terms and Conditions',
+                                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11, decoration: TextDecoration.underline),
+                                  ),
+                                ),
+                                Text(
+                                  ', ',
+                                  style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                                ),
+                                GestureDetector(
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
+                                  child: const Text(
+                                    'Privacy Policy',
+                                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11, decoration: TextDecoration.underline),
+                                  ),
+                                ),
+                                Text(
+                                  ' and ',
+                                  style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
+                                ),
+                                GestureDetector(
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DisclaimerScreen())),
+                                  child: const Text(
+                                    'Disclaimer',
+                                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11, decoration: TextDecoration.underline),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                         Container(
                           width: double.infinity,
                           height: 56,

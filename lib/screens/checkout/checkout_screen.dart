@@ -1625,13 +1625,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
-                            'By purchasing you agree to ',
+                            'By purchasing you agree to GoChef’s: ',
                             style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
                           ),
                           GestureDetector(
                             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen())),
                             child: const Text(
-                              'Terms',
+                              'Terms and Conditions',
                               style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11, decoration: TextDecoration.underline),
                             ),
                           ),
@@ -1642,12 +1642,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           GestureDetector(
                             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
                             child: const Text(
-                              'Privacy',
+                              'Privacy Policy',
                               style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 11, decoration: TextDecoration.underline),
                             ),
                           ),
                           Text(
-                            ' & ',
+                            ' and ',
                             style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant).copyWith(fontSize: 11),
                           ),
                           GestureDetector(

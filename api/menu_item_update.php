@@ -42,15 +42,20 @@ $price = isset($data->price) ? floatval($data->price) : 0;
 $image = isset($data->image) ? $data->image : '';
 $calories = isset($data->calories) ? intval($data->calories) : 650;
 $is_available = isset($data->is_available) ? ((intval($data->is_available) === 1 || $data->is_available === true) ? 1 : 0) : 1;
+$prep_time = !empty($data->prep_time) ? trim($data->prep_time) : (!empty($data->delivery_time) ? trim($data->delivery_time) : '15-20 min');
+
+try {
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN prep_time VARCHAR(50) DEFAULT '15-20 min'");
+} catch (Exception $e) {}
 
 if ($image !== '') {
-    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ?, calories = ?, is_available = ? WHERE id = ? AND kitchen_id = ?";
+    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ?, calories = ?, is_available = ?, prep_time = ? WHERE id = ? AND kitchen_id = ?";
     $stmt = $pdo->prepare($query);
-    $result = $stmt->execute([$name, $description, $price, $category_id, $image, $calories, $is_available, $id, $kitchen_id]);
+    $result = $stmt->execute([$name, $description, $price, $category_id, $image, $calories, $is_available, $prep_time, $id, $kitchen_id]);
 } else {
-    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, calories = ?, is_available = ? WHERE id = ? AND kitchen_id = ?";
+    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, calories = ?, is_available = ?, prep_time = ? WHERE id = ? AND kitchen_id = ?";
     $stmt = $pdo->prepare($query);
-    $result = $stmt->execute([$name, $description, $price, $category_id, $calories, $is_available, $id, $kitchen_id]);
+    $result = $stmt->execute([$name, $description, $price, $category_id, $calories, $is_available, $prep_time, $id, $kitchen_id]);
 }
 
 if ($result) {

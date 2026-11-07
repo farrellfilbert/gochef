@@ -1625,18 +1625,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildListTile(Icons.support_agent, '24/7 Live Support Chat', () {
-                          SupportHelper.openLiveSupportChat(context);
-                        }),
-                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                        _buildListTile(Icons.chat_bubble_outline, 'Help & Contact Support', () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ContactSupportScreen()));
-                        }),
-                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                        _buildListTile(Icons.help_outline, 'Help Center / FAQs', () {
+                        _buildListTile(Icons.help_outline, 'Help Center: Support & FAQs', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpCenterScreen()));
                         }),
-                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                        Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.description_outlined, 'About GoChef', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutScreen()));
                         }),

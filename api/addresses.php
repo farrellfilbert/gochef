@@ -22,7 +22,18 @@ if ($method === 'GET') {
     $user_id = intval($_GET['user_id']);
     $stmt = $pdo->prepare("SELECT * FROM addresses WHERE user_id = ? ORDER BY is_default DESC, created_at DESC");
     $stmt->execute([$user_id]);
-    echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // If user has no address yet, create default Los Angeles, California address
+    if (empty($results) && $user_id > 0) {
+        $defAddress = "11012 Ventura Blvd, Studio City, Los Angeles, CA 91604";
+        $ins = $pdo->prepare("INSERT INTO addresses (user_id, label, address, is_default) VALUES (?, 'Home', ?, 1)");
+        $ins->execute([$user_id, $defAddress]);
+        $stmt->execute([$user_id]);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    echo json_encode(['success' => true, 'data' => $results]);
 
 } elseif ($method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);

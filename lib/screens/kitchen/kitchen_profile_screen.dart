@@ -288,6 +288,8 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                   Flexible(
                                     child: Text(kitchen.name, style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface).copyWith(height: 1.15), maxLines: 1, overflow: TextOverflow.ellipsis),
                                   ),
+                                  const SizedBox(width: 8),
+                                  _buildPaperworkButton(context, kitchen),
                                   if (kitchen.certificates.isNotEmpty || kitchen.isVerified) ...[
                                     const SizedBox(width: 6),
                                     Container(
@@ -486,7 +488,9 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                               const Icon(Icons.schedule, color: AppColors.primary, size: 16),
                               const SizedBox(width: 6),
                               Text(
-                                kitchen.businessHours,
+                                kitchen.businessHours.contains('PST')
+                                    ? kitchen.businessHours
+                                    : '${kitchen.businessHours} PST',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
@@ -796,6 +800,268 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
       width: 40, height: 40,
       decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5))),
       child: IconButton(icon: Icon(icon, size: 20, color: AppColors.onSurface), onPressed: onTap, padding: EdgeInsets.zero),
+    );
+  }
+
+  Widget _buildPaperworkButton(BuildContext context, KitchenModel kitchen) {
+    return Tooltip(
+      message: 'View Kitchen Inspection & Certificates',
+      child: GestureDetector(
+        onTap: () => _showInspectionDetailsModal(context, kitchen),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 24,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5), height: 1.5, color: Colors.blueGrey[300]),
+                    Container(margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5), height: 1.5, color: Colors.blueGrey[300]),
+                    Container(margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5), height: 1.5, color: Colors.blueGrey[300]),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: -3,
+                right: -4,
+                child: Container(
+                  padding: const EdgeInsets.all(1.5),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF22C55E),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check,
+                    size: 11,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showInspectionDetailsModal(BuildContext context, KitchenModel kitchen) {
+    final items = KitchenComplianceHelper.getComplianceItems(kitchen);
+    final verifiedCount = KitchenComplianceHelper.countSubmitted(kitchen);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.8,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.verified_user, color: Colors.greenAccent, size: 24),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Kitchen Inspection & Verified',
+                            style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 17),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white70),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.greenAccent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.35)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF22C55E),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Text('A+', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Health Inspection: Passed (Grade A)',
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$verifiedCount/10 Credentials & Permits Verified on GoChef Platform',
+                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Verified Paperwork & Health Standards',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ListView.separated(
+                      controller: scrollController,
+                      itemCount: items.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: item.isSubmitted ? Colors.greenAccent.withValues(alpha: 0.3) : Colors.white10,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: item.isSubmitted ? Colors.greenAccent.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(item.icon, color: item.isSubmitted ? Colors.greenAccent : Colors.white38, size: 22),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            item.title,
+                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: item.isSubmitted ? Colors.greenAccent.withValues(alpha: 0.15) : Colors.white10,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                item.isSubmitted ? Icons.check_circle : Icons.schedule,
+                                                size: 12,
+                                                color: item.isSubmitted ? Colors.greenAccent : Colors.white38,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                item.isSubmitted ? 'Verified' : 'Pending',
+                                                style: TextStyle(
+                                                  color: item.isSubmitted ? Colors.greenAccent : Colors.white38,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item.description,
+                                      style: const TextStyle(color: Colors.white60, fontSize: 12),
+                                    ),
+                                    if (item.documentUrl != null && item.documentUrl!.isNotEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.pop(ctx);
+                                          _openFullscreenImage(this.context, item.documentUrl!, 'doc_${item.id}_${item.hashCode}');
+                                        },
+                                        child: Row(
+                                          children: const [
+                                            Icon(Icons.visibility_outlined, size: 14, color: AppColors.primary),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              'View Certificate Document',
+                                              style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

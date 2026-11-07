@@ -89,7 +89,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         backgroundColor: AppColors.surface,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Help Center', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Help Center: Support & FAQs', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -126,6 +126,56 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 const Text(
                   'GoChef x The GRUB Next Door Knowledge Base',
                   style: TextStyle(color: Colors.white60, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Direct Support Card (Text Line & Email Us)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.support_agent, color: AppColors.primary, size: 22),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Direct Customer Support',
+                      style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.sms_outlined, color: Colors.greenAccent, size: 18),
+                    const SizedBox(width: 8),
+                    const Text('Text Line: ', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                    SelectableText(
+                      '+1 (818) 925-8152',
+                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.email_outlined, color: Colors.lightBlueAccent, size: 18),
+                    const SizedBox(width: 8),
+                    const Text('Email Us: ', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                    SelectableText(
+                      'Hello@GoChef.com',
+                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
               ],
             ),

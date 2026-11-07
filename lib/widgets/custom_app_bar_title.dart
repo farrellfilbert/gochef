@@ -22,7 +22,7 @@ class CustomAppBarTitle extends StatefulWidget {
 
 class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
   String _deviceLocation = '';
-  String _dbLocation = 'Please set your address';
+  String _dbLocation = 'Los Angeles, California';
   String _name = 'GoChef';
   String _avatarUrl = 'https://ui-avatars.com/api/?name=User';
 
@@ -85,7 +85,7 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
           });
         } else {
           setState(() {
-            _dbLocation = 'Please set your address';
+            _dbLocation = 'Los Angeles, California';
           });
         }
       }
@@ -98,12 +98,17 @@ class _CustomAppBarTitleState extends State<CustomAppBarTitle> {
     try {
       final cached = await LocationService.getLastKnownAddress();
       if (cached != null && cached.isNotEmpty && mounted) {
-        setState(() => _deviceLocation = cached);
+        if (!cached.toLowerCase().contains('indonesia') && !cached.toLowerCase().contains('jakarta')) {
+          setState(() => _deviceLocation = cached);
+        }
       }
 
       final loc = await LocationService.getCurrentLocation();
       if (loc?.address != null && mounted) {
-        setState(() => _deviceLocation = loc!.address!);
+        final addr = loc!.address!;
+        if (!addr.toLowerCase().contains('indonesia') && !addr.toLowerCase().contains('jakarta')) {
+          setState(() => _deviceLocation = addr);
+        }
       }
     } catch (_) {}
   }

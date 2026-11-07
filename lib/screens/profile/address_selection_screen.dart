@@ -565,7 +565,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                                 Text('Deliver To: ', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
                                 Expanded(
                                   child: Text(
-                                    _selectedAddress?.label ?? 'Select Location',
+                                    _selectedAddress?.label ?? 'Home',
                                     style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -575,7 +575,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              _selectedAddress?.address ?? 'Set your delivery location',
+                              _selectedAddress?.address ?? '11012 Ventura Blvd, Studio City, Los Angeles, CA 91604',
                               style: AppTextStyles.labelSm(color: Colors.white70),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

@@ -60,7 +60,13 @@ try {
     $weeklyOrdersCount = 0;
 
     $todayStr = date('Y-m-d');
-    $sevenDaysAgo = strtotime('-7 days');
+    // Calorie counter resets every Sunday morning midnight (00:00:00)
+    $dayOfWeek = intval(date('w')); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    if ($dayOfWeek === 0) {
+        $weekStart = strtotime('today 00:00:00');
+    } else {
+        $weekStart = strtotime('last Sunday 00:00:00');
+    }
 
     $todayMeals = [];
     $weeklyMeals = [];
@@ -111,8 +117,8 @@ try {
             $todayMeals[] = $orderSummary;
         }
 
-        // Check if within 7 days
-        if ($orderTimestamp >= $sevenDaysAgo) {
+        // Check if within current week (since Sunday morning midnight)
+        if ($orderTimestamp >= $weekStart) {
             $weeklyCalories += $orderCals;
             $weeklyOrdersCount++;
             $weeklyMeals[] = $orderSummary;

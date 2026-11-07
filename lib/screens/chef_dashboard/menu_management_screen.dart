@@ -105,6 +105,7 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
     final descriptionController = TextEditingController(text: item.description);
     final priceController = TextEditingController(text: item.price.toString());
     final caloriesController = TextEditingController(text: item.calories.toString());
+    final prepTimeController = TextEditingController(text: item.prepTime.isNotEmpty ? item.prepTime : '15-20 min');
     XFile? selectedImage;
     bool isUploading = false;
     int? selectedCategoryId = item.categoryId > 0 ? item.categoryId : (_categories.isNotEmpty ? _categories.first.id : null);
@@ -234,6 +235,12 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: prepTimeController,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      decoration: _buildInputDecoration('Prep & Delivery Time (e.g. 15-20 min)', prefixIcon: Icons.timer_outlined),
+                    ),
                     const SizedBox(height: 24),
                     AddonCategoryManager(
                       initialCategories: addonCategories,
@@ -291,6 +298,7 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                                   'description': descriptionController.text,
                                   'price': double.parse(priceController.text),
                                   'calories': int.tryParse(caloriesController.text) ?? 650,
+                                  'prep_time': prepTimeController.text.trim().isNotEmpty ? prepTimeController.text.trim() : '15-20 min',
                                   'image': selectedImage != null ? imageUrl : '',
                                   'addon_categories': addonCategories.map((c) => c.toJson()).toList(),
                                 });
@@ -337,6 +345,7 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
     final descriptionController = TextEditingController();
     final priceController = TextEditingController();
     final caloriesController = TextEditingController(text: '650');
+    final prepTimeController = TextEditingController(text: '15-20 min');
     XFile? selectedImage;
     bool isUploading = false;
     int? selectedCategoryId = _categories.isNotEmpty ? _categories.first.id : null;
@@ -473,6 +482,12 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: prepTimeController,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      decoration: _buildInputDecoration('Prep & Delivery Time (e.g. 15-20 min)', prefixIcon: Icons.timer_outlined),
+                    ),
                     const SizedBox(height: 24),
                     AddonCategoryManager(
                       initialCategories: addonCategories,
@@ -525,6 +540,7 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                                       'description': descriptionController.text,
                                       'price': double.parse(priceController.text),
                                       'calories': int.tryParse(caloriesController.text) ?? 650,
+                                      'prep_time': prepTimeController.text.trim().isNotEmpty ? prepTimeController.text.trim() : '15-20 min',
                                       'image': imageUrl,
                                       'is_popular': 0,
                                       'addon_categories': addonCategories.map((a) => a.toJson()).toList(),

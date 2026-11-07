@@ -10,8 +10,8 @@ try {
     $pdo->exec("UPDATE kitchens SET avatar = 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=400&q=80' WHERE avatar IS NULL OR avatar = ''");
 } catch(Exception $e) {}
 
-// Featured kitchens (Latest kitchens for demo purposes)
-$stmt = $pdo->query("SELECT * FROM kitchens ORDER BY id DESC LIMIT 10");
+// Featured kitchens (Prioritize admin controlled is_featured flag)
+$stmt = $pdo->query("SELECT * FROM kitchens ORDER BY is_featured DESC, rating DESC, id DESC LIMIT 10");
 $kitchens = $stmt->fetchAll();
 foreach ($kitchens as &$k) {
     if (empty($k['cover_image'])) {
@@ -23,13 +23,13 @@ foreach ($kitchens as &$k) {
 }
 $data['featured_kitchens'] = $kitchens;
 
-// Popular meals (Latest available meals for demo purposes)
+// Popular meals (Prioritize admin controlled is_popular flag and high rating)
 $stmt = $pdo->query("
     SELECT mi.*, k.name as kitchen_name, k.avatar as kitchen_avatar
     FROM menu_items mi
     JOIN kitchens k ON mi.kitchen_id = k.id
     WHERE mi.is_available = 1
-    ORDER BY mi.id DESC LIMIT 15
+    ORDER BY mi.is_popular DESC, mi.rating DESC, mi.id DESC LIMIT 15
 ");
 $data['popular_meals'] = $stmt->fetchAll();
 
@@ -37,8 +37,8 @@ $data['popular_meals'] = $stmt->fetchAll();
 $stmt = $pdo->query("SELECT * FROM categories ORDER BY sort_order ASC");
 $data['categories'] = $stmt->fetchAll();
 
-// Active promotions
-$stmt = $pdo->query("SELECT * FROM promotions WHERE is_active = 1 AND (end_date IS NULL OR end_date >= CURDATE()) ORDER BY created_at DESC LIMIT 3");
+// Active promotions (Ordered 1st, 2nd, 3rd)
+$stmt = $pdo->query("SELECT * FROM promotions WHERE is_active = 1 AND (end_date IS NULL OR end_date >= CURDATE()) ORDER BY sort_order ASC, id ASC LIMIT 3");
 $data['promotions'] = $stmt->fetchAll();
 
 echo json_encode(['success' => true, 'data' => $data]);

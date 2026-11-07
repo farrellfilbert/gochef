@@ -16,7 +16,7 @@ class ChefOrdersScreen extends StatefulWidget {
 
 class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   int _selectedTabIndex = 0;
-  final List<String> _tabs = ['Pending', 'Scheduled', 'Active', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
+  final List<String> _tabs = ['All', 'Pending', 'Scheduled', 'Active', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
   bool _isLoading = true;
   List<OrderModel> _orders = [];
   int _prevOrdersLength = -1;
@@ -286,7 +286,9 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
   Widget build(BuildContext context) {
     // Filter orders based on selected tab
     final selectedStatus = _tabs[_selectedTabIndex];
-    final filteredOrders = _orders.where((o) => o.status == selectedStatus).toList();
+    final filteredOrders = selectedStatus == 'All'
+        ? _orders
+        : _orders.where((o) => o.status == selectedStatus).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -346,11 +348,14 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
               itemCount: _tabs.length,
               itemBuilder: (context, index) {
                 final isSelected = _selectedTabIndex == index;
+                final tabName = _tabs[index];
+                final count = tabName == 'All' ? _orders.length : _orders.where((o) => o.status == tabName).length;
+                final tabLabel = count > 0 ? '$tabName ($count)' : tabName;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedTabIndex = index),
                   child: Container(
                     margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
                       color: isSelected ? Colors.white : AppColors.surfaceContainer,
                       borderRadius: BorderRadius.circular(24),
@@ -359,7 +364,7 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                       ),
                     ),
                     child: Text(
-                      _tabs[index],
+                      tabLabel,
                       style: AppTextStyles.labelMono(
                         color: isSelected ? Colors.black : Colors.white,
                       ).copyWith(fontWeight: isSelected ? FontWeight.bold : FontWeight.w500),

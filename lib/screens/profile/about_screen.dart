@@ -17,18 +17,18 @@ class AboutScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text('About GoChef', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
                 'assets/images/logo.png',
-                width: 120,
-                height: 120,
+                width: 100,
+                height: 100,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Image.asset('assets/images/GoCheflogo.png', width: 120, height: 120),
+                errorBuilder: (_, __, ___) => Image.asset('assets/images/GoCheflogo.png', width: 100, height: 100),
               ),
               const SizedBox(height: 8),
               Opacity(
@@ -47,17 +47,35 @@ class AboutScreen extends StatelessWidget {
                 'GoChef • Version 1.0.0',
                 style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Text(
                 'GoChef connects foodies with at-home; chefs, vetted cooks, food trucks, street vendors & caterers to provide home cooked room service like dining options nearby, convenient & good just for you!',
                 style: AppTextStyles.bodyMd(color: Colors.white.withValues(alpha: 0.95)),
                 textAlign: TextAlign.center,
               ),
-              const Spacer(),
+              const SizedBox(height: 24),
+              // Wakanda Kitchen background image under the about GoChef text
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Image.network(
+                    'https://thegrubnextdoor.com/uploads/img_6aec19e718fd9_1793858023.jpg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const SizedBox(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
               _buildLink(context, 'Terms of Service', const TermsOfServiceScreen()),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _buildLink(context, 'Privacy Policy', const PrivacyPolicyScreen()),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Text(
                 '© 2026 GoChef x The GRUB Next Door! All rights reserved.',
                 style: AppTextStyles.labelSm(color: Colors.white60),

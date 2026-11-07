@@ -57,6 +57,11 @@ class MenuItemModel {
       image: ApiService.formatImageUrl(json['image'] ?? json['image_url']),
       rating: double.tryParse(json['rating']?.toString() ?? '0') ?? 0.0,
       totalReviews: int.tryParse(json['total_reviews']?.toString() ?? '0') ?? 0,
+      prepTime: (json['prep_time'] != null && json['prep_time'].toString().isNotEmpty)
+          ? json['prep_time'].toString()
+          : (json['delivery_time'] != null && json['delivery_time'].toString().isNotEmpty
+              ? json['delivery_time'].toString()
+              : '15-20 min'),
       isAvailable: json['is_available'] == null
           ? true
           : (json['is_available'].toString() != '0' && json['is_available'].toString().toLowerCase() != 'false'),

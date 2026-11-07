@@ -322,7 +322,16 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Business Hours', style: AppTextStyles.headlineMd(color: Colors.white)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Business Hours', style: AppTextStyles.headlineMd(color: Colors.white)),
+                      const Text(
+                        'Pacific Standard Time (PST)',
+                        style: TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
@@ -390,7 +399,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                   ),
                   onPressed: () async {
-                    final formattedHours = '${openTime.format(context)} - ${closeTime.format(context)}';
+                    final formattedHours = '${openTime.format(context)} - ${closeTime.format(context)} PST';
                     if (_kitchenId != null) {
                       setState(() {
                         if (_kitchen != null) {
@@ -561,6 +570,9 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
   }
 
   void _showKitchenInspectionDialog() {
+    final items = _kitchen != null ? KitchenComplianceHelper.getComplianceItems(_kitchen!) : <KitchenComplianceItem>[];
+    final verifiedCount = _kitchen != null ? KitchenComplianceHelper.countSubmitted(_kitchen!) : 0;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surfaceContainerLowest,
@@ -568,84 +580,170 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.82,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.verified_user, color: Colors.greenAccent, size: 24),
+                      const SizedBox(width: 8),
+                      Text('Kitchen Inspection & Permits', style: AppTextStyles.headlineMd(color: Colors.white)),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.greenAccent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.3)),
+                ),
+                child: Row(
                   children: [
-                    const Icon(Icons.verified_user, color: Colors.greenAccent, size: 24),
-                    const SizedBox(width: 8),
-                    Text('Kitchen Inspection', style: AppTextStyles.headlineMd(color: Colors.white)),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                      child: const Text('A+', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Health Inspection: Passed', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text('Grade A (Score: 98/100) • $verifiedCount/10 Credentials Verified', style: AppTextStyles.labelSm(color: Colors.white70)),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.greenAccent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.3)),
               ),
-              child: Row(
+              const SizedBox(height: 16),
+              // Action Buttons Row (Upload New Document + Request Re-Inspection)
+              Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                    child: const Text('A+', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
-                  ),
-                  const SizedBox(width: 16),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Health Inspection: Passed', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                        const SizedBox(height: 4),
-                        Text('Grade A (Score: 98/100) • Verified by City Food Safety Authority', style: AppTextStyles.labelSm(color: Colors.white70)),
-                      ],
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(Icons.upload_file, size: 18),
+                      label: const Text('Upload Document', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _showUploadDocumentModal();
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primary),
+                        foregroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(Icons.refresh, size: 18),
+                      label: const Text('Re-Inspection', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Re-inspection request submitted to health inspector.'), backgroundColor: Colors.green),
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            _buildInspectionItem('Food Handler License', 'Valid until Nov 2026', Icons.check_circle, Colors.green),
-            const SizedBox(height: 8),
-            _buildInspectionItem('Commercial Kitchen Standards', 'Certified & Compliant', Icons.check_circle, Colors.green),
-            const SizedBox(height: 8),
-            _buildInspectionItem('Fire Safety & Sanitation', 'Inspected Q1 2026', Icons.check_circle, Colors.green),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primary),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                ),
-                icon: const Icon(Icons.refresh, color: AppColors.primary),
-                label: const Text('Request Re-Inspection', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-                onPressed: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Re-inspection request submitted to health inspector.'), backgroundColor: Colors.green),
-                  );
-                },
+              const SizedBox(height: 16),
+              const Text(
+                'Visible Verification Checklist (Foodies see this)',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
               ),
-            ),
-            const SizedBox(height: 16),
-          ],
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollController,
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: item.isSubmitted ? Colors.greenAccent.withValues(alpha: 0.3) : Colors.white10,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(item.icon, color: item.isSubmitted ? Colors.greenAccent : Colors.white38, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(item.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5)),
+                                const SizedBox(height: 2),
+                                Text(item.description, style: const TextStyle(color: Colors.white60, fontSize: 11.5)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (item.isSubmitted)
+                            const Icon(Icons.check_circle, color: Colors.greenAccent, size: 20)
+                          else
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _showUploadDocumentModal(item.title);
+                              },
+                              child: const Text('Upload', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1295,6 +1393,206 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     );
   }
 
+  void _showEditAboutDialog() {
+    final controller = TextEditingController(text: _kitchen?.description ?? '');
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surfaceContainerHigh,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: const [
+                Icon(Icons.edit_note, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Edit About The Kitchen', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Tell foodie customers about your kitchen, cooking background, specialty meals, and passion.',
+                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: controller,
+                  maxLines: 5,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Authentic homemade culinary creations crafted with love...',
+                    hintStyle: const TextStyle(color: Colors.white38),
+                    filled: true,
+                    fillColor: AppColors.surfaceContainerLow,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSaving ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+              ),
+              ElevatedButton(
+                onPressed: isSaving
+                    ? null
+                    : () async {
+                        final newAbout = controller.text.trim();
+                        setDialogState(() => isSaving = true);
+                        try {
+                          final success = await ApiService.updateKitchen({
+                            'kitchen_id': _kitchenId,
+                            'description': newAbout,
+                          });
+                          if (success && mounted) {
+                            setState(() {
+                              if (_kitchen != null) {
+                                _kitchen = _kitchen!.copyWith(description: newAbout);
+                              }
+                            });
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('About The Kitchen updated successfully! 🎉'), backgroundColor: Colors.green),
+                            );
+                          } else {
+                            throw Exception('Failed to update kitchen description');
+                          }
+                        } catch (e) {
+                          setDialogState(() => isSaving = false);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: isSaving
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEarningsCard() {
+    final revenue = double.tryParse(_analytics?['revenue']?.toString() ?? '0') ?? 0.0;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF1E293B),
+            AppColors.surfaceContainerHigh.withValues(alpha: 0.6),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.greenAccent.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.account_balance_wallet, color: Colors.greenAccent, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'KITCHEN EARNINGS',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.greenAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text('Live', style: TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '\$${revenue.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Total made from completed orders',
+                    style: TextStyle(color: Colors.white60, fontSize: 12),
+                  ),
+                ],
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChefEarningsScreen(initialKitchen: _kitchen),
+                    ),
+                  ).then((_) => _loadProfile());
+                },
+                icon: const Icon(Icons.payments_outlined, size: 16, color: Colors.black),
+                label: const Text(
+                  'Withdraw Money',
+                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  elevation: 0,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1547,14 +1845,28 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                     Expanded(child: _buildStatItem(_calculateActiveTime(_kitchen!.createdAt), 'Active')),
                   ],
                 ),
+                const SizedBox(height: 20),
+
+                // Kitchen Earnings & Payout Card
+                _buildEarningsCard(),
                 const SizedBox(height: 24),
 
                 // About Section
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(Icons.info, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
-                    Text('About the Kitchen', style: AppTextStyles.headlineMd(color: Colors.white)),
+                    Row(
+                      children: [
+                        const Icon(Icons.info, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text('About the Kitchen', style: AppTextStyles.headlineMd(color: Colors.white)),
+                      ],
+                    ),
+                    TextButton.icon(
+                      onPressed: _showEditAboutDialog,
+                      icon: const Icon(Icons.edit, size: 16, color: AppColors.primary),
+                      label: const Text('Edit', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -1790,13 +2102,13 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                         onTap: () => SupportHelper.openLiveSupportChat(context),
                       ),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Manage your operating times', onTap: _showBusinessHoursDialog),
+                      _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Pacific Standard Time (PST)', onTap: _showBusinessHoursDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.payments, 'Payout Methods', 'Manage your earnings & bank info', destination: ChefEarningsScreen(initialKitchen: _kitchen)),
+                      _buildSettingsTile(context, Icons.payments, 'Payout Method & Earnings', 'Withdraw money & manage bank direct deposit', destination: ChefEarningsScreen(initialKitchen: _kitchen)),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.local_shipping, 'Delivery Radius', 'Set your service area (currently ${_deliveryRadius.toStringAsFixed(0)}mi)', onTap: _showDeliveryRadiusDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.shield, 'Kitchen Inspection & Permits', '${KitchenComplianceHelper.countSubmitted(_kitchen!)}/10 Credentials & Permits Verified', onTap: _showKitchenInspectionDialog),
+                      _buildSettingsTile(context, Icons.shield, 'Kitchen Inspection & Permits', 'Upload documents & view verification details (${KitchenComplianceHelper.countSubmitted(_kitchen!)}/10 verified)', onTap: _showKitchenInspectionDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       ListTile(
                         leading: const Icon(Icons.person, color: Colors.white),

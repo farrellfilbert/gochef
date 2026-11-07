@@ -6,6 +6,7 @@ import 'personal_information_screen.dart';
 import 'security_password_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 import '../legal/privacy_policy_screen.dart';
+import '../legal/disclaimer_screen.dart';
 import '../auth/login_screen.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
@@ -26,8 +27,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _appearance = 'Dark';
   String _cacheSize = '14.2 MB';
 
-  bool _googleLinked = true;
-  bool _appleLinked = true;
+  bool _googleLinked = false;
+  bool _appleLinked = false;
   bool _facebookLinked = false;
 
   UserModel? _currentUser;
@@ -43,20 +44,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final prefs = await SharedPreferences.getInstance();
       final userId = await ApiService.getUserId() ?? '0';
 
-      final currentTheme = AppStateService.themeModeNotifier.value == ThemeMode.light
-          ? 'Light'
-          : (AppStateService.themeModeNotifier.value == ThemeMode.system ? 'System' : 'Dark');
-
       if (mounted) {
         setState(() {
           _pushNotifications = prefs.getBool('pref_push_notif_$userId') ?? true;
           _emailNotifications = prefs.getBool('pref_email_notif_$userId') ?? true;
           _smsAlerts = prefs.getBool('pref_sms_alerts_$userId') ?? false;
-          _language = AppStateService.languageNotifier.value;
-          _appearance = currentTheme;
-          _cacheSize = prefs.getString('pref_cache_size_$userId') ?? '14.2 MB';
-          _googleLinked = prefs.getBool('pref_google_linked_$userId') ?? true;
-          _appleLinked = prefs.getBool('pref_apple_linked_$userId') ?? true;
+          _language = 'English';
+          _appearance = 'Dark';
+          _googleLinked = prefs.getBool('pref_google_linked_$userId') ?? false;
+          _appleLinked = prefs.getBool('pref_apple_linked_$userId') ?? false;
           _facebookLinked = prefs.getBool('pref_fb_linked_$userId') ?? false;
         });
       }
@@ -65,11 +61,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       try {
         final profile = await ApiService.getProfile();
         if (mounted) {
+          final isGoogleEmail = profile.email.toLowerCase().endsWith('@gmail.com');
+          final isAppleEmail = profile.email.toLowerCase().contains('privaterelay.appleid.com');
           setState(() {
             _currentUser = profile;
             _pushNotifications = profile.pushNotifications;
             _emailNotifications = profile.emailNotifications;
             _smsAlerts = profile.smsAlerts;
+            _googleLinked = prefs.getBool('pref_google_linked_$userId') ?? isGoogleEmail;
+            _appleLinked = prefs.getBool('pref_apple_linked_$userId') ?? isAppleEmail;
           });
           await prefs.setBool('pref_push_notif_$userId', profile.pushNotifications);
           await prefs.setBool('pref_email_notif_$userId', profile.emailNotifications);
@@ -496,7 +496,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(AppStateService.tr('select_language'), style: AppTextStyles.headlineMd(color: isDark ? Colors.white : const Color(0xFF1E232E)).copyWith(fontSize: 18)),
               const SizedBox(height: 16),
               ...languages.map((l) {
-                final isSelected = _language == l['name'];
+                final isEnglish = l['name'] == 'English';
+                final isSelected = isEnglish;
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
@@ -509,19 +510,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: ListTile(
                     leading: Text(l['flag']!, style: const TextStyle(fontSize: 22)),
                     title: Text(l['name']!, style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E232E), fontWeight: FontWeight.bold, fontSize: 14)),
-                    subtitle: Text(l['desc']!, style: TextStyle(color: isDark ? Colors.white54 : const Color(0xFF6B7280), fontSize: 11)),
+                    subtitle: Text(isEnglish ? l['desc']! : '${l['desc']!} (Coming soon)', style: TextStyle(color: isDark ? Colors.white54 : const Color(0xFF6B7280), fontSize: 11)),
                     trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primary) : null,
-                    onTap: () async {
-                      final selectedLang = l['name']!;
-                      setState(() => _language = selectedLang);
-                      await AppStateService.setLanguage(selectedLang);
-                      if (ctx.mounted) Navigator.pop(ctx);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Language set to $selectedLang ✅')),
-                        );
-                      }
-                    },
+                    onTap: isEnglish
+                        ? () async {
+                            setState(() => _language = 'English');
+                            await AppStateService.setLanguage('English');
+                            if (ctx.mounted) Navigator.pop(ctx);
+                          }
+                        : () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('${l['name']} is coming soon! English is default.')),
+                            );
+                          },
                   ),
                 );
               }),
@@ -1120,50 +1121,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Divider(color: borderColor, height: 1),
                   _buildListTileWithValue(
                     Icons.dark_mode,
-                    AppStateService.tr('appearance'),
-                    _appearance,
-                    _showAppearanceModal,
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // App Settings
-            _buildSectionTitle(AppStateService.tr('app_settings'), isDark),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: cardBgColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: borderColor),
-              ),
-              child: Column(
-                children: [
-                  _buildListTileWithValue(
-                    Icons.storage,
-                    AppStateService.tr('storage_cache'),
-                    _cacheSize,
-                    _showStorageCacheModal,
-                    valueIsMono: true,
-                    isDark: isDark,
-                  ),
-                  Divider(color: borderColor, height: 1),
-                  _buildListTileWithValue(
-                    Icons.info,
-                    AppStateService.tr('version_info'),
-                    'v2.4.0',
-                    _showVersionModal,
-                    valueIsMono: true,
-                    isDark: isDark,
-                  ),
-                  Divider(color: borderColor, height: 1),
-                  _buildListTile(
-                    Icons.history,
-                    AppStateService.tr('clear_search_history'),
-                    _clearSearchHistory,
-                    trailingIcon: Icons.delete_outline,
+                    'Appearance',
+                    'Dark',
+                    null,
                     isDark: isDark,
                   ),
                 ],
@@ -1172,7 +1132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
 
             // Legal & Support
-            _buildSectionTitle(AppStateService.tr('legal_support'), isDark),
+            _buildSectionTitle('LEGAL & SUPPORT', isDark),
             const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
@@ -1182,21 +1142,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               child: Column(
                 children: [
-                  _buildListTileNoLeading(AppStateService.tr('terms_of_service'), () {
+                  _buildListTileNoLeading('Terms of Use and Conditions', () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()));
                   }, isDark: isDark, trailingIcon: Icons.chevron_right),
                   Divider(color: borderColor, height: 1),
-                  _buildListTileNoLeading(AppStateService.tr('privacy_policy'), () {
+                  _buildListTileNoLeading('Privacy Policy', () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()));
                   }, isDark: isDark, trailingIcon: Icons.chevron_right),
                   Divider(color: borderColor, height: 1),
-                  _buildListTileNoLeading(AppStateService.tr('licenses'), () {
-                    showLicensePage(
-                      context: context,
-                      applicationName: 'The GRUB Next Door!',
-                      applicationVersion: '1.0.0',
-                      applicationLegalese: '© 2026 GoChef Technologies. All rights reserved.',
-                    );
+                  _buildListTileNoLeading('Disclaimer', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const DisclaimerScreen()));
                   }, isDark: isDark, trailingIcon: Icons.chevron_right),
                 ],
               ),
