@@ -134,3 +134,4 @@ if ($method === 'POST') {
     }
     exit;
 }
+
