@@ -93,7 +93,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   double _baseDeliveryFee = 4.00;
   double _serviceFee = 2.50;
   double _discountAmount = 0.0;
-  double _tipAmount = 3.00;
+  double _tipAmount = 0.0;
   bool _isCustomTip = false;
   double _grandTotal = 0.0;
 
@@ -1419,10 +1419,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
                 ),
-                
-                const SizedBox(height: 20),
-                // Tip Selector Card
-                _buildTipSelector(),
                 
                 const SizedBox(height: 24),
                 // Order Summary Breakdown

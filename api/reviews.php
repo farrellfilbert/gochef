@@ -12,6 +12,8 @@ require_once 'db_connect.php';
 
 // Ensure order_id exists and collation is utf8mb4 in reviews table
 try { $pdo->exec("ALTER TABLE reviews ADD COLUMN order_id VARCHAR(50) DEFAULT NULL"); } catch (Exception $e) {}
+try { $pdo->exec("ALTER TABLE reviews ADD COLUMN tip_amount DECIMAL(10,2) DEFAULT 0.00"); } catch (Exception $e) {}
+try { $pdo->exec("ALTER TABLE orders ADD COLUMN tip_amount DECIMAL(10,2) DEFAULT 0.00"); } catch (Exception $e) {}
 try { $pdo->exec("ALTER TABLE reviews CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"); } catch (Exception $e) {}
 try { $pdo->exec("ALTER TABLE reviews MODIFY comment TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"); } catch (Exception $e) {}
 try { $pdo->exec("UPDATE reviews SET comment = 'Best food in North Hollywood! 5/5 ⭐' WHERE id = 21"); } catch (Exception $e) {}
@@ -57,6 +59,7 @@ if ($method === 'GET') {
     $order_id = isset($input['order_id']) ? $input['order_id'] : null;
     $rating = intval($input['rating'] ?? 5);
     $comment = $input['comment'] ?? '';
+    $tip_amount = isset($input['tip_amount']) ? floatval($input['tip_amount']) : 0.00;
 
     if (!$user_id || $rating < 1 || $rating > 5) {
         echo json_encode(['success' => false, 'error' => 'Valid user_id and rating (1-5) required']);
@@ -71,8 +74,14 @@ if ($method === 'GET') {
             $kitchen_id = $kStmt->fetchColumn() ?: null;
         }
 
-        $stmt = $pdo->prepare("INSERT INTO reviews (user_id, kitchen_id, menu_item_id, order_id, rating, comment) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$user_id, $kitchen_id, $menu_item_id, $order_id, $rating, $comment]);
+        $stmt = $pdo->prepare("INSERT INTO reviews (user_id, kitchen_id, menu_item_id, order_id, rating, comment, tip_amount) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$user_id, $kitchen_id, $menu_item_id, $order_id, $rating, $comment, $tip_amount]);
+
+        // If tip provided on completed order, update order total and tip_amount
+        if ($order_id && $tip_amount > 0) {
+            $tipNote = " | Tip: $" . number_format($tip_amount, 2);
+            $pdo->prepare("UPDATE orders SET tip_amount = COALESCE(tip_amount, 0) + ?, total_amount = total_amount + ?, notes = CONCAT(COALESCE(notes, ''), ?) WHERE id = ?")->execute([$tip_amount, $tip_amount, $tipNote, $order_id]);
+        }
 
         // Update kitchen average rating
         if ($kitchen_id) {

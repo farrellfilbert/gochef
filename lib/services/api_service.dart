@@ -1332,13 +1332,14 @@ class ApiService {
     int? kitchenId,
     int? menuItemId,
     String? orderId,
+    double? tipAmount,
   }) async {
     try {
       final userId = await getUserId();
       if (userId == null) return false;
 
       final url = Uri.parse('$baseUrl/reviews.php');
-      final body = {
+      final Map<String, dynamic> body = {
         'user_id': int.tryParse(userId) ?? 0,
         'rating': rating,
         'comment': comment ?? '',
@@ -1346,6 +1347,7 @@ class ApiService {
       if (kitchenId != null) body['kitchen_id'] = kitchenId;
       if (menuItemId != null) body['menu_item_id'] = menuItemId;
       if (orderId != null) body['order_id'] = orderId;
+      if (tipAmount != null && tipAmount > 0) body['tip_amount'] = tipAmount;
 
       final response = await http.post(
         url,
@@ -1360,6 +1362,32 @@ class ApiService {
       return false;
     } catch (e) {
       debugPrint('Error submitting review: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> addOrderTip({
+    required String orderId,
+    required double tipAmount,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/add_tip.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'order_id': orderId,
+          'tip_amount': tipAmount,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error adding order tip: $e');
       return false;
     }
   }

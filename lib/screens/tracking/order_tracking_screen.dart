@@ -1165,7 +1165,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           ),
                           const SizedBox(height: 4),
                           const Text(
-                            'Help the chef and foodie community by leaving your rating & review!',
+                            'Show your appreciation! Leave a review & tip your home chef and courier.',
                             style: TextStyle(color: Colors.white70, fontSize: 12),
                             textAlign: TextAlign.center,
                           ),
@@ -1182,7 +1182,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                               ),
                               icon: const Icon(Icons.star, color: Colors.black, size: 20),
                               label: const Text(
-                                'Rate Your Experience',
+                                'Rate Experience & Tip Chef',
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                               ),
                               onPressed: () {
