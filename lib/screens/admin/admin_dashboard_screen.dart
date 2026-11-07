@@ -21,11 +21,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   bool _isLoadingPromos = true;
   bool _isLoadingUsers = true;
   bool _isLoadingSupport = true;
+  bool _isLoadingDishes = true;
   List<Map<String, dynamic>> _chefApplications = [];
   List<Map<String, dynamic>> _promotions = [];
   List<Map<String, dynamic>> _adminUsers = [];
   List<Map<String, dynamic>> _supportChats = [];
+  List<Map<String, dynamic>> _moderationDishes = [];
+  Map<String, dynamic> _moderationCounts = {
+    'pending_count': 0,
+    'approved_count': 0,
+    'rejected_count': 0,
+    'all_count': 0,
+  };
+  int _approvalsSubTabIndex = 0; // 0 = Chef Apps, 1 = Dish Photo Moderation
   String _chefFilter = 'pending';
+  String _dishFilter = 'pending_review';
   String _userTypeFilter = 'all';
   String _supportFilter = 'all';
   Map<String, dynamic>? _platformStats;
@@ -33,6 +43,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   bool _isReorderingBanners = false;
   final TextEditingController _userSearchController = TextEditingController();
   final TextEditingController _supportSearchController = TextEditingController();
+  final TextEditingController _dishSearchController = TextEditingController();
   Timer? _supportPollingTimer;
 
   @override
@@ -43,6 +54,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       if (mounted) setState(() {});
     });
     _loadChefs();
+    _loadDishModeration();
     _loadUsers();
     _loadPromotions();
     _loadPlatformStats();
@@ -96,6 +108,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   void dispose() {
     _supportPollingTimer?.cancel();
     _supportSearchController.dispose();
+    _dishSearchController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -122,6 +135,292 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
         _isLoadingChefs = false;
       });
     }
+  }
+
+  Future<void> _loadDishModeration() async {
+    setState(() => _isLoadingDishes = true);
+    final res = await ApiService.getAdminMenuModeration(
+      status: _dishFilter,
+      search: _dishSearchController.text.trim(),
+    );
+    if (mounted) {
+      setState(() {
+        _moderationCounts = Map<String, dynamic>.from(res['counts'] ?? {});
+        _moderationDishes = List<Map<String, dynamic>>.from(res['data'] ?? []);
+        _isLoadingDishes = false;
+      });
+    }
+  }
+
+  Future<void> _approveDish(int dishId, String dishName) async {
+    final success = await ApiService.adminApproveMenuItem(dishId);
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.greenAccent, size: 20),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Approved "$dishName" — Now live for foodies!')),
+              ],
+            ),
+            backgroundColor: AppColors.surfaceContainerHighest,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        _loadDishModeration();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to approve dish.'), backgroundColor: Colors.redAccent),
+        );
+      }
+    }
+  }
+
+  void _showRejectDishDialog(Map<String, dynamic> dish) {
+    final int dishId = int.tryParse(dish['id']?.toString() ?? '0') ?? 0;
+    final String dishName = dish['name']?.toString() ?? 'Dish';
+    final List<String> presetReasons = [
+      'Photo is too blurry, shaky, or low resolution',
+      'Lighting is too dark, dim, or poorly lit',
+      'Photo does not show food / contains non-food objects',
+      'Messy background or plate; dish is not clearly visible',
+      'Contains excessive text, logos, or watermarks',
+    ];
+    String selectedPreset = presetReasons[0];
+    final TextEditingController customController = TextEditingController();
+    bool isSubmitting = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Container(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.15), shape: BoxShape.circle),
+                        child: const Icon(Icons.cancel_outlined, color: Colors.redAccent, size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Reject Food Photo', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                            Text('for "$dishName"', style: const TextStyle(color: Colors.white60, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Select feedback to help the chef improve their photo:', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 12),
+                  ...presetReasons.map((reason) {
+                    final isSelected = selectedPreset == reason;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: InkWell(
+                        onTap: () => setSheetState(() => selectedPreset = reason),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isSelected ? Colors.red.withValues(alpha: 0.15) : AppColors.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: isSelected ? Colors.redAccent : Colors.white12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_off, color: isSelected ? Colors.redAccent : Colors.white38, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(reason, style: TextStyle(color: isSelected ? Colors.white : Colors.white70, fontSize: 13, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: customController,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'Additional notes or tips for chef (optional)...',
+                      hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                      filled: true,
+                      fillColor: AppColors.surfaceContainerLow,
+                      contentPadding: const EdgeInsets.all(12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: isSubmitting ? null : () async {
+                        setSheetState(() => isSubmitting = true);
+                        String finalReason = selectedPreset;
+                        if (customController.text.trim().isNotEmpty) {
+                          finalReason += ' - ' + customController.text.trim();
+                        }
+                        final success = await ApiService.adminRejectMenuItem(dishId, finalReason);
+                        if (context.mounted) {
+                          Navigator.pop(ctx);
+                          if (success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Feedback sent to chef. Dish marked as needs update.'),
+                                backgroundColor: AppColors.surfaceContainerHighest,
+                              ),
+                            );
+                            _loadDishModeration();
+                          }
+                        }
+                      },
+                      child: isSubmitting
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const Text('Confirm Rejection & Send Feedback', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _trustChef(int kitchenId, String kitchenName) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Row(
+          children: [
+            Icon(Icons.star, color: Colors.amber, size: 24),
+            SizedBox(width: 8),
+            Text('Grant Trusted Chef Status', style: TextStyle(color: Colors.white, fontSize: 18)),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to grant Trusted Chef status to "$kitchenName"?\n\nAll current pending dishes and all future uploads from this kitchen will be automatically published without waiting in moderation.',
+          style: const TextStyle(color: Colors.white70, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Yes, Grant Trusted Status', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final success = await ApiService.adminTrustChef(kitchenId);
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('🌟 "$kitchenName" is now a Trusted Chef! All dishes approved.'),
+              backgroundColor: Colors.green.shade800,
+            ),
+          );
+          _loadDishModeration();
+        }
+      }
+    }
+  }
+
+  void _showPhotoPreviewModal(String imageUrl, String dishName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: InteractiveViewer(
+                minScale: 0.8,
+                maxScale: 4.0,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Container(
+                    padding: const EdgeInsets.all(40),
+                    color: AppColors.surface,
+                    child: const Text('Failed to load image', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                dishName,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _loadUsers() async {
@@ -708,7 +1007,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           unselectedLabelColor: AppColors.onSurfaceVariant,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           tabs: [
-            const Tab(icon: Icon(Icons.how_to_reg, size: 20), text: 'Approvals'),
+            Tab(
+              icon: (_chefApplications.any((c) => c['is_verified']?.toString() == '0') || ((_moderationCounts['pending_count'] as int? ?? 0) > 0))
+                  ? Badge(
+                      backgroundColor: Colors.amber.shade700,
+                      child: const Icon(Icons.how_to_reg, size: 20),
+                    )
+                  : const Icon(Icons.how_to_reg, size: 20),
+              text: 'Approvals',
+            ),
             const Tab(icon: Icon(Icons.people_alt_outlined, size: 20), text: 'Users & Kitchens'),
             const Tab(icon: Icon(Icons.campaign_outlined, size: 20), text: 'Banners'),
             const Tab(icon: Icon(Icons.analytics_outlined, size: 20), text: 'Stats'),
@@ -749,7 +1056,96 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   // TAB 1: CHEF APPROVALS
   // ==========================================
   Widget _buildChefApprovalsTab() {
-    final pendingCount = _chefApplications.where((c) => c['is_verified']?.toString() == '0').length;
+    final pendingChefs = _chefApplications.where((c) => c['is_verified']?.toString() == '0').length;
+    final pendingDishes = _moderationCounts['pending_count'] ?? 0;
+
+    return Column(
+      children: [
+        _buildApprovalsSubTabBar(pendingChefs, pendingDishes),
+        Expanded(
+          child: _approvalsSubTabIndex == 0
+              ? _buildChefApplicationsView(pendingChefs)
+              : _buildDishModerationView(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildApprovalsSubTabBar(int pendingChefs, int pendingDishes) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _approvalsSubTabIndex = 0),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _approvalsSubTabIndex == 0 ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.person_add_alt_1, size: 16, color: Colors.white),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Chef Applications ($pendingChefs)',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: _approvalsSubTabIndex == 0 ? FontWeight.bold : FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _approvalsSubTabIndex = 1),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _approvalsSubTabIndex == 1 ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.restaurant_menu, size: 16, color: Colors.white),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Dish Photos ($pendingDishes)',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: _approvalsSubTabIndex == 1 ? FontWeight.bold : FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChefApplicationsView(int pendingCount) {
 
     return Column(
       children: [
@@ -1041,6 +1437,459 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       onTap: () {
         setState(() => _chefFilter = filter);
         _loadChefs();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSelected ? AppColors.primary : AppColors.outlineVariant.withValues(alpha: 0.3)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 12,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // DISH & FOOD PHOTO MODERATION QUEUE VIEW
+  // ==========================================
+  Widget _buildDishModerationView() {
+    final pendingCount = _moderationCounts['pending_count'] ?? 0;
+    final approvedCount = _moderationCounts['approved_count'] ?? 0;
+    final rejectedCount = _moderationCounts['rejected_count'] ?? 0;
+    final allCount = _moderationCounts['all_count'] ?? 0;
+
+    return Column(
+      children: [
+        // Filter row
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          color: AppColors.surfaceContainerLow.withValues(alpha: 0.3),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildDishFilterChip('pending_review', 'Pending Review ($pendingCount)'),
+                const SizedBox(width: 8),
+                _buildDishFilterChip('approved', 'Approved ($approvedCount)'),
+                const SizedBox(width: 8),
+                _buildDishFilterChip('rejected', 'Rejected ($rejectedCount)'),
+                const SizedBox(width: 8),
+                _buildDishFilterChip('all', 'All ($allCount)'),
+              ],
+            ),
+          ),
+        ),
+
+        // Search Bar
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: TextField(
+            controller: _dishSearchController,
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+            decoration: InputDecoration(
+              hintText: 'Search dish, kitchen, or chef...',
+              hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+              prefixIcon: const Icon(Icons.search, color: Colors.white60, size: 20),
+              suffixIcon: _dishSearchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, color: Colors.white60, size: 18),
+                      onPressed: () {
+                        _dishSearchController.clear();
+                        _loadDishModeration();
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: AppColors.surfaceContainerLow,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+            ),
+            onSubmitted: (_) => _loadDishModeration(),
+          ),
+        ),
+
+        Expanded(
+          child: _isLoadingDishes
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : _moderationDishes.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.check_circle_outline, color: Colors.greenAccent.withValues(alpha: 0.6), size: 64),
+                          const SizedBox(height: 16),
+                          const Text('No dishes in this queue', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 6),
+                          const Text('All food photos have been reviewed!', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13)),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadDishModeration,
+                      color: AppColors.primary,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _moderationDishes.length,
+                        itemBuilder: (context, index) {
+                          final item = _moderationDishes[index];
+                          final int dishId = int.tryParse(item['id']?.toString() ?? '0') ?? 0;
+                          final int kitchenId = int.tryParse(item['kitchen_id']?.toString() ?? '0') ?? 0;
+                          final String dishName = item['name'] ?? 'Untitled Dish';
+                          final String status = item['status'] ?? 'pending_review';
+                          final bool isPending = status == 'pending_review';
+                          final bool isApproved = status == 'approved';
+                          final bool isRejected = status == 'rejected';
+                          final bool isTrustedChef = (item['trusted_chef']?.toString() == '1');
+                          final String imageUrl = ApiService.formatImageUrl(item['image'] ?? '');
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 18),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isPending
+                                    ? Colors.amber.shade700.withValues(alpha: 0.5)
+                                    : isRejected
+                                        ? Colors.redAccent.withValues(alpha: 0.5)
+                                        : AppColors.outlineVariant.withValues(alpha: 0.2),
+                                width: (isPending || isRejected) ? 1.5 : 1,
+                              ),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Food Photo Card with Overlays
+                                Stack(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () => _showPhotoPreviewModal(imageUrl, dishName),
+                                      child: SizedBox(
+                                        height: 200,
+                                        width: double.infinity,
+                                        child: Image.network(
+                                          imageUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Container(
+                                            height: 200,
+                                            color: AppColors.surfaceContainer,
+                                            alignment: Alignment.center,
+                                            child: const Icon(Icons.broken_image, size: 48, color: Colors.white30),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Status Badge (Top-Left)
+                                    Positioned(
+                                      top: 10,
+                                      left: 10,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: isPending
+                                              ? Colors.amber.shade900.withValues(alpha: 0.9)
+                                              : isRejected
+                                                  ? Colors.red.shade900.withValues(alpha: 0.9)
+                                                  : Colors.green.shade800.withValues(alpha: 0.9),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              isPending
+                                                  ? Icons.hourglass_empty
+                                                  : isRejected
+                                                      ? Icons.cancel
+                                                      : Icons.check_circle,
+                                              size: 13,
+                                              color: Colors.white,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              isPending
+                                                  ? 'PENDING MODERATION'
+                                                  : isRejected
+                                                      ? 'PHOTO REJECTED'
+                                                      : 'APPROVED & LIVE',
+                                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    // Fullscreen Zoom hint (Top-Right)
+                                    Positioned(
+                                      top: 10,
+                                      right: 10,
+                                      child: GestureDetector(
+                                        onTap: () => _showPhotoPreviewModal(imageUrl, dishName),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black54,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Icon(Icons.zoom_in, color: Colors.white, size: 18),
+                                        ),
+                                      ),
+                                    ),
+                                    // Price & Prep Time Tags (Bottom)
+                                    Positioned(
+                                      bottom: 10,
+                                      left: 10,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black87,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          '\$${double.tryParse(item['price']?.toString() ?? '0')?.toStringAsFixed(2) ?? '0.00'}',
+                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 10,
+                                      right: 10,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black87,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          '⏱️ ${item['prep_time'] ?? '15-20 min'}',
+                                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                // Details Section
+                                Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              dishName,
+                                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
+                                            ),
+                                          ),
+                                          if (item['category_name'] != null && item['category_name'].toString().isNotEmpty)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.surfaceContainerHigh,
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                item['category_name'],
+                                                style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w600),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      if (item['description'] != null && item['description'].toString().isNotEmpty) ...[
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          item['description'],
+                                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                      const SizedBox(height: 12),
+                                      Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
+                                      const SizedBox(height: 12),
+
+                                      // Kitchen & Chef Row
+                                      Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 16,
+                                            backgroundImage: NetworkImage(ApiService.formatImageUrl(item['kitchen_avatar'] ?? '')),
+                                            onBackgroundImageError: (_, __) {},
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item['kitchen_name'] ?? 'Kitchen',
+                                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                                ),
+                                                Text(
+                                                  'Chef: ${item['chef_name'] ?? '-'} • ${item['approved_menus_count'] ?? 0} approved',
+                                                  style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 11),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (isTrustedChef)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: Colors.amber.withValues(alpha: 0.2),
+                                                borderRadius: BorderRadius.circular(10),
+                                                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                                              ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.star, color: Colors.amber, size: 12),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    'Trusted Chef',
+                                                    style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 10),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+
+                                      // Rejection reason callout if rejected
+                                      if (isRejected && item['rejection_reason'] != null) ...[
+                                        const SizedBox(height: 12),
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+                                          ),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const Icon(Icons.info_outline, color: Colors.redAccent, size: 16),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  'Rejection Note: ${item['rejection_reason']}',
+                                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+
+                                      const SizedBox(height: 16),
+
+                                      // Moderation Actions
+                                      if (isPending) ...[
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 3,
+                                              child: ElevatedButton.icon(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.green.shade700,
+                                                  foregroundColor: Colors.white,
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                                ),
+                                                icon: const Icon(Icons.check, size: 18),
+                                                label: const Text('Approve Photo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                                onPressed: () => _approveDish(dishId, dishName),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              flex: 2,
+                                              child: OutlinedButton.icon(
+                                                style: OutlinedButton.styleFrom(
+                                                  foregroundColor: Colors.redAccent,
+                                                  side: const BorderSide(color: Colors.redAccent),
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                                ),
+                                                icon: const Icon(Icons.close, size: 16),
+                                                label: const Text('Reject', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                                onPressed: () => _showRejectDishDialog(item),
+                                              ),
+                                            ),
+                                            if (!isTrustedChef && kitchenId > 0) ...[
+                                              const SizedBox(width: 6),
+                                              IconButton(
+                                                icon: const Icon(Icons.verified_user_outlined, color: Colors.amber, size: 22),
+                                                tooltip: 'Trust Chef (Auto-approve all)',
+                                                onPressed: () => _trustChef(kitchenId, item['kitchen_name'] ?? 'Kitchen'),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ] else if (isRejected) ...[
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: OutlinedButton.icon(
+                                                style: OutlinedButton.styleFrom(
+                                                  foregroundColor: Colors.greenAccent,
+                                                  side: const BorderSide(color: Colors.greenAccent),
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                                ),
+                                                icon: const Icon(Icons.replay, size: 16),
+                                                label: const Text('Re-Approve Photo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                onPressed: () => _approveDish(dishId, dishName),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ] else if (isApproved) ...[
+                                        Row(
+                                          children: [
+                                            Text(
+                                              'Live on GoChef',
+                                              style: TextStyle(color: Colors.greenAccent.shade400, fontWeight: FontWeight.bold, fontSize: 12),
+                                            ),
+                                            const Spacer(),
+                                            TextButton.icon(
+                                              style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+                                              icon: const Icon(Icons.cancel_outlined, size: 15),
+                                              label: const Text('Revoke Photo', style: TextStyle(fontSize: 12)),
+                                              onPressed: () => _showRejectDishDialog(item),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDishFilterChip(String filter, String label) {
+    final isSelected = _dishFilter == filter;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _dishFilter = filter);
+        _loadDishModeration();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

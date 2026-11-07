@@ -38,12 +38,25 @@ $prep_time = !empty($data->prep_time) ? trim($data->prep_time) : (!empty($data->
 try {
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN is_available TINYINT(1) DEFAULT 1");
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN prep_time VARCHAR(50) DEFAULT '15-20 min'");
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN status VARCHAR(30) DEFAULT 'approved'");
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN rejection_reason TEXT DEFAULT NULL");
+    $pdo->exec("ALTER TABLE kitchens ADD COLUMN trusted_chef TINYINT(1) DEFAULT 0");
 } catch (Exception $e) {}
 
-$query = "INSERT INTO menu_items (kitchen_id, category_id, name, description, price, image, is_popular, calories, is_available, prep_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+// Check if kitchen is trusted
+$isTrusted = false;
+try {
+    $tStmt = $pdo->prepare("SELECT trusted_chef FROM kitchens WHERE id = ?");
+    $tStmt->execute([$kitchen_id]);
+    $isTrusted = (int)$tStmt->fetchColumn() === 1;
+} catch (Exception $e) {}
+
+$status = $isTrusted ? 'approved' : 'pending_review';
+
+$query = "INSERT INTO menu_items (kitchen_id, category_id, name, description, price, image, is_popular, calories, is_available, prep_time, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $pdo->prepare($query);
 
-if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular, $calories, $is_available, $prep_time])) {
+if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular, $calories, $is_available, $prep_time, $status])) {
     $menu_item_id = $pdo->lastInsertId();
     
     // Process addon categories if provided

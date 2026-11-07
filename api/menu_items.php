@@ -18,14 +18,16 @@ try {
     $search = isset($_GET['q']) ? trim($_GET['q']) : '';
 
     $all = isset($_GET['all']) && ($_GET['all'] == '1' || $_GET['all'] == 'true');
+    $is_chef = isset($_GET['chef']) && ($_GET['chef'] == '1' || $_GET['chef'] == 'true');
 
-    $sql = "SELECT mi.*, k.name as kitchen_name, k.avatar as kitchen_avatar, c.name as category_name 
+    $sql = "SELECT mi.*, COALESCE(mi.status, 'approved') as status, mi.rejection_reason,
+                   k.name as kitchen_name, k.avatar as kitchen_avatar, c.name as category_name 
             FROM menu_items mi 
             JOIN kitchens k ON mi.kitchen_id = k.id 
             LEFT JOIN categories c ON mi.category_id = c.id 
             WHERE 1=1";
-    if (!$all) {
-        $sql .= " AND (mi.is_available = 1 OR mi.is_available IS NULL)";
+    if (!$all && !$is_chef) {
+        $sql .= " AND (mi.is_available = 1 OR mi.is_available IS NULL) AND (mi.status = 'approved' OR mi.status IS NULL)";
     }
     $params = [];
 

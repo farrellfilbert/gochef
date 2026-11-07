@@ -20,6 +20,8 @@ class MenuItemModel {
   final int calories;
   final String createdAt;
   final String categoryName;
+  final String status;
+  final String? rejectionReason;
   final List<ReviewModel>? reviews;
   final List<MenuAddonModel>? addons;
   final List<MenuAddonCategoryModel>? addonCategories;
@@ -42,6 +44,8 @@ class MenuItemModel {
     this.calories = 650,
     this.createdAt = '',
     this.categoryName = '',
+    this.status = 'approved',
+    this.rejectionReason,
     this.reviews,
     this.addons,
     this.addonCategories,
@@ -72,6 +76,8 @@ class MenuItemModel {
       calories: int.tryParse(json['calories']?.toString() ?? '') ?? 650,
       createdAt: json['created_at'] ?? '',
       categoryName: json['category_name'] ?? '',
+      status: json['status']?.toString() ?? 'approved',
+      rejectionReason: json['rejection_reason']?.toString(),
       reviews: json['reviews'] != null
           ? (json['reviews'] as List).map((i) => ReviewModel.fromJson(i)).toList()
           : null,

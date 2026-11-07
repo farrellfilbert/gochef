@@ -46,10 +46,27 @@ $prep_time = !empty($data->prep_time) ? trim($data->prep_time) : (!empty($data->
 
 try {
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN prep_time VARCHAR(50) DEFAULT '15-20 min'");
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN status VARCHAR(30) DEFAULT 'approved'");
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN rejection_reason TEXT DEFAULT NULL");
+    $pdo->exec("ALTER TABLE kitchens ADD COLUMN trusted_chef TINYINT(1) DEFAULT 0");
 } catch (Exception $e) {}
 
+// Check if kitchen is trusted or if dish was rejected
+$isTrusted = false;
+try {
+    $tStmt = $pdo->prepare("SELECT trusted_chef FROM kitchens WHERE id = ?");
+    $tStmt->execute([$kitchen_id]);
+    $isTrusted = (int)$tStmt->fetchColumn() === 1;
+} catch (Exception $e) {}
+
+// If not trusted and image was changed, or if resubmitted after rejection, put back to pending_review
+$newStatusClause = "";
+if (!$isTrusted && $image !== '') {
+    $newStatusClause = ", status = 'pending_review', rejection_reason = NULL";
+}
+
 if ($image !== '') {
-    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ?, calories = ?, is_available = ?, prep_time = ? WHERE id = ? AND kitchen_id = ?";
+    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ?, calories = ?, is_available = ?, prep_time = ? $newStatusClause WHERE id = ? AND kitchen_id = ?";
     $stmt = $pdo->prepare($query);
     $result = $stmt->execute([$name, $description, $price, $category_id, $image, $calories, $is_available, $prep_time, $id, $kitchen_id]);
 } else {

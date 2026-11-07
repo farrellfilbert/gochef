@@ -1753,4 +1753,97 @@ class ApiService {
       return false;
     }
   }
+
+  // ==========================================
+  // ADMIN FOOD PHOTO & MENU MODERATION METHODS
+  // ==========================================
+  static Future<Map<String, dynamic>> getAdminMenuModeration({String status = 'pending_review', String search = ''}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/admin_menu_moderation.php').replace(queryParameters: {
+        'status': status,
+        if (search.isNotEmpty) 'q': search,
+      });
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return {
+            'counts': data['counts'] ?? {},
+            'data': List<Map<String, dynamic>>.from(data['data'] ?? []),
+          };
+        }
+      }
+      return {'counts': {}, 'data': <Map<String, dynamic>>[]};
+    } catch (e) {
+      debugPrint('Error fetching menu moderation: $e');
+      return {'counts': {}, 'data': <Map<String, dynamic>>[]};
+    }
+  }
+
+  static Future<bool> adminApproveMenuItem(int menuItemId) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_menu_moderation.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'approve',
+          'menu_item_id': menuItemId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error approving menu item: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> adminRejectMenuItem(int menuItemId, String reason) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_menu_moderation.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'reject',
+          'menu_item_id': menuItemId,
+          'reason': reason,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error rejecting menu item: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> adminTrustChef(int kitchenId) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin_menu_moderation.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'action': 'trust_chef',
+          'kitchen_id': kitchenId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error granting trusted chef status: $e');
+      return false;
+    }
+  }
 }

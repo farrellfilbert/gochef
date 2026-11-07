@@ -679,6 +679,34 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
             ),
             const SizedBox(height: 24),
             
+            // Quality Moderation Banner
+            Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.15),
+                    Colors.amber.withValues(alpha: 0.08),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.verified_outlined, color: Colors.amber, size: 24),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Food Photo Quality: New dish photos are reviewed by Admin to maintain appetizing standards. Once approved, dishes go live for foodies!',
+                      style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             // Menu Grid
             if (_menuItems.isEmpty)
               Padding(
@@ -744,6 +772,45 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                 ),
                 Positioned(
                   top: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: item.status == 'rejected'
+                          ? Colors.red.shade900.withValues(alpha: 0.9)
+                          : item.status == 'pending_review'
+                              ? Colors.amber.shade900.withValues(alpha: 0.9)
+                              : Colors.green.shade800.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          item.status == 'rejected'
+                              ? Icons.error_outline
+                              : item.status == 'pending_review'
+                                  ? Icons.hourglass_empty
+                                  : Icons.check_circle,
+                          color: Colors.white,
+                          size: 13,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          item.status == 'rejected'
+                              ? 'Photo Rejected'
+                              : item.status == 'pending_review'
+                                  ? 'Under Review'
+                                  : 'Live & Verified',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 12,
                   right: 12,
                   child: Row(
                     children: [
@@ -802,6 +869,48 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (item.status == 'rejected' && item.rejectionReason != null && item.rejectionReason!.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.redAccent, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Admin Photo Feedback:',
+                                  style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  item.rejectionReason!,
+                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                ),
+                                const SizedBox(height: 6),
+                                InkWell(
+                                  onTap: () => _showEditDishDialog(item),
+                                  child: const Text(
+                                    'Tap here to Update Photo & Resubmit →',
+                                    style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1)),
                   const SizedBox(height: 12),
