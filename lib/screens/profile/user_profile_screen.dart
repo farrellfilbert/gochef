@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
-import 'package:image_picker/image_picker.dart';
 import 'settings_screen.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
@@ -43,7 +42,6 @@ class ProfileData {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   late Future<ProfileData> _profileFuture;
-  final ImagePicker _picker = ImagePicker();
   Set<String> _claimedPerks = {};
 
   @override
@@ -74,137 +72,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     } catch (_) {}
 
     return ProfileData(user, orders, bonusCoins: bonusCoins, totalVouchers: totalVouchers);
-  }
-
-  // ==========================================
-  // EDIT PROFILE DIALOG
-  // ==========================================
-  Future<void> _showEditProfileDialog(UserModel user) async {
-    final nameController = TextEditingController(text: user.name);
-    final phoneController = TextEditingController(text: user.phone);
-    XFile? selectedImage;
-    Uint8List? selectedImageBytes;
-    bool isSaving = false;
-
-    await showDialog(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: AppColors.surface,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: Text('Edit Profile', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: () async {
-                        try {
-                          final picked = await _picker.pickImage(
-                            source: ImageSource.gallery,
-                            maxWidth: 1024,
-                            maxHeight: 1024,
-                            imageQuality: 85,
-                          );
-                          if (picked != null) {
-                            final bytes = await picked.readAsBytes();
-                            setDialogState(() {
-                              selectedImage = picked;
-                              selectedImageBytes = bytes;
-                            });
-                          }
-                        } catch (e) {
-                          debugPrint('Error picking image: $e');
-                        }
-                      },
-                      child: CircleAvatar(
-                        radius: 40,
-                        backgroundColor: AppColors.primaryContainer,
-                        backgroundImage: selectedImageBytes != null
-                            ? MemoryImage(selectedImageBytes!)
-                            : (user.avatar.isNotEmpty
-                                ? CachedNetworkImageProvider(user.avatar) as ImageProvider
-                                : NetworkImage(user.effectiveAvatar)),
-                        child: const Align(
-                          alignment: Alignment.bottomRight,
-                          child: Icon(Icons.camera_alt, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: nameController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Name',
-                        labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.outlineVariant)),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: phoneController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Phone',
-                        labelStyle: TextStyle(color: AppColors.onSurfaceVariant),
-                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.outlineVariant)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isSaving ? null : () => Navigator.pop(ctx),
-                  child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant)),
-                ),
-                ElevatedButton(
-                  onPressed: isSaving
-                      ? null
-                      : () async {
-                          setDialogState(() => isSaving = true);
-                          try {
-                            final success = await ApiService.updateProfile(
-                              name: nameController.text.trim(),
-                              phone: phoneController.text.trim(),
-                              avatarImage: selectedImage,
-                            );
-                            setDialogState(() => isSaving = false);
-                            if (success && mounted) {
-                              Navigator.pop(ctx);
-                              _refreshProfile();
-                            } else if (mounted) {
-                              ScaffoldMessenger.of(this.context).showSnackBar(
-                                const SnackBar(content: Text('Failed to update profile')),
-                              );
-                            }
-                          } catch (e) {
-                            setDialogState(() => isSaving = false);
-                            if (mounted) {
-                              ScaffoldMessenger.of(this.context).showSnackBar(
-                                SnackBar(content: Text(e.toString()), duration: const Duration(seconds: 4)),
-                              );
-                            }
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.onPrimary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: isSaving
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 
   // ==========================================
@@ -1084,11 +951,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   // ==========================================
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final appBarBg = isDark ? AppColors.surface.withValues(alpha: 0.8) : Colors.white;
+    final appBarBorder = isDark ? AppColors.outlineVariant.withValues(alpha: 0.2) : const Color(0xFFE2E5EA);
+    final headerTextColor = isDark ? Colors.white : const Color(0xFF1E232E);
+    final headerSubtextColor = isDark ? AppColors.onSurfaceVariant : const Color(0xFF6B7280);
+    final iconColor = isDark ? Colors.white : const Color(0xFF1E232E);
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.background : const Color(0xFFF7F8FA),
       appBar: AppBar(
         toolbarHeight: 80,
-        backgroundColor: AppColors.surface.withValues(alpha: 0.8),
+        backgroundColor: appBarBg,
         elevation: 0,
         title: Row(
           children: [
@@ -1103,25 +977,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('GoChef', style: AppTextStyles.headlineLgMobile(color: Colors.white).copyWith(fontSize: 20)),
+                Text('GoChef', style: AppTextStyles.headlineLgMobile(color: headerTextColor).copyWith(fontSize: 20)),
                 Text(
                   'Your Profile',
-                  style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant),
+                  style: AppTextStyles.labelSm(color: headerSubtextColor),
                 ),
               ],
             ),
           ],
         ),
-        actions: const [
-          CartIconButton(iconColor: Colors.white),
+        actions: [
+          CartIconButton(iconColor: iconColor),
           Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: NotificationBell(iconColor: Colors.white),
+            padding: const EdgeInsets.only(right: 12),
+            child: NotificationBell(iconColor: iconColor),
           ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.outlineVariant.withValues(alpha: 0.2), height: 1),
+          child: Container(color: appBarBorder, height: 1),
         ),
       ),
       body: FutureBuilder<ProfileData>(
@@ -1686,13 +1560,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   // Account Management List
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Account Management', style: AppTextStyles.headlineMd(color: Colors.white)),
+                    child: Text('Account Management', style: AppTextStyles.headlineMd(color: isDark ? Colors.white : const Color(0xFF1E232E))),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1C2029).withValues(alpha: 0.7),
+                      color: isDark ? const Color(0xFF1C2029).withValues(alpha: 0.7) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA)),
                     ),
                     child: Column(
                       children: [
@@ -1707,27 +1582,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             _refreshProfile();
                           }
                         }),
-                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                        Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.inbox, 'Messages / Inbox', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const InboxScreen()));
                         }),
-                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                        Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.credit_card, 'Payment Methods', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()));
                         }),
-                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                        Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.location_on, 'Delivery Addresses', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressSelectionScreen(isSelectionMode: false)));
                         }),
-                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                        Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.receipt_long, 'Order History', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderHistoryScreen()));
                         }),
-                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                        Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.security, 'Security & Password', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const SecurityPasswordScreen()));
                         }),
-                        Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                        Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.settings, 'Settings', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
                         }),
@@ -1739,13 +1614,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   // Support & About
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Support & About', style: AppTextStyles.headlineMd(color: Colors.white)),
+                    child: Text('Support & About', style: AppTextStyles.headlineMd(color: isDark ? Colors.white : const Color(0xFF1E232E))),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1C2029).withValues(alpha: 0.7),
+                      color: isDark ? const Color(0xFF1C2029).withValues(alpha: 0.7) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA)),
                     ),
                     child: Column(
                       children: [
@@ -1922,10 +1798,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Widget _buildListTile(IconData icon, String title, VoidCallback? onTap) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final itemTextColor = isDark ? Colors.white : const Color(0xFF1E232E);
+    final itemIconColor = isDark ? Colors.white : const Color(0xFF1E232E);
+    final itemTrailingColor = isDark ? Colors.white70 : const Color(0xFF6B7280);
+
     return ListTile(
-      leading: Icon(icon, color: Colors.white),
-      title: Text(title, style: AppTextStyles.bodyLg(color: Colors.white)),
-      trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+      leading: Icon(icon, color: itemIconColor),
+      title: Text(title, style: AppTextStyles.bodyLg(color: itemTextColor)),
+      trailing: Icon(Icons.arrow_forward_ios, color: itemTrailingColor, size: 16),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       onTap: onTap,
     );

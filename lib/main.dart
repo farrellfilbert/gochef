@@ -8,11 +8,11 @@ import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/search/search_screen.dart';
 import 'theme/app_colors.dart';
-import 'theme/app_text_styles.dart';
 import 'screens/orders/order_history_screen.dart';
 import 'screens/favorites/favorites_screen.dart';
 import 'screens/profile/user_profile_screen.dart';
 import 'services/api_service.dart';
+import 'services/app_state_service.dart';
 import 'screens/chef_dashboard/chef_main_navigation.dart';
 import 'screens/admin/admin_dashboard_screen.dart';
 import 'screens/checkout/payment_success_screen.dart';
@@ -20,6 +20,7 @@ import 'screens/checkout/payment_success_screen.dart';
 void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    await AppStateService.init();
     
     GoogleFonts.config.allowRuntimeFetching = true;
     
@@ -107,41 +108,53 @@ class GoChefApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'GoChef Premium',
-      theme: AppTheme.darkTheme,
-      onGenerateRoute: (settings) {
-        final baseQuery = Uri.base.queryParameters;
-        final hasPaymentParams = baseQuery.containsKey('payment_intent') || 
-                                 baseQuery.containsKey('order_id') || 
-                                 baseQuery.containsKey('session_id') ||
-                                 baseQuery.containsKey('payment_intent_client_secret');
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppStateService.themeModeNotifier,
+      builder: (context, themeMode, _) {
+        return ValueListenableBuilder<String>(
+          valueListenable: AppStateService.languageNotifier,
+          builder: (context, currentLanguage, _) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'GoChef Premium',
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeMode,
+              onGenerateRoute: (settings) {
+                final baseQuery = Uri.base.queryParameters;
+                final hasPaymentParams = baseQuery.containsKey('payment_intent') || 
+                                         baseQuery.containsKey('order_id') || 
+                                         baseQuery.containsKey('session_id') ||
+                                         baseQuery.containsKey('payment_intent_client_secret');
 
-        if (settings.name != null) {
-          final uri = Uri.parse(settings.name!);
-          if (uri.path.contains('payment_success') || (hasPaymentParams && (uri.path == '/' || uri.path.isEmpty))) {
-            final sessionId = uri.queryParameters['session_id'] ?? baseQuery['session_id'];
-            final paymentIntentId = uri.queryParameters['payment_intent'] ?? 
-                                    uri.queryParameters['payment_intent_id'] ?? 
-                                    baseQuery['payment_intent'] ?? 
-                                    baseQuery['payment_intent_id'];
-            final orderId = uri.queryParameters['order_id'] ?? baseQuery['order_id'];
-            if (sessionId != null || paymentIntentId != null || orderId != null) {
-              return MaterialPageRoute(
-                builder: (context) => PaymentSuccessScreen(
-                  sessionId: sessionId,
-                  paymentIntentId: paymentIntentId,
-                  orderId: orderId,
-                ),
-              );
-            }
-          }
-        }
-        // Fallback to home/default behavior to avoid crashing on unknown routes
-        return MaterialPageRoute(builder: (context) => const AuthCheckScreen());
+                if (settings.name != null) {
+                  final uri = Uri.parse(settings.name!);
+                  if (uri.path.contains('payment_success') || (hasPaymentParams && (uri.path == '/' || uri.path.isEmpty))) {
+                    final sessionId = uri.queryParameters['session_id'] ?? baseQuery['session_id'];
+                    final paymentIntentId = uri.queryParameters['payment_intent'] ?? 
+                                            uri.queryParameters['payment_intent_id'] ?? 
+                                            baseQuery['payment_intent'] ?? 
+                                            baseQuery['payment_intent_id'];
+                    final orderId = uri.queryParameters['order_id'] ?? baseQuery['order_id'];
+                    if (sessionId != null || paymentIntentId != null || orderId != null) {
+                      return MaterialPageRoute(
+                        builder: (context) => PaymentSuccessScreen(
+                          sessionId: sessionId,
+                          paymentIntentId: paymentIntentId,
+                          orderId: orderId,
+                        ),
+                      );
+                    }
+                  }
+                }
+                // Fallback to home/default behavior to avoid crashing on unknown routes
+                return MaterialPageRoute(builder: (context) => const AuthCheckScreen());
+              },
+              home: const AuthCheckScreen(),
+            );
+          },
+        );
       },
-      home: const AuthCheckScreen(),
     );
   }
 }
@@ -285,15 +298,21 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBg = isDark ? AppColors.surface.withValues(alpha: 0.95) : Colors.white;
+    final navBorder = isDark ? AppColors.outlineVariant.withValues(alpha: 0.2) : const Color(0xFFE2E5EA);
+    final selectedColor = isDark ? Colors.white : AppColors.primary;
+    final unselectedColor = isDark ? Colors.white70 : const Color(0xFF8E8E93);
+
     return Scaffold(
-      backgroundColor: AppColors.midnight,
+      backgroundColor: isDark ? AppColors.midnight : const Color(0xFFF7F8FA),
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.8),
+          color: navBg,
           border: Border(
             top: BorderSide(
-              color: AppColors.outlineVariant.withValues(alpha: 0.2),
+              color: navBorder,
               width: 1,
             ),
           ),
@@ -304,11 +323,11 @@ class _MainNavigationState extends State<MainNavigation> {
             highlightColor: Colors.transparent,
           ),
           child: BottomNavigationBar(
-            backgroundColor: AppColors.surface.withValues(alpha: 0.95),
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.white70,
-            selectedLabelStyle: AppTextStyles.labelSm(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
-            unselectedLabelStyle: AppTextStyles.labelSm(color: Colors.white70),
+            backgroundColor: navBg,
+            selectedItemColor: selectedColor,
+            unselectedItemColor: unselectedColor,
+            selectedLabelStyle: TextStyle(color: selectedColor, fontWeight: FontWeight.bold, fontSize: 12),
+            unselectedLabelStyle: TextStyle(color: unselectedColor, fontSize: 12),
             currentIndex: _currentIndex,
             onTap: (index) => setState(() => _currentIndex = index),
             type: BottomNavigationBarType.fixed,
@@ -320,36 +339,36 @@ class _MainNavigationState extends State<MainNavigation> {
                   width: 24,
                   height: 24,
                   fit: BoxFit.contain,
-                  color: Colors.white70,
+                  color: unselectedColor,
                 ),
                 activeIcon: Image.asset(
                   'assets/images/home_nav.png',
                   width: 24,
                   height: 24,
                   fit: BoxFit.contain,
-                  color: Colors.white,
+                  color: selectedColor,
                 ),
-                label: 'Home',
+                label: AppStateService.tr('home'),
               ),
               BottomNavigationBarItem(
-                icon: const Icon(Icons.local_offer_outlined, color: Colors.white70),
-                activeIcon: const Icon(Icons.local_offer, color: Colors.white),
-                label: 'Promo',
+                icon: Icon(Icons.local_offer_outlined, color: unselectedColor),
+                activeIcon: Icon(Icons.local_offer, color: selectedColor),
+                label: AppStateService.tr('promo'),
               ),
               BottomNavigationBarItem(
-                icon: const Icon(Icons.receipt_long_outlined, color: Colors.white70),
-                activeIcon: const Icon(Icons.receipt_long, color: Colors.white),
-                label: 'Orders',
+                icon: Icon(Icons.receipt_long_outlined, color: unselectedColor),
+                activeIcon: Icon(Icons.receipt_long, color: selectedColor),
+                label: AppStateService.tr('orders'),
               ),
               BottomNavigationBarItem(
-                icon: const Icon(Icons.favorite_outline, color: Colors.white70),
-                activeIcon: const Icon(Icons.favorite, color: Colors.white),
-                label: 'Favorites',
+                icon: Icon(Icons.favorite_outline, color: unselectedColor),
+                activeIcon: Icon(Icons.favorite, color: selectedColor),
+                label: AppStateService.tr('favorites'),
               ),
               BottomNavigationBarItem(
-                icon: const Icon(Icons.person_outline, color: Colors.white70),
-                activeIcon: const Icon(Icons.person, color: Colors.white),
-                label: 'Profile',
+                icon: Icon(Icons.person_outline, color: unselectedColor),
+                activeIcon: Icon(Icons.person, color: selectedColor),
+                label: AppStateService.tr('profile'),
               ),
             ],
           ),
