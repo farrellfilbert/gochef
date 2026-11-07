@@ -14,6 +14,7 @@ import 'address_selection_screen.dart';
 import 'payment_methods_screen.dart';
 import 'security_password_screen.dart';
 import 'help_center_screen.dart';
+import 'referral_screen.dart';
 import 'contact_support_screen.dart';
 import 'about_screen.dart';
 import 'become_chef_screen.dart';
@@ -1593,6 +1594,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.location_on, 'Delivery Addresses', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressSelectionScreen(isSelectionMode: false)));
+                        }),
+                        Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
+                        _buildListTile(Icons.card_giftcard, 'Invite Neighbors & Earn \$10', () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ReferralScreen()));
                         }),
                         Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.receipt_long, 'Order History', () {

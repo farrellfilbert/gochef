@@ -100,10 +100,11 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     if (_selectedDietary != null && _selectedDietary!.isNotEmpty) {
       final queryTag = _selectedDietary!.toLowerCase();
       dishes = dishes.where((d) {
+        final hasTag = d.dietaryTags.any((t) => t.toLowerCase() == queryTag);
         final name = d.name.toLowerCase();
         final desc = d.description.toLowerCase();
         final cat = d.categoryName.toLowerCase();
-        return name.contains(queryTag) || desc.contains(queryTag) || cat.contains(queryTag);
+        return hasTag || name.contains(queryTag) || desc.contains(queryTag) || cat.contains(queryTag);
       }).toList();
     }
 

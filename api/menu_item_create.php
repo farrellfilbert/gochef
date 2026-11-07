@@ -34,12 +34,16 @@ $calories = isset($data->calories) ? intval($data->calories) : 650;
 
 $is_available = isset($data->is_available) ? ((intval($data->is_available) === 1 || $data->is_available === true) ? 1 : 0) : 1;
 $prep_time = !empty($data->prep_time) ? trim($data->prep_time) : (!empty($data->delivery_time) ? trim($data->delivery_time) : '15-20 min');
+$dietary_tags = isset($data->dietary_tags) ? (is_string($data->dietary_tags) ? $data->dietary_tags : json_encode($data->dietary_tags)) : null;
+$daily_quota = isset($data->daily_quota) ? intval($data->daily_quota) : 20;
 
 try {
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN is_available TINYINT(1) DEFAULT 1");
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN prep_time VARCHAR(50) DEFAULT '15-20 min'");
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN status VARCHAR(30) DEFAULT 'approved'");
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN rejection_reason TEXT DEFAULT NULL");
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN dietary_tags TEXT DEFAULT NULL");
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN daily_quota INT DEFAULT 20");
     $pdo->exec("ALTER TABLE kitchens ADD COLUMN trusted_chef TINYINT(1) DEFAULT 0");
 } catch (Exception $e) {}
 
@@ -53,10 +57,10 @@ try {
 
 $status = $isTrusted ? 'approved' : 'pending_review';
 
-$query = "INSERT INTO menu_items (kitchen_id, category_id, name, description, price, image, is_popular, calories, is_available, prep_time, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+$query = "INSERT INTO menu_items (kitchen_id, category_id, name, description, price, image, is_popular, calories, is_available, prep_time, status, dietary_tags, daily_quota) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $pdo->prepare($query);
 
-if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular, $calories, $is_available, $prep_time, $status])) {
+if ($stmt->execute([$kitchen_id, $category_id, $name, $description, $price, $image, $is_popular, $calories, $is_available, $prep_time, $status, $dietary_tags, $daily_quota])) {
     $menu_item_id = $pdo->lastInsertId();
     
     // Process addon categories if provided

@@ -43,11 +43,15 @@ $image = isset($data->image) ? $data->image : '';
 $calories = isset($data->calories) ? intval($data->calories) : 650;
 $is_available = isset($data->is_available) ? ((intval($data->is_available) === 1 || $data->is_available === true) ? 1 : 0) : 1;
 $prep_time = !empty($data->prep_time) ? trim($data->prep_time) : (!empty($data->delivery_time) ? trim($data->delivery_time) : '15-20 min');
+$dietary_tags = isset($data->dietary_tags) ? (is_string($data->dietary_tags) ? $data->dietary_tags : json_encode($data->dietary_tags)) : null;
+$daily_quota = isset($data->daily_quota) ? intval($data->daily_quota) : 20;
 
 try {
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN prep_time VARCHAR(50) DEFAULT '15-20 min'");
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN status VARCHAR(30) DEFAULT 'approved'");
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN rejection_reason TEXT DEFAULT NULL");
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN dietary_tags TEXT DEFAULT NULL");
+    $pdo->exec("ALTER TABLE menu_items ADD COLUMN daily_quota INT DEFAULT 20");
     $pdo->exec("ALTER TABLE kitchens ADD COLUMN trusted_chef TINYINT(1) DEFAULT 0");
 } catch (Exception $e) {}
 
@@ -66,13 +70,13 @@ if (!$isTrusted && $image !== '') {
 }
 
 if ($image !== '') {
-    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ?, calories = ?, is_available = ?, prep_time = ? $newStatusClause WHERE id = ? AND kitchen_id = ?";
+    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, image = ?, calories = ?, is_available = ?, prep_time = ?, dietary_tags = ?, daily_quota = ? $newStatusClause WHERE id = ? AND kitchen_id = ?";
     $stmt = $pdo->prepare($query);
-    $result = $stmt->execute([$name, $description, $price, $category_id, $image, $calories, $is_available, $prep_time, $id, $kitchen_id]);
+    $result = $stmt->execute([$name, $description, $price, $category_id, $image, $calories, $is_available, $prep_time, $dietary_tags, $daily_quota, $id, $kitchen_id]);
 } else {
-    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, calories = ?, is_available = ?, prep_time = ? WHERE id = ? AND kitchen_id = ?";
+    $query = "UPDATE menu_items SET name = ?, description = ?, price = ?, category_id = ?, calories = ?, is_available = ?, prep_time = ?, dietary_tags = ?, daily_quota = ? WHERE id = ? AND kitchen_id = ?";
     $stmt = $pdo->prepare($query);
-    $result = $stmt->execute([$name, $description, $price, $category_id, $calories, $is_available, $prep_time, $id, $kitchen_id]);
+    $result = $stmt->execute([$name, $description, $price, $category_id, $calories, $is_available, $prep_time, $dietary_tags, $daily_quota, $id, $kitchen_id]);
 }
 
 if ($result) {

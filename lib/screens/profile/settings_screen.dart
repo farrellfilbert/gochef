@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_chef_app/theme/app_colors.dart';
 import 'package:go_chef_app/theme/app_text_styles.dart';
 import 'personal_information_screen.dart';
+import 'referral_screen.dart';
 import 'security_password_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 import '../legal/privacy_policy_screen.dart';
@@ -1024,6 +1025,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Icons.share,
                     AppStateService.tr('social_accounts'),
                     _showSocialAccountsModal,
+                    isDark: isDark,
+                  ),
+                  Divider(color: borderColor, height: 1),
+                  _buildListTile(
+                    Icons.card_giftcard,
+                    'Refer Neighbors (Give \$10, Get \$10)',
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ReferralScreen()),
+                    ),
                     isDark: isDark,
                   ),
                   Divider(color: borderColor, height: 1),

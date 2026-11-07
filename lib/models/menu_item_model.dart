@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../services/api_service.dart';
 import 'review_model.dart';
 import 'menu_addon_model.dart';
@@ -22,6 +23,9 @@ class MenuItemModel {
   final String categoryName;
   final String status;
   final String? rejectionReason;
+  final List<String> dietaryTags;
+  final int dailyQuota;
+  final int portionsSoldToday;
   final List<ReviewModel>? reviews;
   final List<MenuAddonModel>? addons;
   final List<MenuAddonCategoryModel>? addonCategories;
@@ -46,12 +50,34 @@ class MenuItemModel {
     this.categoryName = '',
     this.status = 'approved',
     this.rejectionReason,
+    this.dietaryTags = const [],
+    this.dailyQuota = 20,
+    this.portionsSoldToday = 0,
     this.reviews,
     this.addons,
     this.addonCategories,
   });
 
+  int get remainingPortions => (dailyQuota > 0) ? (dailyQuota - portionsSoldToday).clamp(0, dailyQuota) : 99;
+  bool get isLowStock => dailyQuota > 0 && remainingPortions > 0 && remainingPortions <= 5;
+  bool get isSoldOutForToday => dailyQuota > 0 && remainingPortions <= 0;
+
   factory MenuItemModel.fromJson(Map<String, dynamic> json) {
+    List<String> parsedTags = [];
+    final rawTags = json['dietary_tags'];
+    if (rawTags is String && rawTags.trim().isNotEmpty) {
+      if (rawTags.trim().startsWith('[')) {
+        try {
+          final list = jsonDecode(rawTags);
+          if (list is List) parsedTags = list.map((e) => e.toString()).toList();
+        } catch (_) {}
+      } else {
+        parsedTags = rawTags.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+      }
+    } else if (rawTags is List) {
+      parsedTags = rawTags.map((e) => e.toString()).toList();
+    }
+
     return MenuItemModel(
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       kitchenId: int.tryParse(json['kitchen_id']?.toString() ?? '0') ?? 0,
@@ -78,6 +104,9 @@ class MenuItemModel {
       categoryName: json['category_name'] ?? '',
       status: json['status']?.toString() ?? 'approved',
       rejectionReason: json['rejection_reason']?.toString(),
+      dietaryTags: parsedTags,
+      dailyQuota: int.tryParse(json['daily_quota']?.toString() ?? '20') ?? 20,
+      portionsSoldToday: int.tryParse(json['portions_sold_today']?.toString() ?? '0') ?? 0,
       reviews: json['reviews'] != null
           ? (json['reviews'] as List).map((i) => ReviewModel.fromJson(i)).toList()
           : null,

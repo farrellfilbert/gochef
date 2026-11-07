@@ -465,6 +465,46 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                       style: AppTextStyles.bodyMd(color: AppColors.onSurface).copyWith(height: 1.6, fontSize: 15),
                     ),
                     const SizedBox(height: 16),
+                    // Chef Vacation Mode Banner
+                    if (kitchen.isVacationMode) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.amber.withOpacity(0.4)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('🌴', style: TextStyle(fontSize: 26)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    kitchen.vacationReturnDate != null && kitchen.vacationReturnDate!.isNotEmpty
+                                        ? 'Chef on Vacation • Returns ${kitchen.vacationReturnDate}'
+                                        : 'Chef on Vacation / Break',
+                                    style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 14),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    kitchen.vacationMessage != null && kitchen.vacationMessage!.isNotEmpty
+                                        ? kitchen.vacationMessage!
+                                        : 'Kitchen is currently on break. Check back on our return date!',
+                                    style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     // Real Business Hours & Live Status Card
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1392,6 +1432,42 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (menuItem.dietaryTags.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 2,
+                      children: menuItem.dietaryTags.take(3).map((tag) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          tag,
+                          style: const TextStyle(
+                            color: Color(0xFF34D399),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )).toList(),
+                    ),
+                  ],
+                  if (menuItem.isLowStock) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.bolt, color: Colors.amber, size: 12),
+                        const SizedBox(width: 2),
+                        Text(
+                          'Only ${menuItem.remainingPortions} left today!',
+                          style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

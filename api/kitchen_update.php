@@ -117,6 +117,21 @@ if (isset($data->stripe_account_id)) {
     $params[] = $data->stripe_account_id;
     $types .= "s";
 }
+if (isset($data->vacation_mode)) {
+    $updateFields[] = "vacation_mode = ?";
+    $params[] = intval($data->vacation_mode);
+    $types .= "i";
+}
+if (isset($data->vacation_return_date)) {
+    $updateFields[] = "vacation_return_date = ?";
+    $params[] = $data->vacation_return_date;
+    $types .= "s";
+}
+if (isset($data->vacation_message)) {
+    $updateFields[] = "vacation_message = ?";
+    $params[] = $data->vacation_message;
+    $types .= "s";
+}
 
 if (empty($updateFields)) {
     http_response_code(400);

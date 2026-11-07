@@ -502,6 +502,196 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     );
   }
 
+  void _showVacationDialog() {
+    bool isVacation = _kitchen?.isVacationMode ?? false;
+    final returnDateController = TextEditingController(text: _kitchen?.vacationReturnDate ?? '');
+    final messageController = TextEditingController(text: _kitchen?.vacationMessage ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surfaceContainerLowest,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 24.0,
+            right: 24.0,
+            top: 24.0,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24.0,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: const [
+                  Text('🌴', style: TextStyle(fontSize: 24)),
+                  SizedBox(width: 10),
+                  Text(
+                    'Vacation & Break Mode',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Taking time off? Pause orders and let your neighbors know when you will be back cooking.',
+                style: TextStyle(fontSize: 13, color: Colors.white60, height: 1.4),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainer,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Vacation Mode Active',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          isVacation ? 'Kitchen is paused with vacation notice' : 'Kitchen is normal (accepting orders)',
+                          style: TextStyle(color: isVacation ? Colors.amber : Colors.white54, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                    Switch(
+                      value: isVacation,
+                      activeColor: Colors.amber,
+                      onChanged: (val) {
+                        setModalState(() {
+                          isVacation = val;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              if (isVacation) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Expected Return Date',
+                  style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: returnDateController,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Nov 15, 2026',
+                    hintStyle: const TextStyle(color: Colors.white38),
+                    prefixIcon: const Icon(Icons.event, color: Colors.amber, size: 20),
+                    filled: true,
+                    fillColor: AppColors.surfaceContainer,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Note to Customers (Optional)',
+                  style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: messageController,
+                  maxLines: 2,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Taking a family break in Lake Tahoe! Reopening next Monday with smoked brisket specials 🍖',
+                    hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                    filled: true,
+                    fillColor: AppColors.surfaceContainer,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.all(12),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isVacation ? Colors.amber : AppColors.primary,
+                    foregroundColor: isVacation ? Colors.black : Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () async {
+                    if (_kitchenId != null) {
+                      final returnDate = returnDateController.text.trim();
+                      final message = messageController.text.trim();
+                      final success = await ApiService.updateKitchenVacation(
+                        _kitchenId!,
+                        isVacation,
+                        returnDate: isVacation ? returnDate : null,
+                        message: isVacation ? message : null,
+                      );
+                      if (success && mounted) {
+                        Navigator.pop(context);
+                        _loadProfile();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Text('🌴', style: TextStyle(fontSize: 18)),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    isVacation ? 'Vacation Mode enabled. Neighbors notified!' : 'Vacation Mode turned off. Kitchen is back online!',
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: const Color(0xFF1E232E),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: Text(
+                    isVacation ? 'Save Vacation Notice 🌴' : 'Save & Resume Kitchen',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _confirmLogout() async {
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -2194,6 +2384,16 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                       ),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Pacific Standard Time (PST)', onTap: _showBusinessHoursDialog),
+                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                      _buildSettingsTile(
+                        context,
+                        Icons.beach_access,
+                        'Vacation & Break Mode',
+                        _kitchen?.isVacationMode == true
+                            ? 'Active (Returns ${_kitchen?.vacationReturnDate ?? 'Soon'})'
+                            : 'Set vacation dates & customer notice',
+                        onTap: _showVacationDialog,
+                      ),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.payments, 'Payout Method & Earnings', 'Withdraw money & manage bank direct deposit', destination: ChefEarningsScreen(initialKitchen: _kitchen)),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),

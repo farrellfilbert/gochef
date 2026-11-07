@@ -172,9 +172,11 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
       addonIds: _selectedAddonIds.toList(),
       notes: _notesController.text.trim(),
     );
-    if (mounted) setState(() => _isAddingToCart = false);
+    if (!mounted) return;
+    setState(() => _isAddingToCart = false);
 
-    if (success && mounted) {
+    if (success) {
+      Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -198,7 +200,6 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
           duration: const Duration(seconds: 2),
         ),
       );
-      Navigator.pop(context); // Go back after adding
     }
   }
 
@@ -711,15 +712,11 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                     ? const Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
-                                          ),
-                                          SizedBox(width: 10),
+                                          Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                                          SizedBox(width: 8),
                                           Text(
-                                            'Adding to Cart...',
-                                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                            'Added!',
+                                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                                           ),
                                         ],
                                       )

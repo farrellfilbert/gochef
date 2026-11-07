@@ -1899,4 +1899,97 @@ class ApiService {
       return [];
     }
   }
+
+  // --- California Marketplace & Growth APIs ---
+
+  static Future<Map<String, dynamic>?> getReferralInfo(int userId) async {
+    try {
+      final url = Uri.parse('$baseUrl/referral.php?user_id=$userId');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return data['data'];
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting referral info: $e');
+      return null;
+    }
+  }
+
+  static Future<Map<String, dynamic>> claimReferralCode(int userId, String code) async {
+    try {
+      final url = Uri.parse('$baseUrl/referral.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'code': code.trim().toUpperCase(),
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return {'success': false, 'error': 'Server returned code ${response.statusCode}'};
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  static Future<Map<String, dynamic>> verifyPickupCode(int kitchenId, String code) async {
+    try {
+      final url = Uri.parse('$baseUrl/verify_pickup.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'kitchen_id': kitchenId,
+          'pickup_code': code.trim().toUpperCase(),
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return {'success': false, 'error': 'Server returned code ${response.statusCode}'};
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  static Future<bool> updateKitchenVacation(int kitchenId, bool vacationMode, {String? returnDate, String? message}) async {
+    return await updateKitchen({
+      'kitchen_id': kitchenId,
+      'vacation_mode': vacationMode ? 1 : 0,
+      'vacation_return_date': returnDate ?? '',
+      'vacation_message': message ?? '',
+    });
+  }
+
+  static Future<Map<String, dynamic>> searchWithDietary({String query = '', String dietary = '', String cuisine = ''}) async {
+    try {
+      final qParams = <String>[];
+      if (query.isNotEmpty) qParams.add('q=${Uri.encodeComponent(query)}');
+      if (dietary.isNotEmpty) qParams.add('dietary=${Uri.encodeComponent(dietary)}');
+      if (cuisine.isNotEmpty) qParams.add('cuisine=${Uri.encodeComponent(cuisine)}');
+      final qs = qParams.isNotEmpty ? '?${qParams.join('&')}' : '';
+
+      final url = Uri.parse('$baseUrl/search.php$qs');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final kitchens = (data['kitchens'] as List? ?? []).map((k) => KitchenModel.fromJson(k)).toList();
+          final dishes = (data['menu_items'] as List? ?? []).map((m) => MenuItemModel.fromJson(m)).toList();
+          return {'kitchens': kitchens, 'dishes': dishes};
+        }
+      }
+      return {'kitchens': <KitchenModel>[], 'dishes': <MenuItemModel>[]};
+    } catch (e) {
+      debugPrint('Error searching with dietary: $e');
+      return {'kitchens': <KitchenModel>[], 'dishes': <MenuItemModel>[]};
+    }
+  }
 }

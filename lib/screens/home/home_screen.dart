@@ -30,8 +30,20 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<UserModel> _profileFuture;
   late Future<List<dynamic>> _cartFuture;
   int _selectedCategoryId = 1;
+  String? _selectedDietaryTag;
   double? _maxPriceFilter;
   double _dummyDistance = 5.0; // km
+
+  final List<Map<String, String>> _dietaryFilters = const [
+    {'label': 'All Diets', 'tag': ''},
+    {'label': '🌱 Vegan', 'tag': 'Vegan'},
+    {'label': '🌾 Gluten-Free', 'tag': 'Gluten-Free'},
+    {'label': '🌙 Halal', 'tag': 'Halal'},
+    {'label': '🥩 Keto', 'tag': 'Keto'},
+    {'label': '🥗 Vegetarian', 'tag': 'Vegetarian'},
+    {'label': '🥜 Nut-Free', 'tag': 'Nut-Free'},
+    {'label': '🥛 Dairy-Free', 'tag': 'Dairy-Free'},
+  ];
 
   void _showFilterModal(BuildContext context) {
     double currentMaxPrice = _maxPriceFilter ?? 50.0;
@@ -193,6 +205,9 @@ class _HomeScreenState extends State<HomeScreen> {
               final List<MenuItemModel> popularMeals = allPopularMeals.where((m) {
                 if (_selectedCategoryId != 1 && m.categoryId != _selectedCategoryId) return false;
                 if (_maxPriceFilter != null && m.price > _maxPriceFilter!) return false;
+                if (_selectedDietaryTag != null && _selectedDietaryTag!.isNotEmpty) {
+                  if (!m.dietaryTags.contains(_selectedDietaryTag)) return false;
+                }
                 return true;
               }).toList();
 
@@ -349,6 +364,50 @@ class _HomeScreenState extends State<HomeScreen> {
                                 }).toList(),
                               ),
                             ),
+                          const SizedBox(height: 12),
+                          // California Dietary & Lifestyle Filters
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Row(
+                              children: _dietaryFilters.map((diet) {
+                                final isSelected = (_selectedDietaryTag ?? '') == diet['tag'];
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedDietaryTag = diet['tag']!.isEmpty ? null : diet['tag'];
+                                      });
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? const Color(0xFF10B981)
+                                            : const Color(0xFF1E232E),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? const Color(0xFF10B981)
+                                              : Colors.white12,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        diet['label']!,
+                                        style: TextStyle(
+                                          color: isSelected ? Colors.black : Colors.white70,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
                           const SizedBox(height: 16),
                           if (popularMeals.isEmpty)
                             Center(
@@ -558,6 +617,42 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(meal.kitchenName, style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
+                  if (meal.dietaryTags.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 2,
+                      children: meal.dietaryTags.take(3).map((tag) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          tag,
+                          style: const TextStyle(
+                            color: Color(0xFF34D399),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )).toList(),
+                    ),
+                  ],
+                  if (meal.isLowStock) ...[
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        const Icon(Icons.bolt, color: Colors.amber, size: 12),
+                        const SizedBox(width: 2),
+                        Text(
+                          'Only ${meal.remainingPortions} left today!',
+                          style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

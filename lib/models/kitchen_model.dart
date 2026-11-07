@@ -49,6 +49,9 @@ class KitchenModel {
   final String deliveryTime;
   final String businessHours;
   final bool isOpen;
+  final bool isVacationMode;
+  final String? vacationReturnDate;
+  final String? vacationMessage;
   final String location;
   final double? latitude;
   final double? longitude;
@@ -80,6 +83,9 @@ class KitchenModel {
     this.deliveryTime = '20-30 min',
     this.businessHours = '09:00 AM - 10:00 PM',
     this.isOpen = true,
+    this.isVacationMode = false,
+    this.vacationReturnDate,
+    this.vacationMessage,
     this.location = '',
     this.latitude,
     this.longitude,
@@ -112,6 +118,9 @@ class KitchenModel {
     String? deliveryTime,
     String? businessHours,
     bool? isOpen,
+    bool? isVacationMode,
+    String? vacationReturnDate,
+    String? vacationMessage,
     String? location,
     double? latitude,
     double? longitude,
@@ -143,6 +152,9 @@ class KitchenModel {
       deliveryTime: deliveryTime ?? this.deliveryTime,
       businessHours: businessHours ?? this.businessHours,
       isOpen: isOpen ?? this.isOpen,
+      isVacationMode: isVacationMode ?? this.isVacationMode,
+      vacationReturnDate: vacationReturnDate ?? this.vacationReturnDate,
+      vacationMessage: vacationMessage ?? this.vacationMessage,
       location: location ?? this.location,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
@@ -252,16 +264,17 @@ class KitchenModel {
   }
 
   /// Checks whether the kitchen is open.
-  /// The manual toggle (isOpen) set by the Chef is the master authority:
-  /// - When the chef opens the store (isOpen == true), the kitchen is OPEN for customers,
-  ///   enabling chefs to extend hours (e.g. past 10 PM until 12 AM) or open on demand.
+  /// The manual toggle (isOpen) and Vacation Mode set by the Chef is the master authority:
+  /// - If Vacation Mode is active, the kitchen is temporarily closed with a return notice.
+  /// - When the chef opens the store (isOpen == true), the kitchen is OPEN for customers.
   /// - When the chef pauses/closes the store (isOpen == false), the kitchen is CLOSED.
   bool isCurrentlyOpenAt(DateTime targetTime) {
+    if (isVacationMode) return false;
     return isOpen;
   }
 
   /// Checks whether the kitchen is currently open based on the chef's master switch.
-  bool get isCurrentlyOpen => isOpen;
+  bool get isCurrentlyOpen => !isVacationMode && isOpen;
 
   static int? _parseTimeToMinutes(String timeStr) {
     final clean = timeStr.trim().toUpperCase();
@@ -281,6 +294,11 @@ class KitchenModel {
   }
 
   String getOpenStatusTextAt(DateTime targetTime) {
+    if (isVacationMode) {
+      return vacationReturnDate != null && vacationReturnDate!.isNotEmpty 
+          ? 'On Vacation (Back $vacationReturnDate)' 
+          : 'Chef on Vacation';
+    }
     if (!isOpen) return 'Closed';
     final withinRegular = isTimeWithinBusinessHours(targetTime);
     return withinRegular ? 'Open Now' : 'Open (Extended Hours)';
@@ -345,6 +363,9 @@ class KitchenModel {
           ? json['business_hours'].toString()
           : '09:00 AM - 10:00 PM',
       isOpen: json['is_open'] == null ? true : (json['is_open'].toString() == '1' || json['is_open'] == true),
+      isVacationMode: json['vacation_mode']?.toString() == '1',
+      vacationReturnDate: json['vacation_return_date']?.toString(),
+      vacationMessage: json['vacation_message']?.toString(),
       location: json['location'] ?? '',
       latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
       longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,

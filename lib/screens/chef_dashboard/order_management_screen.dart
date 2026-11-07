@@ -121,6 +121,121 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
     }
   }
 
+  void _showVerifyPickupDialog() {
+    final controller = TextEditingController();
+    bool isVerifying = false;
+    String? errorMessage;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surfaceContainerHigh,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: const [
+              Icon(Icons.verified_outlined, color: Color(0xFF10B981), size: 24),
+              SizedBox(width: 10),
+              Text('Verify Pickup Code', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Enter the pickup code provided by the customer or courier upon arrival:',
+                style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                textCapitalization: TextCapitalization.characters,
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                decoration: InputDecoration(
+                  hintText: 'e.g. GC-ORD-2026-5293',
+                  hintStyle: const TextStyle(color: Colors.white38, letterSpacing: 0),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  prefixIcon: const Icon(Icons.receipt_long, color: AppColors.primary),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+              ),
+              if (errorMessage != null) ...[
+                const SizedBox(height: 8),
+                Text(errorMessage!, style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isVerifying ? null : () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: isVerifying
+                  ? null
+                  : () async {
+                      final code = controller.text.trim();
+                      if (code.isEmpty) {
+                        setDialogState(() => errorMessage = 'Please enter a pickup code.');
+                        return;
+                      }
+                      setDialogState(() {
+                        isVerifying = true;
+                        errorMessage = null;
+                      });
+
+                      final kId = _kitchenId ?? 0;
+                      final result = await ApiService.verifyPickupCode(kId, code);
+                      if (result['success'] == true) {
+                        if (mounted) {
+                          Navigator.pop(ctx);
+                          _loadOrders();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 22),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'Order #$code verified! Marked as Completed 🎉',
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: const Color(0xFF1E232E),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          );
+                        }
+                      } else {
+                        setDialogState(() {
+                          isVerifying = false;
+                          errorMessage = result['error']?.toString() ?? 'Invalid pickup code. Please check again.';
+                        });
+                      }
+                    },
+              child: isVerifying
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Verify & Handover', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildStoreStatusToggle() {
     if (_isTogglingStatus) {
       return const Center(
@@ -316,6 +431,11 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
         title: const Text('Order Management', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
           _buildStoreStatusToggle(),
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+            tooltip: 'Verify Customer Pickup Code',
+            onPressed: _showVerifyPickupDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () {
