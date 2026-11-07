@@ -105,12 +105,26 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
         return st == 'completed' || st == 'delivered';
       }).toList();
 
+      // Fetch real payout history
+      final payouts = await ApiService.getPayoutHistory(kId);
+
       if (mounted) {
         setState(() {
           if (kitchen != null) _kitchen = kitchen;
           final revVal = double.tryParse(analytics?['revenue']?.toString() ?? '');
           _currentRevenue = revVal ?? 0.0;
           _completedOrders = completed;
+          if (payouts.isNotEmpty) {
+            _payoutTransactions.clear();
+            for (final p in payouts) {
+              _payoutTransactions.add({
+                'title': 'Payout to ${p['bank_name'] ?? 'Bank'} (${p['reference_code'] ?? 'Queued'})',
+                'date': p['created_at']?.toString().split(' ').first ?? 'Recent',
+                'amount': '-\$${double.tryParse(p['amount']?.toString() ?? '0')?.toStringAsFixed(2) ?? '0.00'}',
+                'isPositive': false,
+              });
+            }
+          }
           _isLoading = false;
         });
       }
@@ -807,17 +821,36 @@ class _ChefEarningsScreenState extends State<ChefEarningsScreen> {
     );
   }
 
-  void _executeCashOutSuccess() {
+  Future<void> _executeCashOutSuccess() async {
     final cashedAmount = _currentRevenue;
+    final kId = _kitchen?.id ?? (await _resolveKitchenId());
+
+    // Call backend API to record the payout permanently
+    String refCode = '';
+    if (kId > 0) {
+      final res = await ApiService.requestPayout(
+        kitchenId: kId,
+        amount: cashedAmount,
+        bankName: _kitchen?.bankName ?? 'Direct Deposit Bank',
+        accountNumber: _kitchen?.bankAccountNumber ?? '',
+        accountHolder: _kitchen?.bankAccountHolder.isNotEmpty == true ? _kitchen!.bankAccountHolder : (_kitchen?.chefName ?? ''),
+      );
+      if (res != null && res['reference_code'] != null) {
+        refCode = res['reference_code'];
+      }
+    }
+
     setState(() {
       _payoutTransactions.insert(0, {
-        'title': 'Payout sent to ${_kitchen?.bankName ?? "Bank"}',
+        'title': 'Payout to ${_kitchen?.bankName ?? "Bank"} ${refCode.isNotEmpty ? "($refCode)" : ""}',
         'date': 'Just now',
         'amount': '-\$${cashedAmount.toStringAsFixed(2)}',
         'isPositive': false,
       });
       _currentRevenue = 0.0;
     });
+
+    if (!mounted) return;
 
     showDialog(
       context: context,

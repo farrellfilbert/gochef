@@ -54,6 +54,16 @@ try {
         $k['completed_count'] = intval($k['completed_count']);
     }
 
+    // 5. Payouts summary
+    $totalPayouts = 0.0;
+    $payoutCount = 0;
+    try {
+        $pStmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total_payouts, COUNT(id) as payout_count FROM payout_requests");
+        $pRow = $pStmt->fetch(PDO::FETCH_ASSOC);
+        $totalPayouts = floatval($pRow['total_payouts'] ?? 0);
+        $payoutCount = intval($pRow['payout_count'] ?? 0);
+    } catch (Exception $pe) {}
+
     echo json_encode([
         'success' => true,
         'data' => [
@@ -62,6 +72,8 @@ try {
             'total_orders' => $totalOrders,
             'completed_orders' => $completedCount,
             'avg_order_value' => $avgOrderValue,
+            'total_payouts' => $totalPayouts,
+            'payout_count' => $payoutCount,
             'kitchens' => $kitchens
         ]
     ]);

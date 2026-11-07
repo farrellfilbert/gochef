@@ -3,6 +3,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../legal/terms_of_service_screen.dart';
 import '../legal/privacy_policy_screen.dart';
+import '../legal/disclaimer_screen.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -75,6 +76,8 @@ class AboutScreen extends StatelessWidget {
               _buildLink(context, 'Terms of Service', const TermsOfServiceScreen()),
               const SizedBox(height: 14),
               _buildLink(context, 'Privacy Policy', const PrivacyPolicyScreen()),
+              const SizedBox(height: 14),
+              _buildLink(context, 'Disclaimer', const DisclaimerScreen()),
               const SizedBox(height: 24),
               Text(
                 '© 2026 GoChef x The GRUB Next Door! All rights reserved.',

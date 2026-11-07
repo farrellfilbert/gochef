@@ -61,15 +61,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       try {
         final profile = await ApiService.getProfile();
         if (mounted) {
-          final isGoogleEmail = profile.email.toLowerCase().endsWith('@gmail.com');
-          final isAppleEmail = profile.email.toLowerCase().contains('privaterelay.appleid.com');
           setState(() {
             _currentUser = profile;
             _pushNotifications = profile.pushNotifications;
             _emailNotifications = profile.emailNotifications;
             _smsAlerts = profile.smsAlerts;
-            _googleLinked = prefs.getBool('pref_google_linked_$userId') ?? isGoogleEmail;
-            _appleLinked = prefs.getBool('pref_apple_linked_$userId') ?? isAppleEmail;
+            _googleLinked = prefs.getBool('pref_google_linked_$userId') ?? false;
+            _appleLinked = prefs.getBool('pref_apple_linked_$userId') ?? false;
           });
           await prefs.setBool('pref_push_notif_$userId', profile.pushNotifications);
           await prefs.setBool('pref_email_notif_$userId', profile.emailNotifications);

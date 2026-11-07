@@ -1846,4 +1846,57 @@ class ApiService {
       return false;
     }
   }
+
+  // ==========================================
+  // CHEF PAYOUT & WITHDRAWAL
+  // ==========================================
+  static Future<Map<String, dynamic>?> requestPayout({
+    required int kitchenId,
+    required double amount,
+    required String bankName,
+    required String accountNumber,
+    required String accountHolder,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/request_payout.php');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'kitchen_id': kitchenId,
+          'amount': amount,
+          'bank_name': bankName,
+          'account_number': accountNumber,
+          'account_holder': accountHolder,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return data;
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error submitting payout request: $e');
+      return null;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getPayoutHistory(int kitchenId) async {
+    try {
+      final url = Uri.parse('$baseUrl/request_payout.php?kitchen_id=$kitchenId');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching payout history: $e');
+      return [];
+    }
+  }
 }

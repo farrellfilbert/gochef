@@ -53,3 +53,11 @@ android/local.properties
 *.mp4
 scratch/
 app-release.apk
+*.p8
+*.cer
+*.pem
+*.key
+*.mobileprovision
+*.certSigningRequest
+*.plist
+.agents/
