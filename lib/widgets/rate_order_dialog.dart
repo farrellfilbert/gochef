@@ -103,26 +103,41 @@ class _RateOrderDialogState extends State<RateOrderDialog> {
               content: Row(
                 children: [
                   const Icon(Icons.star, color: Colors.amber, size: 20),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       _tipAmount > 0
                           ? 'Thank you! Review & \$${_tipAmount.toStringAsFixed(2)} tip submitted 🎉'
                           : 'Thank you! Your review has been published ⭐',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],
               ),
-              backgroundColor: AppColors.surfaceContainerHighest,
+              backgroundColor: const Color(0xFF1E232E),
               behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Colors.white24, width: 1),
+              ),
+              duration: const Duration(seconds: 3),
             ),
           );
           widget.onSubmitted?.call();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to submit review. Please try again.'),
+            SnackBar(
+              content: const Text(
+                'Failed to submit review. Please try again.',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
               backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           );
         }

@@ -863,7 +863,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   }) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: dish.id)));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: dish.id, initialItem: dish)));
       },
       child: Container(
         decoration: BoxDecoration(

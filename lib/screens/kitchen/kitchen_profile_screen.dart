@@ -78,7 +78,27 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
     final success = await ApiService.addFavorite(kitchenId: kitchen.id, type: 'kitchen');
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isFollowing ? 'Added to favorites' : 'Removed from favorites'), backgroundColor: AppColors.primary),
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(_isFollowing ? Icons.favorite : Icons.favorite_border, color: AppColors.primary, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _isFollowing ? 'Added to favorites' : 'Removed from favorites',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E232E),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Colors.white12),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
       );
     } else if (!success && mounted) {
       setState(() => _isFollowing = !_isFollowing);
@@ -1283,7 +1303,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
     required String kitchenName,
   }) {
     return GestureDetector(
-      onTap: () { Navigator.push(context, MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: menuItem.id))); },
+      onTap: () { Navigator.push(context, MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: menuItem.id, initialItem: menuItem))); },
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -1447,7 +1467,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                               onTap: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: menuItem.id)),
+                                  MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: menuItem.id, initialItem: menuItem)),
                                 ).then((_) => _loadCartCount());
                               },
                               child: Container(

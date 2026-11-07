@@ -520,7 +520,19 @@ class _CartScreenState extends State<CartScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Removed from cart'), backgroundColor: AppColors.primary),
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.delete_outline, color: Colors.white70, size: 20),
+                SizedBox(width: 10),
+                Text('Removed from cart', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+              ],
+            ),
+            backgroundColor: const Color(0xFF1E232E),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Colors.white12)),
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     }
@@ -1304,8 +1316,22 @@ class _CartScreenState extends State<CartScreen> {
                     onPressed: () async {
                       await ApiService.addToCart(item.id, quantity: 1, addonIds: []);
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('${item.name} added to cart'),
-                        backgroundColor: AppColors.primary,
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                '${item.name} added to cart',
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: const Color(0xFF1E232E),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Colors.white12)),
+                        duration: const Duration(seconds: 2),
                       ));
                       _loadCartData();
                     },

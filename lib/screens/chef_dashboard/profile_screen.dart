@@ -285,6 +285,49 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     return null;
   }
 
+  Future<void> _toggleKitchenStatus(bool newStatus) async {
+    if (_kitchenId == null) return;
+    setState(() {
+      if (_kitchen != null) {
+        _kitchen = _kitchen!.copyWith(isOpen: newStatus);
+      }
+    });
+    final success = await ApiService.updateKitchen({
+      'kitchen_id': _kitchenId,
+      'is_open': newStatus ? 1 : 0,
+    });
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                newStatus ? Icons.check_circle : Icons.pause_circle_outline,
+                color: newStatus ? const Color(0xFF10B981) : Colors.orangeAccent,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  newStatus ? 'Kitchen is now OPEN and accepting orders!' : 'Kitchen is now CLOSED / PAUSED',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E232E),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Colors.white12),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      _loadProfile();
+    }
+  }
+
   void _showBusinessHoursDialog() {
     TimeOfDay openTime = const TimeOfDay(hour: 9, minute: 0);
     TimeOfDay closeTime = const TimeOfDay(hour: 22, minute: 0);
@@ -2100,6 +2143,54 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                         '24/7 Chef Support Live Chat', 
                         'Direct chat with GoChef Admin & Help Desk', 
                         onTap: () => SupportHelper.openLiveSupportChat(context),
+                      ),
+                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: (_kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent).withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _kitchen?.isOpen == true ? Icons.storefront : Icons.storefront_outlined,
+                            color: _kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent,
+                            size: 20,
+                          ),
+                        ),
+                        title: Row(
+                          children: [
+                            Text('Store Open / Closed', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: (_kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: _kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent, width: 1),
+                              ),
+                              child: Text(
+                                _kitchen?.isOpen == true ? 'OPEN' : 'CLOSED',
+                                style: TextStyle(
+                                  color: _kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        subtitle: Text(
+                          _kitchen?.isOpen == true 
+                            ? 'Currently open & accepting orders. Tap switch to close.'
+                            : 'Currently closed. Tap switch to open & accept orders anytime.',
+                          style: AppTextStyles.labelSm(color: Colors.white54),
+                        ),
+                        trailing: Switch(
+                          value: _kitchen?.isOpen == true,
+                          activeThumbColor: const Color(0xFF10B981),
+                          onChanged: _toggleKitchenStatus,
+                        ),
                       ),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Pacific Standard Time (PST)', onTap: _showBusinessHoursDialog),

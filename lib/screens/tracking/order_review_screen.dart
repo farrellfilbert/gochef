@@ -50,16 +50,40 @@ class _OrderReviewScreenState extends State<OrderReviewScreen> {
         Navigator.popUntil(context, (route) => route.isFirst);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              _tipAmount > 0
-                  ? 'Thank you! Review and \$${_tipAmount.toStringAsFixed(2)} tip submitted 🎉'
-                  : 'Review submitted! Thank you.',
+            content: Row(
+              children: [
+                const Icon(Icons.star, color: Colors.amber, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _tipAmount > 0
+                        ? 'Thank you! Review and \$${_tipAmount.toStringAsFixed(2)} tip submitted 🎉'
+                        : 'Review submitted! Thank you ⭐',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+              ],
             ),
+            backgroundColor: const Color(0xFF1E232E),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Colors.white24, width: 1),
+            ),
+            duration: const Duration(seconds: 3),
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit review.')),
+          SnackBar(
+            content: const Text(
+              'Failed to submit review.',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
         );
       }
     }

@@ -75,7 +75,19 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Dish deleted'), backgroundColor: AppColors.primary),
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.delete_outline, color: Colors.white70, size: 20),
+                SizedBox(width: 10),
+                Text('Dish deleted', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+              ],
+            ),
+            backgroundColor: const Color(0xFF1E232E),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Colors.white12)),
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     }

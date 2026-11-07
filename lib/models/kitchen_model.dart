@@ -224,37 +224,44 @@ class KitchenModel {
     return utc.add(Duration(hours: offsetHours));
   }
 
-  /// Checks whether the kitchen is open at a specific time (in Pacific Time).
-  bool isCurrentlyOpenAt(DateTime targetTime) {
-    if (!isOpen) return false;
+  /// Checks whether a target time falls within the configured business hours
+  bool isTimeWithinBusinessHours(DateTime targetTime) {
     final hours = businessHours.trim();
-    if (hours.isEmpty) return isOpen;
+    if (hours.isEmpty) return true;
 
     try {
       final parts = hours.split(RegExp(r'\s*[-–—]\s*|\s+(?:to|TO|To)\s+'));
-      if (parts.length != 2) return isOpen;
+      if (parts.length != 2) return true;
 
       final startMinutes = _parseTimeToMinutes(parts[0]);
       final endMinutes = _parseTimeToMinutes(parts[1]);
-      if (startMinutes == null || endMinutes == null) return isOpen;
+      if (startMinutes == null || endMinutes == null) return true;
 
       final currentMinutes = targetTime.hour * 60 + targetTime.minute;
 
       if (startMinutes <= endMinutes) {
-        // Standard daytime range (e.g., 10:00 AM to 5:00 PM)
+        // Standard daytime range (e.g., 9:00 AM to 10:00 PM)
         return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
       } else {
         // Overnight range (e.g., 6:00 PM to 2:00 AM)
         return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
       }
     } catch (_) {
-      return isOpen;
+      return true;
     }
   }
 
-  /// Checks whether the kitchen is currently open based on both the manual toggle (isOpen)
-  /// and the defined business hours in California Pacific Time.
-  bool get isCurrentlyOpen => isCurrentlyOpenAt(getPacificTime());
+  /// Checks whether the kitchen is open.
+  /// The manual toggle (isOpen) set by the Chef is the master authority:
+  /// - When the chef opens the store (isOpen == true), the kitchen is OPEN for customers,
+  ///   enabling chefs to extend hours (e.g. past 10 PM until 12 AM) or open on demand.
+  /// - When the chef pauses/closes the store (isOpen == false), the kitchen is CLOSED.
+  bool isCurrentlyOpenAt(DateTime targetTime) {
+    return isOpen;
+  }
+
+  /// Checks whether the kitchen is currently open based on the chef's master switch.
+  bool get isCurrentlyOpen => isOpen;
 
   static int? _parseTimeToMinutes(String timeStr) {
     final clean = timeStr.trim().toUpperCase();
@@ -275,7 +282,8 @@ class KitchenModel {
 
   String getOpenStatusTextAt(DateTime targetTime) {
     if (!isOpen) return 'Closed';
-    return isCurrentlyOpenAt(targetTime) ? 'Open Now' : 'Closed';
+    final withinRegular = isTimeWithinBusinessHours(targetTime);
+    return withinRegular ? 'Open Now' : 'Open (Extended Hours)';
   }
 
   String get openStatusText => getOpenStatusTextAt(getPacificTime());

@@ -10,8 +10,9 @@ import '../../widgets/cart_icon_button.dart';
 
 class FoodDetailsScreen extends StatefulWidget {
   final int menuItemId;
+  final MenuItemModel? initialItem;
 
-  const FoodDetailsScreen({super.key, required this.menuItemId});
+  const FoodDetailsScreen({super.key, required this.menuItemId, this.initialItem});
 
   @override
   State<FoodDetailsScreen> createState() => _FoodDetailsScreenState();
@@ -22,6 +23,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
   bool _isFavorite = false;
+  bool _isAddingToCart = false;
   late Future<MenuItemModel?> _menuItemFuture;
   
   // Track selected addons
@@ -86,7 +88,27 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
     final success = await ApiService.addFavorite(menuItemId: item.id, type: 'dish');
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isFavorite ? 'Added to favorites' : 'Removed from favorites'), backgroundColor: AppColors.primary),
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: AppColors.primary, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _isFavorite ? 'Added to favorites' : 'Removed from favorites',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E232E),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Colors.white12),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
       );
     } else if (!success && mounted) {
       setState(() => _isFavorite = !_isFavorite);
@@ -94,9 +116,22 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   }
 
   void _addToCart(MenuItemModel item) async {
+    if (_isAddingToCart) return;
+
     if (!item.isAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This item is currently out of stock'), backgroundColor: AppColors.error),
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
+              SizedBox(width: 10),
+              Text('This item is currently out of stock', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E232E),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
       return;
     }
@@ -106,7 +141,23 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
           bool hasSelection = category.options.any((opt) => _selectedAddonIds.contains(opt.id));
           if (!hasSelection) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Please select an option for ${category.name}'), backgroundColor: AppColors.error),
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.info_outline, color: Colors.orangeAccent, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Please select an option for ${category.name}',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: const Color(0xFF1E232E),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             );
             return;
           }
@@ -114,15 +165,38 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
       }
     }
 
+    setState(() => _isAddingToCart = true);
     final success = await ApiService.addToCart(
       item.id,
       quantity: _quantity,
       addonIds: _selectedAddonIds.toList(),
       notes: _notesController.text.trim(),
     );
+    if (mounted) setState(() => _isAddingToCart = false);
+
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Added to cart'), backgroundColor: AppColors.primary),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Added ${_quantity}x ${item.name} to cart!',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E232E),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Colors.white12),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
       );
       Navigator.pop(context); // Go back after adding
     }
@@ -135,11 +209,13 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
       body: FutureBuilder<MenuItemModel?>(
         future: _menuItemFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          final item = snapshot.data ?? widget.initialItem;
+
+          if (item == null && snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
 
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+          if (item == null) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -158,8 +234,6 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
             );
           }
 
-          final item = snapshot.data!;
-          
           // Calculate total price including addons
           double totalPrice = item.price;
           if (item.addonCategories != null) {
@@ -633,18 +707,34 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                     )
                                   ],
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(!item.isAvailable ? Icons.block : Icons.shopping_cart, color: !item.isAvailable ? Colors.white38 : AppColors.onPrimary),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      !item.isAvailable ? 'Out of Stock' : 'Add • \$${totalPrice.toStringAsFixed(2)}',
-                                      style: AppTextStyles.bodyLg(color: !item.isAvailable ? Colors.white38 : AppColors.onPrimary)
-                                          .copyWith(fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
+                                child: _isAddingToCart
+                                    ? const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text(
+                                            'Adding to Cart...',
+                                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                          ),
+                                        ],
+                                      )
+                                    : Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(!item.isAvailable ? Icons.block : Icons.shopping_cart, color: !item.isAvailable ? Colors.white38 : AppColors.onPrimary),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            !item.isAvailable ? 'Out of Stock' : 'Add • \$${totalPrice.toStringAsFixed(2)}',
+                                            style: AppTextStyles.bodyLg(color: !item.isAvailable ? Colors.white38 : AppColors.onPrimary)
+                                                .copyWith(fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
                               ),
                             ),
                           ),

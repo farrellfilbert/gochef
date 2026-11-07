@@ -515,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: meal.id)),
+          MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: meal.id, initialItem: meal)),
         );
       },
       child: Container(
@@ -573,7 +573,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: meal.id)),
+                            MaterialPageRoute(builder: (context) => FoodDetailsScreen(menuItemId: meal.id, initialItem: meal)),
                           );
                         },
                         child: Container(

@@ -23,6 +23,21 @@ class AppTheme {
         selectedItemColor: AppColors.primary,
         unselectedItemColor: Color(0xFF8E8E93),
       ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: const Color(0xFF1E232E),
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+        actionTextColor: AppColors.primary,
+        elevation: 8,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Colors.black12, width: 1),
+        ),
+      ),
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         onPrimary: Colors.white,
@@ -64,6 +79,21 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.white54,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: const Color(0xFF1E232E),
+        contentTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+        actionTextColor: AppColors.primary,
+        elevation: 8,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Colors.white12, width: 1),
+        ),
       ),
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,

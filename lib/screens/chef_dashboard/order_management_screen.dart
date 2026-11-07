@@ -80,10 +80,28 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              newStatus ? '🟢 Kitchen is now OPEN and accepting orders!' : '⏸️ Kitchen is now PAUSED (Closed for orders)',
+            content: Row(
+              children: [
+                Icon(
+                  newStatus ? Icons.check_circle : Icons.pause_circle_outline,
+                  color: newStatus ? const Color(0xFF10B981) : Colors.orangeAccent,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    newStatus ? '🟢 Kitchen is now OPEN and accepting orders!' : '⏸️ Kitchen is now CLOSED / PAUSED',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+              ],
             ),
-            backgroundColor: newStatus ? const Color(0xFF10B981) : Colors.orange[800],
+            backgroundColor: const Color(0xFF1E232E),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Colors.white12),
+            ),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -125,10 +143,10 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: _isOpen ? const Color(0xFF10B981).withValues(alpha: 0.15) : Colors.orange.withValues(alpha: 0.15),
+            color: _isOpen ? const Color(0xFF10B981).withValues(alpha: 0.15) : Colors.red.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: _isOpen ? const Color(0xFF10B981) : Colors.orangeAccent,
+              color: _isOpen ? const Color(0xFF10B981) : Colors.redAccent,
               width: 1.2,
             ),
           ),
@@ -140,14 +158,14 @@ class _ChefOrdersScreenState extends State<ChefOrdersScreen> {
                 height: 8,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _isOpen ? const Color(0xFF10B981) : Colors.orangeAccent,
+                  color: _isOpen ? const Color(0xFF10B981) : Colors.redAccent,
                 ),
               ),
               const SizedBox(width: 6),
               Text(
-                _isOpen ? 'Store Open' : 'Paused',
+                _isOpen ? 'Store Open' : 'Store Closed',
                 style: TextStyle(
-                  color: _isOpen ? const Color(0xFF10B981) : Colors.orangeAccent,
+                  color: _isOpen ? const Color(0xFF10B981) : Colors.redAccent,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
