@@ -9,7 +9,7 @@ class AudioService {
   static void unlock() {
     if (!kIsWeb) return;
     try {
-      WebJs.callMethod('goChefPlayMessage', []);
+      WebJs.callMethod('goChefUnlockAudio', []);
     } catch (_) {}
   }
 
