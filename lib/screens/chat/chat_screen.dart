@@ -318,7 +318,18 @@ class _ChatScreenState extends State<ChatScreen> {
                       itemCount: _messages.length,
                       itemBuilder: (context, index) {
                         final message = _messages[index];
-                        return _buildMessageBubble(message);
+                        final showDateHeader = index == 0 ||
+                            _messages[index - 1].timestamp.year != message.timestamp.year ||
+                            _messages[index - 1].timestamp.month != message.timestamp.month ||
+                            _messages[index - 1].timestamp.day != message.timestamp.day;
+
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (showDateHeader) _buildDateHeader(message.timestamp),
+                            _buildMessageBubble(message),
+                          ],
+                        );
                       },
                     ),
               ),
@@ -369,6 +380,33 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildDateHeader(DateTime date) {
+    final now = DateTime.now();
+    String label;
+    if (date.year == now.year && date.month == now.month && date.day == now.day) {
+      label = 'Today';
+    } else if (date.year == now.year && date.month == now.month && date.day == now.day - 1) {
+      label = 'Yesterday';
+    } else {
+      label = DateFormat('EEEE, MMM d, yyyy').format(date);
+    }
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerHigh.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+        ),
+      ),
     );
   }
 
@@ -460,7 +498,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: hasImage ? 8 : 0),
                     child: Text(
-                      DateFormat('HH:mm').format(message.timestamp),
+                      DateFormat('h:mm a').format(message.timestamp),
                       style: TextStyle(
                         fontSize: 10,
                         color: isMe ? AppColors.onPrimary.withValues(alpha: 0.7) : AppColors.onSurfaceVariant,

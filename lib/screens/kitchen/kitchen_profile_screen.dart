@@ -11,6 +11,7 @@ import '../../models/menu_item_model.dart';
 import '../chat/chat_screen.dart';
 import '../cart/cart_screen.dart';
 import '../../utils/kitchen_compliance.dart';
+import '../../widgets/closed_kitchen_dialog.dart';
 
 class KitchenProfileScreen extends StatefulWidget {
   final int kitchenId;
@@ -426,12 +427,26 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                               ),
                               const SizedBox(width: 8),
                               _iconCircleButton(icon: Icons.chat_bubble_outline, onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
-                                  otherParticipantId: kitchen.userId.toString(),
-                                  otherParticipantName: kitchen.name,
-                                  otherParticipantAvatar: kitchen.avatar,
-                                  isOnline: true,
-                                )));
+                                void openChat() {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
+                                    otherParticipantId: kitchen.userId.toString(),
+                                    otherParticipantName: kitchen.name,
+                                    otherParticipantAvatar: kitchen.avatar,
+                                    isOnline: true,
+                                  )));
+                                }
+
+                                if (!kitchen.isCurrentlyOpen) {
+                                  ClosedKitchenDialog.show(
+                                    context,
+                                    kitchenName: kitchen.name,
+                                    businessHours: kitchen.businessHours,
+                                    isMessaging: true,
+                                    onProceedAnyway: openChat,
+                                  );
+                                } else {
+                                  openChat();
+                                }
                               }),
                               const SizedBox(width: 8),
                               Builder(

@@ -7,6 +7,7 @@ import '../../models/menu_item_model.dart';
 import '../../models/menu_addon_model.dart';
 import '../kitchen/kitchen_profile_screen.dart';
 import '../../widgets/cart_icon_button.dart';
+import '../../widgets/closed_kitchen_dialog.dart';
 
 class FoodDetailsScreen extends StatefulWidget {
   final int menuItemId;
@@ -117,6 +118,21 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
 
   void _addToCart(MenuItemModel item) async {
     if (_isAddingToCart) return;
+
+    // Verify if kitchen is open before adding to cart
+    try {
+      final kDetail = await ApiService.getKitchenDetail(item.kitchenId);
+      if (kDetail != null && !kDetail.isCurrentlyOpen) {
+        if (mounted) {
+          ClosedKitchenDialog.show(
+            context,
+            kitchenName: kDetail.name,
+            businessHours: kDetail.businessHours,
+          );
+        }
+        return;
+      }
+    } catch (_) {}
 
     if (!item.isAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(

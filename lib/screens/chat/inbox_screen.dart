@@ -260,10 +260,15 @@ class _InboxScreenState extends State<InboxScreen> {
 
   String _formatTime(DateTime time) {
     final now = DateTime.now();
-    if (time.year == now.year && time.month == now.month && time.day == now.day) {
-      return DateFormat('HH:mm').format(time);
+    final isToday = time.year == now.year && time.month == now.month && time.day == now.day;
+    final isYesterday = time.year == now.year && time.month == now.month && time.day == now.day - 1;
+    final timeStr = DateFormat('h:mm a').format(time);
+    if (isToday) {
+      return timeStr;
+    } else if (isYesterday) {
+      return 'Yesterday, $timeStr';
     } else {
-      return DateFormat('MMM d').format(time);
+      return DateFormat('MMM d, h:mm a').format(time);
     }
   }
 }

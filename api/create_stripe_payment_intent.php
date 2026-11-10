@@ -43,6 +43,23 @@ if ($method === 'POST') {
             exit;
         }
 
+        // Verify that the kitchen is open and not on vacation
+        $kStmt = $pdo->prepare("SELECT name, is_open, vacation_mode, business_hours FROM kitchens WHERE id = ?");
+        $kStmt->execute([$kitchen_id]);
+        $kInfo = $kStmt->fetch();
+        if ($kInfo) {
+            $isOpenVal = isset($kInfo['is_open']) ? intval($kInfo['is_open']) : 1;
+            $isVacation = isset($kInfo['vacation_mode']) ? intval($kInfo['vacation_mode']) : 0;
+            if ($isOpenVal === 0 || $isVacation === 1) {
+                $hoursStr = !empty($kInfo['business_hours']) ? $kInfo['business_hours'] : '09:00 AM - 10:00 PM PST';
+                echo json_encode([
+                    'success' => false,
+                    'error' => "You are contacting '" . $kInfo['name'] . "' outside of their business hours, please try between " . $hoursStr . "."
+                ]);
+                exit;
+            }
+        }
+
         // Verify all items are currently in stock
         foreach ($cartItems as $item) {
             if (isset($item['is_available']) && ($item['is_available'] === 0 || $item['is_available'] === '0')) {

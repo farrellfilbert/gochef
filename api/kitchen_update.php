@@ -54,9 +54,10 @@ if (isset($data->atmosphere_images)) {
     $params[] = $data->atmosphere_images;
     $types .= "s";
 }
-if (isset($data->about)) {
-    $updateFields[] = "about = ?";
-    $params[] = $data->about;
+if (isset($data->description) || isset($data->about)) {
+    $descVal = isset($data->description) ? $data->description : $data->about;
+    $updateFields[] = "description = ?";
+    $params[] = $descVal;
     $types .= "s";
 }
 if (isset($data->delivery_time)) {

@@ -98,9 +98,10 @@ class OrderModel {
         final month = months[parsedDate.month - 1];
         final day = parsedDate.day.toString().padLeft(2, '0');
         final year = parsedDate.year;
-        final hour = parsedDate.hour.toString().padLeft(2, '0');
+        final period = parsedDate.hour >= 12 ? 'PM' : 'AM';
+        final hour12 = parsedDate.hour % 12 == 0 ? 12 : parsedDate.hour % 12;
         final minute = parsedDate.minute.toString().padLeft(2, '0');
-        dateStr = '$month $day, $year - $hour:$minute';
+        dateStr = '$month $day, $year • $hour12:$minute $period';
       }
     } catch (e) {}
 

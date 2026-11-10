@@ -17,6 +17,7 @@ import '../../models/user_model.dart';
 import '../../widgets/custom_app_bar_title.dart';
 import '../../widgets/notification_bell.dart';
 import '../../widgets/cart_icon_button.dart';
+import '../../widgets/chat_icon_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -224,6 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(width: 8),
                           Row(
                             children: const [
+                              ChatIconButton(iconColor: Colors.white),
                               CartIconButton(iconColor: Colors.white),
                               NotificationBell(iconColor: Colors.white),
                             ],

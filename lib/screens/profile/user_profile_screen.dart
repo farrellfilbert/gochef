@@ -21,6 +21,7 @@ import 'become_chef_screen.dart';
 import '../chef_dashboard/chef_main_navigation.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../../widgets/cart_icon_button.dart';
+import '../../widgets/chat_icon_button.dart';
 import '../../widgets/notification_bell.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'personal_information_screen.dart';
@@ -988,6 +989,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ],
         ),
         actions: [
+          ChatIconButton(iconColor: iconColor),
           CartIconButton(iconColor: iconColor),
           Padding(
             padding: const EdgeInsets.only(right: 12),

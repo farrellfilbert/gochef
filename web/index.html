@@ -186,12 +186,17 @@
       } catch(e) { console.warn('GoChef audio error:', e); }
     };
 
-    // Light single ping for chat messages
+    // Ding-Ding Doorbell notification chime for chat messages 🔔
     window.goChefPlayMessage = function() {
       try {
         const ctx = _getCtx();
         const now = ctx.currentTime;
-        _playTone(1200, now, 0.14, 0.15, 'sine');
+        // First Ding
+        _playTone(1046.5, now, 0.28, 0.35, 'triangle');
+        _playTone(2093.0, now, 0.15, 0.15, 'sine');
+        // Second Ding / Dong (doorbell cadence)
+        _playTone(830.6, now + 0.18, 0.45, 0.35, 'triangle');
+        _playTone(1661.2, now + 0.18, 0.25, 0.15, 'sine');
       } catch(e) { console.warn('GoChef audio error:', e); }
     };
 

@@ -8,6 +8,7 @@ import 'analytics_screen.dart';
 import 'menu_management_screen.dart';
 import 'order_management_screen.dart';
 import 'profile_screen.dart';
+import '../chat/inbox_screen.dart';
 
 class ChefMainNavigation extends StatefulWidget {
   const ChefMainNavigation({super.key});
@@ -31,6 +32,7 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
     const ChefProfileScreen(),
     ChefMenuScreen(key: _menuScreenKey),
     const ChefOrdersScreen(),
+    const InboxScreen(),
     const ChefAnalyticsScreen(),
   ];
 
@@ -179,23 +181,9 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
             type: BottomNavigationBarType.fixed,
             elevation: 0,
             items: [
-              BottomNavigationBarItem(
-                icon: _unreadChats > 0
-                    ? Badge.count(
-                        count: _unreadChats,
-                        backgroundColor: Colors.redAccent,
-                        textColor: Colors.white,
-                        child: const Icon(Icons.restaurant_outlined),
-                      )
-                    : const Icon(Icons.restaurant_outlined),
-                activeIcon: _unreadChats > 0
-                    ? Badge.count(
-                        count: _unreadChats,
-                        backgroundColor: Colors.redAccent,
-                        textColor: Colors.white,
-                        child: const Icon(Icons.restaurant),
-                      )
-                    : const Icon(Icons.restaurant),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.restaurant_outlined),
+                activeIcon: Icon(Icons.restaurant),
                 label: 'Kitchen',
               ),
               const BottomNavigationBarItem(
@@ -221,6 +209,25 @@ class _ChefMainNavigationState extends State<ChefMainNavigation> {
                       )
                     : const Icon(Icons.receipt_long),
                 label: 'Orders',
+              ),
+              BottomNavigationBarItem(
+                icon: _unreadChats > 0
+                    ? Badge.count(
+                        count: _unreadChats,
+                        backgroundColor: Colors.redAccent,
+                        textColor: Colors.white,
+                        child: const Icon(Icons.chat_bubble_outline),
+                      )
+                    : const Icon(Icons.chat_bubble_outline),
+                activeIcon: _unreadChats > 0
+                    ? Badge.count(
+                        count: _unreadChats,
+                        backgroundColor: Colors.redAccent,
+                        textColor: Colors.white,
+                        child: const Icon(Icons.chat_bubble),
+                      )
+                    : const Icon(Icons.chat_bubble),
+                label: 'Messages',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.analytics_outlined),

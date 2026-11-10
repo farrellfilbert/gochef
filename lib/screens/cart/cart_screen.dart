@@ -13,6 +13,7 @@ import '../profile/address_selection_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../legal/disclaimer_screen.dart';
+import '../../widgets/closed_kitchen_dialog.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -1053,7 +1054,7 @@ class _CartScreenState extends State<CartScreen> {
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
-                              onTap: _selectedKitchenId == null ? null : () {
+                              onTap: _selectedKitchenId == null ? null : () async {
                                 final hasUnavailable = selectedItems.any((i) => !i.isAvailable);
                                 if (hasUnavailable) {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -1064,8 +1065,25 @@ class _CartScreenState extends State<CartScreen> {
                                   );
                                   return;
                                 }
+
+                                // Verify that kitchen is open before checkout
+                                try {
+                                  final kDetail = await ApiService.getKitchenDetail(_selectedKitchenId!);
+                                  if (kDetail != null && !kDetail.isCurrentlyOpen) {
+                                    if (context.mounted) {
+                                      ClosedKitchenDialog.show(
+                                        context,
+                                        kitchenName: kDetail.name,
+                                        businessHours: kDetail.businessHours,
+                                      );
+                                    }
+                                    return;
+                                  }
+                                } catch (_) {}
+
                                 final typedPromo = _promoController.text.trim().toUpperCase();
                                 final promoToPass = _appliedPromoCode ?? (_selectedVoucher != null ? _selectedVoucher!['code'] as String? : (typedPromo.isNotEmpty ? typedPromo : null));
+                                if (!context.mounted) return;
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

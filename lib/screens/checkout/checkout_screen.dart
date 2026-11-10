@@ -12,6 +12,7 @@ import '../profile/address_selection_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../legal/disclaimer_screen.dart';
+import '../../widgets/closed_kitchen_dialog.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final int kitchenId;
@@ -585,6 +586,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _placeOrder() async {
+    // Verify that kitchen is currently open before accepting payment
+    try {
+      final kDetail = await ApiService.getKitchenDetail(widget.kitchenId);
+      if (kDetail != null && !kDetail.isCurrentlyOpen) {
+        if (mounted) {
+          ClosedKitchenDialog.show(
+            context,
+            kitchenName: kDetail.name,
+            businessHours: kDetail.businessHours,
+          );
+        }
+        return;
+      }
+    } catch (_) {}
+
     if (!_acceptedTerms) {
       await _showErrorDialog(
         'Agreement Required',
