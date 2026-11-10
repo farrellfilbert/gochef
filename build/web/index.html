@@ -159,6 +159,10 @@
       osc.stop(startTime + duration);
     }
 
+    window.goChefUnlockAudio = function() {
+      try { _getCtx(); } catch(e) {}
+    };
+
     // Prominent multi-tone loud chime for incoming customer orders (Ding-Dong-Ding! 🛎️)
     window.goChefPlayOrder = function() {
       try {

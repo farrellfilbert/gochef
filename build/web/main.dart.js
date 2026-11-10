@@ -40502,7 +40502,7 @@ ex(a){var s=B.abf.h(0,$.afd().a),r=(s==null?B.tq:s).h(0,a)
 if(r==null)r=B.tq.h(0,a)
 return r==null?a:r},
 boM(){var s
-try{A.Mx("goChefPlayMessage",[])}catch(s){}},
+try{A.Mx("goChefUnlockAudio",[])}catch(s){}},
 boL(){var s
 try{A.Mx("goChefPlayOrder",[])}catch(s){}},
 boK(){var s
