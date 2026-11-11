@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'dart:math';
 import 'dart:async';
 
 import '../theme/app_colors.dart';
@@ -58,6 +57,10 @@ class _MapScreenState extends State<MapScreen> {
   final Distance _distanceCalculator = const Distance();
   bool _isMapReady = false;
 
+  // Dynamic Zoom & Map Style settings
+  double _currentZoom = 12.5;
+  bool _isCleanRoadmap = true;
+
   @override
   void initState() {
     super.initState();
@@ -67,6 +70,7 @@ class _MapScreenState extends State<MapScreen> {
   void _safeMove(LatLng target, double zoom) {
     if (_isMapReady) {
       try {
+        _currentZoom = zoom;
         _mapController.move(target, zoom);
       } catch (e) {
         debugPrint('Map safeMove ignored: $e');
@@ -368,6 +372,208 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  Marker _buildUserLocationMarker() {
+    if (_currentZoom < 11.5) {
+      return Marker(
+        point: _baseLocation,
+        width: 28,
+        height: 28,
+        child: Center(
+          child: Container(
+            width: 14,
+            height: 14,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.lightBlueAccent,
+              border: Border.all(color: Colors.white, width: 2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.lightBlueAccent.withValues(alpha: 0.8),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Marker(
+      point: _baseLocation,
+      width: 70,
+      height: 70,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Outer pulse wave
+          Container(
+            width: 55,
+            height: 55,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primary.withValues(alpha: 0.25),
+            ),
+          ),
+          // Inner circle
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primary,
+              border: Border.all(color: Colors.white, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.6),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Marker _buildKitchenMarker(KitchenModel k, LatLng loc, double distanceMiles) {
+    if (_currentZoom < 11.5) {
+      // Zoom Level 1: Clean Glowing Magenta Dot (Far Zoom-Out)
+      // Tapping zooms in smoothly and opens the kitchen preview
+      return Marker(
+        point: loc,
+        width: 28,
+        height: 28,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            _safeMove(loc, 14.0);
+            _showKitchenDetails(k);
+          },
+          child: Center(
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.8),
+                    blurRadius: 7,
+                    spreadRadius: 1.5,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    blurRadius: 3,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (_currentZoom < 13.5) {
+      // Zoom Level 2: Compact Kitchen Logo Badges (Mid Zoom - Sleek without bulky text tag)
+      return Marker(
+        point: loc,
+        width: 36,
+        height: 36,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _showKitchenDetails(k),
+          child: Center(
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.primary, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: Image.network(
+                  k.avatar,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: AppColors.surface,
+                    child: const Icon(Icons.restaurant, size: 16, color: AppColors.primary),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      // Zoom Level 3: Full Rich Pin with Avatar & Distance Badge (Close Zoom)
+      return Marker(
+        point: loc,
+        width: 70,
+        height: 74,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _showKitchenDetails(k),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary, width: 2.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage(k.avatar),
+                  onBackgroundImageError: (e, s) {},
+                  backgroundColor: AppColors.surface,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Text(
+                  '${distanceMiles.toStringAsFixed(1)} mi',
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -388,6 +594,17 @@ class _MapScreenState extends State<MapScreen> {
                       _isMapReady = true;
                       _focusOnChefs();
                     },
+                    onPositionChanged: (camera, hasGesture) {
+                      final newZoom = camera.zoom;
+                      final oldZoom = _currentZoom;
+                      final crossed115 = (oldZoom < 11.5 && newZoom >= 11.5) || (oldZoom >= 11.5 && newZoom < 11.5);
+                      final crossed135 = (oldZoom < 13.5 && newZoom >= 13.5) || (oldZoom >= 13.5 && newZoom < 13.5);
+                      if (crossed115 || crossed135 || (newZoom - oldZoom).abs() >= 0.15) {
+                        setState(() {
+                          _currentZoom = newZoom;
+                        });
+                      }
+                    },
                     interactionOptions: const InteractionOptions(
                       flags: InteractiveFlag.drag |
                           InteractiveFlag.pinchZoom |
@@ -403,118 +620,36 @@ class _MapScreenState extends State<MapScreen> {
                     },
                   ),
                   children: [
-                    // Clean Satellite Layer
-                    TileLayer(
-                      urlTemplate: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-                      subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
-                      userAgentPackageName: 'com.astroboomin.gochef',
-                    ),
-                    // Clean Roads, Streets & City Labels Layer (WITHOUT competitor business POIs)
-                    TileLayer(
-                      urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',
-                      subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
-                      userAgentPackageName: 'com.astroboomin.gochef',
-                    ),
+                    // Dynamic Map Tiles: Clean Roadmap vs Google Satellite
+                    if (_isCleanRoadmap)
+                      TileLayer(
+                        urlTemplate: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+                        subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                        userAgentPackageName: 'com.astroboomin.gochef',
+                      )
+                    else ...[
+                      TileLayer(
+                        urlTemplate: 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+                        subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                        userAgentPackageName: 'com.astroboomin.gochef',
+                      ),
+                      TileLayer(
+                        urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',
+                        subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+                        userAgentPackageName: 'com.astroboomin.gochef',
+                      ),
+                    ],
                     MarkerLayer(
                       markers: [
-                        // User's own real GPS location marker (pulsating glow circle)
-                        Marker(
-                          point: _baseLocation,
-                          width: 70,
-                          height: 70,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Outer pulse wave
-                              Container(
-                                width: 55,
-                                height: 55,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.primary.withValues(alpha: 0.25),
-                                ),
-                              ),
-                              // Inner circle
-                              Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.primary,
-                                  border: Border.all(color: Colors.white, width: 3),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.primary.withValues(alpha: 0.6),
-                                      blurRadius: 10,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        // User's own real GPS location marker
+                        _buildUserLocationMarker(),
 
-                        // Kitchen markers
+                        // Kitchen markers with dynamic LOD (Dots -> Badges -> Pins)
                         ..._kitchens.map((k) {
                           final loc = _kitchenLocations[k.id] ?? _baseLocation;
                           final distanceMiles = _getDistanceMiles(loc);
-
-                          return Marker(
-                            point: loc,
-                            width: 70,
-                            height: 70,
-                            child: GestureDetector(
-                              onTap: () => _showKitchenDetails(k),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: AppColors.primary, width: 2.5),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.4),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: 18,
-                                      backgroundImage: NetworkImage(k.avatar),
-                                      backgroundColor: AppColors.surface,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surface,
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.3),
-                                          blurRadius: 4,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Text(
-                                      '${distanceMiles.toStringAsFixed(1)} mi',
-                                      style: const TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                          return _buildKitchenMarker(k, loc, distanceMiles);
+                        }),
                       ],
                     ),
                   ],
@@ -684,7 +819,58 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                   ),
 
-                // 4. Floating Zoom In / Zoom Out Controls
+                // 4. Map Style Switcher Toggle (Clean Roadmap vs Satellite)
+                Positioned(
+                  right: 16,
+                  bottom: 222,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () {
+                        setState(() {
+                          _isCleanRoadmap = !_isCleanRoadmap;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface.withValues(alpha: 0.94),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.glassBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _isCleanRoadmap ? Icons.map_outlined : Icons.satellite_alt_outlined,
+                              color: AppColors.primary,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _isCleanRoadmap ? 'Clean Map' : 'Satellite',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // 5. Floating Zoom In / Zoom Out Controls
                 Positioned(
                   right: 16,
                   bottom: 140,
