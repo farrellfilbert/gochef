@@ -101,7 +101,7 @@ class DisclaimerScreen extends StatelessWidget {
               number: '3',
               title: 'Permits, Licenses & Verification',
               content:
-                  'GoChef facilitates the display of chef-provided credentials, such as MEHKO permits, ServSafe certifications, food handler cards, and business licenses indicated by green verification badges.\n\nWhile GoChef conducts preliminary onboarding checks, the ultimate responsibility for maintaining valid, active municipal, county, and state permits rests solely with the independent culinary provider.',
+                  'GoChef encourages all GoChef service providers to build trust with all available means with their customers- with each verified credential it builds trust and comfort with customers. Therefore each transaction allows the customer freedom of choice based on which chef, kitchens and meals you decide to order and consume from.\n\nGoChef facilitates the display of chef-provided credentials, such as MEHKO permits, ServSafe certifications, food handler cards, and business licenses indicated by green verification badges.\n\nWhile GoChef conducts preliminary onboarding checks, the ultimate responsibility for maintaining valid, active municipal, county, and state permits rests solely with the independent culinary provider.',
             ),
             const SizedBox(height: 20),
 

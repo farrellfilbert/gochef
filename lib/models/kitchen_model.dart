@@ -264,17 +264,18 @@ class KitchenModel {
   }
 
   /// Checks whether the kitchen is open.
-  /// The manual toggle (isOpen) and Vacation Mode set by the Chef is the master authority:
-  /// - If Vacation Mode is active, the kitchen is temporarily closed with a return notice.
-  /// - When the chef opens the store (isOpen == true), the kitchen is OPEN for customers.
-  /// - When the chef pauses/closes the store (isOpen == false), the kitchen is CLOSED.
+  /// 1. Vacation Mode: If active, kitchen is temporarily closed with return notice.
+  /// 2. Automatic Schedule: Kitchen automatically opens and closes based on set business hours.
+  /// 3. Manual Toggle: Within set hours, manual toggle allows chef to open/close anytime.
   bool isCurrentlyOpenAt(DateTime targetTime) {
     if (isVacationMode) return false;
+    final inSetHours = isTimeWithinBusinessHours(targetTime);
+    if (!inSetHours) return false;
     return isOpen;
   }
 
-  /// Checks whether the kitchen is currently open based on the chef's master switch.
-  bool get isCurrentlyOpen => !isVacationMode && isOpen;
+  /// Checks whether the kitchen is currently open based on set hours and master switch.
+  bool get isCurrentlyOpen => isCurrentlyOpenAt(getPacificTime());
 
   static int? _parseTimeToMinutes(String timeStr) {
     final clean = timeStr.trim().toUpperCase();
@@ -299,9 +300,11 @@ class KitchenModel {
           ? 'On Vacation (Back $vacationReturnDate)' 
           : 'Chef on Vacation';
     }
-    if (!isOpen) return 'Closed';
-    final withinRegular = isTimeWithinBusinessHours(targetTime);
-    return withinRegular ? 'Open Now' : 'Open (Extended Hours)';
+    final inSetHours = isTimeWithinBusinessHours(targetTime);
+    if (!inSetHours) {
+      return 'Closed (Hours: $businessHours)';
+    }
+    return isOpen ? 'Open Now' : 'Temporarily Closed';
   }
 
   String get openStatusText => getOpenStatusTextAt(getPacificTime());

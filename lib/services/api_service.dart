@@ -1155,6 +1155,15 @@ class ApiService {
     });
   }
 
+  static Future<bool> updateMenuItemQuantity(int id, int kitchenId, int dailyQuota) async {
+    return await updateMenuItem({
+      'id': id,
+      'kitchen_id': kitchenId,
+      'daily_quota': dailyQuota,
+      'is_available': dailyQuota > 0 ? 1 : 0,
+    });
+  }
+
   static Future<bool> deleteMenuItem(int id) async {
     final response = await http.post(
       Uri.parse('$baseUrl/menu_item_delete.php'),

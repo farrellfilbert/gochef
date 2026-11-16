@@ -26,6 +26,16 @@ try {
     $pdo->exec("ALTER TABLE menu_items ADD COLUMN is_available TINYINT(1) DEFAULT 1");
 } catch (Exception $e) {}
 
+// Quick quantity / quota update: if daily_quota is provided without name
+if (isset($data->daily_quota) && !isset($data->name)) {
+    $daily_quota = max(0, intval($data->daily_quota));
+    $is_available = isset($data->is_available) ? ((intval($data->is_available) === 1 || $data->is_available === true) ? 1 : 0) : ($daily_quota > 0 ? 1 : 0);
+    $stmt = $pdo->prepare("UPDATE menu_items SET daily_quota = ?, is_available = ? WHERE id = ? AND kitchen_id = ?");
+    $result = $stmt->execute([$daily_quota, $is_available, $id, $kitchen_id]);
+    echo json_encode(["message" => "Menu item quantity updated.", "daily_quota" => $daily_quota, "is_available" => $is_available, "success" => (bool)$result]);
+    exit();
+}
+
 // Quick toggle: if only is_available is provided without name
 if (isset($data->is_available) && !isset($data->name)) {
     $is_available = (intval($data->is_available) === 1 || $data->is_available === true) ? 1 : 0;

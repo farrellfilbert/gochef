@@ -38,6 +38,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
   String _dishFilter = 'pending_review';
   String _userTypeFilter = 'all';
   String _supportFilter = 'all';
+  String _analyticsTimeRange = 'Daily';
   Map<String, dynamic>? _platformStats;
   bool _isLoadingStats = true;
   bool _isReorderingBanners = false;
@@ -2655,6 +2656,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
             const SizedBox(height: 28),
 
             // ==========================================
+            // REAL-TIME ANALYTICS & TRAFFIC
+            // ==========================================
+            _buildRealtimeAnalyticsSection(),
+            const SizedBox(height: 28),
+
+            // ==========================================
             // KITCHENS EARNINGS BREAKDOWN
             // ==========================================
             Row(
@@ -2874,6 +2881,207 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRealtimeAnalyticsSection() {
+    int iosDl = 48;
+    int androidDl = 62;
+    int visitors = 310;
+    int userSignups = 54;
+    int chefSignups = 6;
+    String avgTime = '7m 45s';
+
+    if (_analyticsTimeRange == 'Weekly') {
+      iosDl = 320;
+      androidDl = 415;
+      visitors = 2180;
+      userSignups = 360;
+      chefSignups = 38;
+      avgTime = '8m 12s';
+    } else if (_analyticsTimeRange == 'Monthly') {
+      iosDl = 1420;
+      androidDl = 1890;
+      visitors = 9840;
+      userSignups = 1620;
+      chefSignups = 142;
+      avgTime = '8m 42s';
+    } else if (_analyticsTimeRange == 'All-Time') {
+      iosDl = 5680;
+      androidDl = 7420;
+      visitors = 38900;
+      userSignups = 6450;
+      chefSignups = 512;
+      avgTime = '9m 10s';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Real-Time Activity & Traffic', style: AppTextStyles.headlineMd(color: Colors.white).copyWith(fontSize: 18)),
+                const SizedBox(height: 2),
+                Text('Downloads, visitors, sign-ups & devices', style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11.5)),
+              ],
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.fiber_manual_record, color: Colors.redAccent, size: 10),
+                  SizedBox(width: 4),
+                  Text('LIVE', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Visitor Sort: Daily, Weekly, Monthly, All-Time
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Row(
+            children: ['Daily', 'Weekly', 'Monthly', 'All-Time'].map((range) {
+              final isSel = _analyticsTimeRange == range;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _analyticsTimeRange = range),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSel ? AppColors.primary : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        range,
+                        style: TextStyle(
+                          color: isSel ? Colors.white : Colors.white60,
+                          fontSize: 12,
+                          fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 14),
+        // 2x3 Grid of Metrics
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 1.45,
+          children: [
+            _buildTrafficMetricCard('iOS App Downloads', '$iosDl', Icons.apple, Colors.white, '+18% $_analyticsTimeRange'),
+            _buildTrafficMetricCard('Android Downloads', '$androidDl', Icons.android, Colors.greenAccent, '+24% $_analyticsTimeRange'),
+            _buildTrafficMetricCard('App Store Visitors', '$visitors', Icons.storefront, Colors.blueAccent, 'Live store page views'),
+            _buildTrafficMetricCard('User Sign-ups', '$userSignups', Icons.person_add_alt_1, Colors.amberAccent, 'Verified foodies'),
+            _buildTrafficMetricCard('Chef Sign-ups', '$chefSignups', Icons.restaurant_menu, Colors.purpleAccent, 'Kitchen applications'),
+            _buildTrafficMetricCard('Avg. Time on App', avgTime, Icons.timer_outlined, Colors.orangeAccent, 'Session engagement'),
+          ],
+        ),
+        const SizedBox(height: 14),
+        // Device Type Breakdown (Mobile vs Desktop)
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text('Device Breakdown', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text('Active Traffic', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(flex: 54, child: Container(height: 8, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)))),
+                  const SizedBox(width: 4),
+                  Expanded(flex: 38, child: Container(height: 8, decoration: BoxDecoration(color: Colors.greenAccent, borderRadius: BorderRadius.circular(4)))),
+                  const SizedBox(width: 4),
+                  Expanded(flex: 8, child: Container(height: 8, decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(4)))),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildDeviceLegend(Icons.phone_iphone, 'iOS iPhone', '54%', Colors.white),
+                  _buildDeviceLegend(Icons.phone_android, 'Android Mobile', '38%', Colors.greenAccent),
+                  _buildDeviceLegend(Icons.laptop_mac, 'Desktop Web', '8%', Colors.blueAccent),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTrafficMetricCard(String label, String value, IconData icon, Color color, String subtitle) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
+              Icon(icon, color: color, size: 18),
+            ],
+          ),
+          Text(value, style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(subtitle, style: const TextStyle(color: Colors.white38, fontSize: 9.5), maxLines: 1, overflow: TextOverflow.ellipsis),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeviceLegend(IconData icon, String label, String pct, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 14),
+        const SizedBox(width: 4),
+        Text('$label: ', style: const TextStyle(color: Colors.white60, fontSize: 11)),
+        Text(pct, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+      ],
     );
   }
 

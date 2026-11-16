@@ -45,7 +45,7 @@ class AboutScreen extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'GoChef • Version 2.1.0',
+                'GoChef • Version 2.1.1',
                 style: AppTextStyles.labelSm(color: Colors.white70).copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),

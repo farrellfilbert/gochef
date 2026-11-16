@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/api_service.dart';
@@ -26,6 +27,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   bool _isFavorite = false;
   bool _isAddingToCart = false;
   late Future<MenuItemModel?> _menuItemFuture;
+  List<String> _userAllergies = [];
   
   // Track selected addons
   final Set<int> _selectedAddonIds = {};
@@ -35,6 +37,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   void initState() {
     super.initState();
     _menuItemFuture = ApiService.getMenuDetail(widget.menuItemId);
+    _loadUserAllergies();
     ApiService.getFavorites(type: 'dish').then((favs) {
       if (mounted) {
         setState(() {
@@ -56,6 +59,34 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
     _scrollController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadUserAllergies() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = prefs.getStringList('user_allergies') ?? [];
+      if (mounted) setState(() => _userAllergies = list);
+    } catch (_) {}
+  }
+
+  String? _getAllergenConflict(MenuItemModel item) {
+    if (_userAllergies.isEmpty) return null;
+    final text = '${item.name} ${item.description} ${item.dietaryTags.join(" ")}'.toLowerCase();
+    for (var allergy in _userAllergies) {
+      final clean = allergy.toLowerCase().trim();
+      if (clean.isEmpty) continue;
+      if (text.contains(clean)) return allergy;
+      if (clean.contains('peanut') && text.contains('peanut')) return 'Peanuts';
+      if (clean.contains('nut') && (text.contains('nut') || text.contains('almond') || text.contains('walnut') || text.contains('cashew'))) return 'Tree Nuts';
+      if (clean.contains('dairy') && (text.contains('dairy') || text.contains('milk') || text.contains('cheese') || text.contains('cream') || text.contains('butter'))) return 'Dairy';
+      if (clean.contains('gluten') && (text.contains('gluten') || text.contains('wheat') || text.contains('flour') || text.contains('bread') || text.contains('pasta'))) return 'Gluten';
+      if (clean.contains('egg') && text.contains('egg')) return 'Eggs';
+      if (clean.contains('shellfish') && (text.contains('shellfish') || text.contains('shrimp') || text.contains('crab') || text.contains('lobster'))) return 'Shellfish';
+      if (clean.contains('fish') && text.contains('fish')) return 'Fish';
+      if (clean.contains('soy') && (text.contains('soy') || text.contains('tofu'))) return 'Soy';
+      if (clean.contains('sesame') && text.contains('sesame')) return 'Sesame';
+    }
+    return null;
   }
 
   void _toggleAddon(MenuAddonCategoryModel category, MenuAddonModel addon) {
@@ -680,7 +711,17 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.add, color: AppColors.onSurface),
                                   onPressed: () {
-                                    setState(() => _quantity++);
+                                    final maxPortions = item.remainingPortions;
+                                    if (_quantity < maxPortions) {
+                                      setState(() => _quantity++);
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Only $maxPortions portion(s) remaining for today.'),
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
                                   },
                                 ),
                               ],
@@ -689,67 +730,88 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                           const SizedBox(width: 16),
                           // Add to Cart Button
                           Expanded(
-                            child: GestureDetector(
-                              onTap: !item.isAvailable ? null : () {
-                                  bool canAddToCart = true;
-                                  if (item.addonCategories != null) {
-                                    for (var cat in item.addonCategories!) {
-                                      if (cat.isRequired) {
-                                        bool hasSelection = cat.options.any((opt) => _selectedAddonIds.contains(opt.id));
-                                        if (!hasSelection) {
-                                          canAddToCart = false;
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Please select an option for ${cat.name}')),
-                                          );
-                                          break;
+                            child: Builder(builder: (btnCtx) {
+                              final allergenConflict = _getAllergenConflict(item);
+                              final isSoldOut = !item.isAvailable || item.remainingPortions <= 0;
+                              final isBlocked = isSoldOut || allergenConflict != null;
+
+                              return GestureDetector(
+                                onTap: isBlocked ? () {
+                                  if (allergenConflict != null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('⚠️ Allergy Alert: Contains $allergenConflict which is in your foodie allergy profile.'),
+                                        backgroundColor: AppColors.error,
+                                      ),
+                                    );
+                                  }
+                                } : () {
+                                    bool canAddToCart = true;
+                                    if (item.addonCategories != null) {
+                                      for (var cat in item.addonCategories!) {
+                                        if (cat.isRequired) {
+                                          bool hasSelection = cat.options.any((opt) => _selectedAddonIds.contains(opt.id));
+                                          if (!hasSelection) {
+                                            canAddToCart = false;
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Please select an option for ${cat.name}')),
+                                            );
+                                            break;
+                                          }
                                         }
                                       }
                                     }
-                                  }
 
-                                  if (canAddToCart) {
-                                    _addToCart(item);
-                                  }
-                              },
-                              child: Container(
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: !item.isAvailable ? Colors.white12 : AppColors.primary,
-                                  borderRadius: BorderRadius.circular(28),
-                                  boxShadow: !item.isAvailable ? [] : [
-                                    BoxShadow(
-                                      color: AppColors.primary.withValues(alpha: 0.3),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    )
-                                  ],
-                                ),
-                                child: _isAddingToCart
-                                    ? const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Added!',
-                                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                                          ),
-                                        ],
+                                    if (canAddToCart) {
+                                      _addToCart(item);
+                                    }
+                                },
+                                child: Container(
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: isBlocked ? Colors.white12 : AppColors.primary,
+                                    borderRadius: BorderRadius.circular(28),
+                                    border: allergenConflict != null ? Border.all(color: Colors.redAccent.withValues(alpha: 0.5)) : null,
+                                    boxShadow: isBlocked ? [] : [
+                                      BoxShadow(
+                                        color: AppColors.primary.withValues(alpha: 0.3),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
                                       )
-                                    : Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(!item.isAvailable ? Icons.block : Icons.shopping_cart, color: !item.isAvailable ? Colors.white38 : AppColors.onPrimary),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            !item.isAvailable ? 'Out of Stock' : 'Add • \$${totalPrice.toStringAsFixed(2)}',
-                                            style: AppTextStyles.bodyLg(color: !item.isAvailable ? Colors.white38 : AppColors.onPrimary)
-                                                .copyWith(fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                              ),
-                            ),
+                                    ],
+                                  ),
+                                  child: _isAddingToCart
+                                      ? const Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              'Added!',
+                                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                            ),
+                                          ],
+                                        )
+                                      : Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              allergenConflict != null ? Icons.warning_amber_rounded : (isSoldOut ? Icons.block : Icons.shopping_cart),
+                                              color: allergenConflict != null ? Colors.redAccent : (isSoldOut ? Colors.white38 : AppColors.onPrimary),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              allergenConflict != null
+                                                  ? 'Contains $allergenConflict'
+                                                  : (isSoldOut ? 'Sold Out Today' : 'Add • \$${totalPrice.toStringAsFixed(2)}'),
+                                              style: AppTextStyles.bodyLg(color: allergenConflict != null ? Colors.redAccent : (isSoldOut ? Colors.white38 : AppColors.onPrimary))
+                                                  .copyWith(fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                ),
+                              );
+                            }),
                           ),
                         ],
                       ),

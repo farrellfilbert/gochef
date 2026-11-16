@@ -45,6 +45,7 @@ class ProfileData {
 class _UserProfileScreenState extends State<UserProfileScreen> {
   late Future<ProfileData> _profileFuture;
   Set<String> _claimedPerks = {};
+  List<String> _userAllergies = [];
 
   @override
   void initState() {
@@ -71,9 +72,193 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       totalVouchers = prefs.getInt('user_vouchers_$userId') ?? 25;
       final claimedList = prefs.getStringList('user_claimed_perks_$userId') ?? [];
       _claimedPerks = claimedList.toSet();
+      _userAllergies = prefs.getStringList('user_allergies') ?? [];
     } catch (_) {}
 
     return ProfileData(user, orders, bonusCoins: bonusCoins, totalVouchers: totalVouchers);
+  }
+
+  // ==========================================
+  // FOOD ALLERGIES & SAFETY MODAL
+  // ==========================================
+  void _showAllergiesDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final allAvailableAllergens = [
+      'Peanuts',
+      'Tree Nuts',
+      'Dairy / Milk',
+      'Gluten / Wheat',
+      'Eggs',
+      'Shellfish',
+      'Fish',
+      'Soy',
+      'Sesame',
+    ];
+    List<String> currentSelected = List<String>.from(_userAllergies);
+
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Container(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF161922) : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.health_and_safety, color: AppColors.primary, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Food Allergies & Safety',
+                              style: TextStyle(
+                                color: isDark ? Colors.white : const Color(0xFF1E232E),
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Network-wide meal safety blocking',
+                              style: TextStyle(
+                                color: isDark ? Colors.white60 : Colors.black54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 18),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Select any allergens you must avoid. GoChef will automatically disable and restrict ordering for any meals in the entire network containing these ingredients.',
+                            style: TextStyle(color: Colors.amber, fontSize: 12, height: 1.3),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: allAvailableAllergens.map((allergen) {
+                      final isSelected = currentSelected.contains(allergen);
+                      return FilterChip(
+                        selected: isSelected,
+                        label: Text(
+                          allergen,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontSize: 13,
+                          ),
+                        ),
+                        selectedColor: AppColors.primary,
+                        backgroundColor: isDark ? const Color(0xFF222632) : const Color(0xFFF1F5F9),
+                        checkmarkColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: isSelected ? AppColors.primary : (isDark ? Colors.white12 : Colors.black12),
+                          ),
+                        ),
+                        onSelected: (selected) {
+                          setModalState(() {
+                            if (selected) {
+                              currentSelected.add(allergen);
+                            } else {
+                              currentSelected.remove(allergen);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await prefs.setStringList('user_allergies', currentSelected);
+                        if (mounted) {
+                          setState(() {
+                            _userAllergies = currentSelected;
+                          });
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                currentSelected.isEmpty
+                                    ? 'Allergies updated: No restrictions set.'
+                                    : 'Saved ${currentSelected.length} allergy restriction(s). Network meals restricted!',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: const Text('Save Safety Preferences', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   // ==========================================
@@ -1596,6 +1781,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.location_on, 'Delivery Addresses', () {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressSelectionScreen(isSelectionMode: false)));
+                        }),
+                        Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
+                        _buildListTile(Icons.health_and_safety_outlined, 'Food Allergies & Safety', () {
+                          _showAllergiesDialog();
                         }),
                         Divider(color: isDark ? AppColors.outlineVariant.withValues(alpha: 0.1) : const Color(0xFFE2E5EA), height: 1),
                         _buildListTile(Icons.card_giftcard, 'Invite Neighbors & Earn \$10', () {

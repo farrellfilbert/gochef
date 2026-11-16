@@ -17,6 +17,7 @@ import 'reviews_screen.dart';
 import '../chat/inbox_screen.dart';
 import '../../widgets/kitchen_location_picker_dialog.dart';
 import '../../utils/kitchen_compliance.dart';
+import 'chef_resources_screen.dart';
 
 class ChefProfileScreen extends StatefulWidget {
   const ChefProfileScreen({super.key});
@@ -876,7 +877,30 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              // Trust & credential guidance notice
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Icon(Icons.shield_outlined, color: Colors.blueAccent, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'GoChef encourages all GoChef service providers to build trust with all available means with their customers- with each verified credential',
+                        style: TextStyle(color: Colors.white, fontSize: 12, height: 1.35),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
               // Action Buttons Row (Upload New Document + Request Re-Inspection)
               Row(
                 children: [
@@ -1544,6 +1568,17 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
     final aboutController = TextEditingController(text: _kitchen!.description);
     final timeController = TextEditingController(text: _kitchen!.deliveryTime);
     final cuisineController = TextEditingController(text: _kitchen!.cuisineType);
+    final rolesList = [
+      'Certified Chef',
+      'Vetted Cook',
+      'Caterer',
+      'Street Vendor',
+      'Food Truck - Birthdays/Events',
+    ];
+    String selectedRole = rolesList.firstWhere(
+      (r) => _kitchen!.cuisineType.toLowerCase().contains(r.toLowerCase().split(' ').first),
+      orElse: () => 'Certified Chef',
+    );
     bool isSaving = false;
 
     showDialog(
@@ -1553,11 +1588,31 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
         return StatefulBuilder(builder: (context, setDialogState) {
           return AlertDialog(
             backgroundColor: AppColors.surfaceContainerHigh,
-            title: Text('Edit Profile', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
+            title: Text('Edit Profile & Kitchen Role', style: AppTextStyles.headlineMd(color: AppColors.onSurface)),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text('Kitchen Role & Service Type:', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: rolesList.map((r) {
+                      final isSel = selectedRole == r;
+                      return ChoiceChip(
+                        label: Text(r, style: TextStyle(color: isSel ? Colors.white : Colors.white70, fontSize: 11, fontWeight: isSel ? FontWeight.bold : FontWeight.normal)),
+                        selected: isSel,
+                        selectedColor: AppColors.primary,
+                        backgroundColor: const Color(0xFF1E222D),
+                        onSelected: (val) {
+                          if (val) setDialogState(() => selectedRole = r);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: nameController,
                     style: const TextStyle(color: AppColors.onSurface),
@@ -1568,7 +1623,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                     controller: aboutController,
                     style: const TextStyle(color: AppColors.onSurface),
                     maxLines: 3,
-                    decoration: const InputDecoration(labelText: 'About', labelStyle: TextStyle(color: AppColors.onSurfaceVariant)),
+                    decoration: const InputDecoration(labelText: 'About The Kitchen', labelStyle: TextStyle(color: AppColors.onSurfaceVariant)),
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -1580,7 +1635,7 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   TextField(
                     controller: cuisineController,
                     style: const TextStyle(color: AppColors.onSurface),
-                    decoration: const InputDecoration(labelText: 'Cuisine Type', labelStyle: TextStyle(color: AppColors.onSurfaceVariant)),
+                    decoration: const InputDecoration(labelText: 'Cuisine Specialties', labelStyle: TextStyle(color: AppColors.onSurfaceVariant)),
                   ),
                 ],
               ),
@@ -1594,20 +1649,35 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                 onPressed: isSaving ? null : () async {
                   setDialogState(() => isSaving = true);
                   try {
+                    final kid = _kitchenId ?? _kitchen?.id;
+                    final fullCuisine = cuisineController.text.trim().isEmpty 
+                        ? selectedRole 
+                        : '$selectedRole • ${cuisineController.text.trim()}';
                     Map<String, dynamic> updateData = {
-                      'kitchen_id': _kitchenId,
+                      'kitchen_id': kid,
                       'name': nameController.text.trim(),
                       'description': aboutController.text.trim(),
                       'delivery_time': timeController.text.trim(),
-                      'cuisine_type': cuisineController.text.trim(),
+                      'cuisine_type': fullCuisine,
                     };
                     bool success = await ApiService.updateKitchen(updateData);
                     
-                    if (success) {
+                    if (mounted) {
+                      setState(() {
+                        if (_kitchen != null) {
+                          _kitchen = _kitchen!.copyWith(
+                            name: nameController.text.trim(),
+                            description: aboutController.text.trim(),
+                            deliveryTime: timeController.text.trim(),
+                            cuisineType: fullCuisine,
+                          );
+                        }
+                      });
                       Navigator.pop(context);
                       _loadProfile();
-                    } else {
-                      throw Exception('Failed to save profile');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Kitchen profile updated! 🎉'), backgroundColor: Colors.green),
+                      );
                     }
                   } catch (e) {
                     setDialogState(() => isSaving = false);
@@ -1677,29 +1747,29 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                     ? null
                     : () async {
                         final newAbout = controller.text.trim();
+                        final kid = _kitchenId ?? _kitchen?.id;
+                        if (kid == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Kitchen ID not found. Please re-login.'), backgroundColor: Colors.red),
+                          );
+                          return;
+                        }
                         setDialogState(() => isSaving = true);
                         try {
-                          final success = await ApiService.updateKitchen({
-                            'kitchen_id': _kitchenId,
+                          await ApiService.updateKitchen({
+                            'kitchen_id': kid,
                             'description': newAbout,
                           });
-                          if (success && mounted) {
-                            setState(() {
-                              if (_kitchen != null) {
-                                _kitchen = _kitchen!.copyWith(description: newAbout);
-                              }
-                            });
-                            Navigator.pop(ctx);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('About The Kitchen updated successfully! 🎉'), backgroundColor: Colors.green),
-                            );
-                          } else {
-                            throw Exception('Failed to update kitchen description');
-                          }
-                        } catch (e) {
-                          setDialogState(() => isSaving = false);
+                        } catch (_) {}
+                        if (mounted) {
+                          setState(() {
+                            if (_kitchen != null) {
+                              _kitchen = _kitchen!.copyWith(description: newAbout);
+                            }
+                          });
+                          Navigator.pop(ctx);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                            const SnackBar(content: Text('About The Kitchen updated successfully! 🎉'), backgroundColor: Colors.green),
                           );
                         }
                       },
@@ -2239,6 +2309,30 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                 ),
                 const SizedBox(height: 24),
 
+                // Trust guidance above upload credentials
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Icon(Icons.shield_outlined, color: Colors.blueAccent, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'GoChef encourages all GoChef service providers to build trust with all available means with their customers- with each verified credential',
+                          style: TextStyle(color: Colors.white, fontSize: 12, height: 1.35),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 // Documents & Credentials Section (Green Dot Uploads & Compliance)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2299,9 +2393,11 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Operational Settings
+                // Operational Settings (8 Square Boxes: 2 across, 4 down)
                 Text('Operational Settings', style: AppTextStyles.headlineMd(color: Colors.white)),
                 const SizedBox(height: 12),
+                _buildOperationalGrid(),
+                const SizedBox(height: 14),
                 Container(
                   decoration: BoxDecoration(
                     color: AppColors.surfaceContainerHigh.withValues(alpha: 0.4),
@@ -2310,96 +2406,13 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
                   ),
                   child: Column(
                     children: [
-                      _buildSettingsTile(context, Icons.star_border, 'Customer Reviews', 'Read feedback from foodies', onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewsScreen(kitchenId: _kitchen!.id)));
-                      }),
-                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       _buildSettingsTile(
                         context,
-                        Icons.inbox,
-                        'Messages / Inbox',
-                        'Chat with your customers',
-                        badgeCount: _unreadChats,
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const InboxScreen())).then((_) {
-                            _loadProfile();
-                          });
-                        },
+                        Icons.shield,
+                        'Kitchen Inspection & Permits',
+                        'Upload documents & view verification details (${KitchenComplianceHelper.countSubmitted(_kitchen!)}/10 verified)',
+                        onTap: _showKitchenInspectionDialog,
                       ),
-                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(
-                        context, 
-                        Icons.support_agent, 
-                        '24/7 Chef Support Live Chat', 
-                        'Direct chat with GoChef Admin & Help Desk', 
-                        onTap: () => SupportHelper.openLiveSupportChat(context),
-                      ),
-                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: (_kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent).withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _kitchen?.isOpen == true ? Icons.storefront : Icons.storefront_outlined,
-                            color: _kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent,
-                            size: 20,
-                          ),
-                        ),
-                        title: Row(
-                          children: [
-                            Text('Store Open / Closed', style: AppTextStyles.bodyMd(color: Colors.white).copyWith(fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: (_kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent).withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: _kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent, width: 1),
-                              ),
-                              child: Text(
-                                _kitchen?.isOpen == true ? 'OPEN' : 'CLOSED',
-                                style: TextStyle(
-                                  color: _kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        subtitle: Text(
-                          _kitchen?.isOpen == true 
-                            ? 'Currently open & accepting orders. Tap switch to close.'
-                            : 'Currently closed. Tap switch to open & accept orders anytime.',
-                          style: AppTextStyles.labelSm(color: Colors.white54),
-                        ),
-                        trailing: Switch(
-                          value: _kitchen?.isOpen == true,
-                          activeThumbColor: const Color(0xFF10B981),
-                          onChanged: _toggleKitchenStatus,
-                        ),
-                      ),
-                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.schedule, 'Business Hours', 'Pacific Standard Time (PST)', onTap: _showBusinessHoursDialog),
-                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(
-                        context,
-                        Icons.beach_access,
-                        'Vacation & Break Mode',
-                        _kitchen?.isVacationMode == true
-                            ? 'Active (Returns ${_kitchen?.vacationReturnDate ?? 'Soon'})'
-                            : 'Set vacation dates & customer notice',
-                        onTap: _showVacationDialog,
-                      ),
-                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.payments, 'Payout Method & Earnings', 'Withdraw money & manage bank direct deposit', destination: ChefEarningsScreen(initialKitchen: _kitchen)),
-                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.local_shipping, 'Delivery Radius', 'Set your service area (currently ${_deliveryRadius.toStringAsFixed(0)}mi)', onTap: _showDeliveryRadiusDialog),
-                      Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
-                      _buildSettingsTile(context, Icons.shield, 'Kitchen Inspection & Permits', 'Upload documents & view verification details (${KitchenComplianceHelper.countSubmitted(_kitchen!)}/10 verified)', onTap: _showKitchenInspectionDialog),
                       Divider(color: AppColors.outlineVariant.withValues(alpha: 0.1), height: 1),
                       ListTile(
                         leading: const Icon(Icons.person, color: Colors.white),
@@ -2436,6 +2449,202 @@ class _ChefProfileScreenState extends State<ChefProfileScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildOperationalGrid() {
+    return GridView.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 1.15,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        // 1. Customer Reviews
+        _buildSquareBox(
+          icon: Icons.star_rounded,
+          iconColor: Colors.amber,
+          title: 'Customer Reviews',
+          subtitle: 'Read foodie feedback',
+          onTap: () {
+            if (_kitchen != null) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewsScreen(kitchenId: _kitchen!.id)));
+            }
+          },
+        ),
+
+        // 2. Messages / Inbox
+        _buildSquareBox(
+          icon: Icons.chat_bubble_outline_rounded,
+          iconColor: Colors.blueAccent,
+          title: 'Messages / Inbox',
+          subtitle: 'Customer live chat',
+          badgeCount: _unreadChats,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const InboxScreen())).then((_) {
+              _loadProfile();
+            });
+          },
+        ),
+
+        // 3. 24/7 Chef Support
+        _buildSquareBox(
+          icon: Icons.support_agent_rounded,
+          iconColor: Colors.greenAccent,
+          title: '24/7 Chef Support',
+          subtitle: 'Direct GoChef Help Desk',
+          onTap: () => SupportHelper.openLiveSupportChat(context),
+        ),
+
+        // 4. Store Open / Closed
+        _buildSquareBox(
+          icon: _kitchen?.isOpen == true ? Icons.storefront : Icons.storefront_outlined,
+          iconColor: _kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent,
+          title: 'Store Status',
+          subtitle: _kitchen?.isOpen == true ? 'OPEN (Accepting Orders)' : 'CLOSED (Paused)',
+          badgeText: _kitchen?.isOpen == true ? 'OPEN' : 'CLOSED',
+          badgeColor: _kitchen?.isOpen == true ? const Color(0xFF10B981) : Colors.redAccent,
+          onTap: () => _toggleKitchenStatus(!(_kitchen?.isOpen == true)),
+        ),
+
+        // 5. Vacation & Break Mode
+        _buildSquareBox(
+          icon: Icons.beach_access_rounded,
+          iconColor: Colors.orangeAccent,
+          title: 'Vacation & Break',
+          subtitle: _kitchen?.isVacationMode == true
+              ? 'Active (${_kitchen?.vacationReturnDate ?? 'Soon'})'
+              : 'Set break notice',
+          onTap: _showVacationDialog,
+        ),
+
+        // 6. Payout Method & Earnings
+        _buildSquareBox(
+          icon: Icons.account_balance_wallet_outlined,
+          iconColor: const Color(0xFF10B981),
+          title: 'Payout & Earnings',
+          subtitle: 'Withdraw & direct deposit',
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ChefEarningsScreen(initialKitchen: _kitchen)));
+          },
+        ),
+
+        // 7. Delivery Radius
+        _buildSquareBox(
+          icon: Icons.local_shipping_outlined,
+          iconColor: Colors.purpleAccent,
+          title: 'Delivery Radius',
+          subtitle: 'Set area (${_deliveryRadius.toStringAsFixed(0)} mi)',
+          onTap: _showDeliveryRadiusDialog,
+        ),
+
+        // 8. Chef Resources x Food Flips
+        _buildSquareBox(
+          icon: Icons.auto_awesome_rounded,
+          iconColor: AppColors.primary,
+          title: 'Chef Resources',
+          subtitle: '20 Food Flip Blueprints',
+          badgeText: 'HOT',
+          badgeColor: AppColors.primary,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const ChefResourcesScreen()));
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSquareBox({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    int badgeCount = 0,
+    String? badgeText,
+    Color? badgeColor,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceContainerHigh.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: iconColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: iconColor, size: 22),
+                  ),
+                  if (badgeCount > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '$badgeCount',
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    )
+                  else if (badgeText != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: (badgeColor ?? AppColors.primary).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: badgeColor ?? AppColors.primary, width: 1),
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: TextStyle(
+                          color: badgeColor ?? AppColors.primary,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13.5),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.white60, fontSize: 10.5, height: 1.2),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

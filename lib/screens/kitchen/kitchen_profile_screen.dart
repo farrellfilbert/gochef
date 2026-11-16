@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'reviews_ratings_screen.dart';
@@ -27,6 +28,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
   int _cartCount = 0;
   String? _currentUserId;
   late Future<KitchenModel?> _kitchenFuture;
+  List<String> _userAllergies = [];
 
   bool _isLocationUnlocked(KitchenModel kitchen) {
     if (kitchen.hasPurchased) return true;
@@ -39,6 +41,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
     super.initState();
     _kitchenFuture = ApiService.getKitchenDetail(widget.kitchenId);
     _loadCartCount();
+    _loadUserAllergies();
     ApiService.getUserId().then((uid) {
       if (mounted) setState(() => _currentUserId = uid);
     });
@@ -66,6 +69,34 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
     if (mounted) {
       setState(() => _cartCount = cart.length);
     }
+  }
+
+  Future<void> _loadUserAllergies() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = prefs.getStringList('user_allergies') ?? [];
+      if (mounted) setState(() => _userAllergies = list);
+    } catch (_) {}
+  }
+
+  String? _getAllergenConflict(MenuItemModel item) {
+    if (_userAllergies.isEmpty) return null;
+    final text = '${item.name} ${item.description} ${item.dietaryTags.join(" ")}'.toLowerCase();
+    for (var allergy in _userAllergies) {
+      final clean = allergy.toLowerCase().trim();
+      if (clean.isEmpty) continue;
+      if (text.contains(clean)) return allergy;
+      if (clean.contains('peanut') && text.contains('peanut')) return 'Peanuts';
+      if (clean.contains('nut') && (text.contains('nut') || text.contains('almond') || text.contains('walnut') || text.contains('cashew'))) return 'Tree Nuts';
+      if (clean.contains('dairy') && (text.contains('dairy') || text.contains('milk') || text.contains('cheese') || text.contains('cream') || text.contains('butter'))) return 'Dairy';
+      if (clean.contains('gluten') && (text.contains('gluten') || text.contains('wheat') || text.contains('flour') || text.contains('bread') || text.contains('pasta'))) return 'Gluten';
+      if (clean.contains('egg') && text.contains('egg')) return 'Eggs';
+      if (clean.contains('shellfish') && (text.contains('shellfish') || text.contains('shrimp') || text.contains('crab') || text.contains('lobster'))) return 'Shellfish';
+      if (clean.contains('fish') && text.contains('fish')) return 'Fish';
+      if (clean.contains('soy') && (text.contains('soy') || text.contains('tofu'))) return 'Soy';
+      if (clean.contains('sesame') && text.contains('sesame')) return 'Sesame';
+    }
+    return null;
   }
 
   @override
@@ -268,11 +299,11 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                               ),
                               if (kitchen.certificates.isNotEmpty || kitchen.isVerified)
                                 Positioned(
-                                  top: -2,
-                                  right: -2,
+                                  top: -6,
+                                  right: -4,
                                   child: Container(
-                                    width: 20,
-                                    height: 20,
+                                    width: 22,
+                                    height: 22,
                                     decoration: BoxDecoration(
                                       color: Colors.greenAccent,
                                       shape: BoxShape.circle,
@@ -286,7 +317,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                       ],
                                     ),
                                     child: const Center(
-                                      child: Icon(Icons.check, size: 11, color: Colors.black),
+                                      child: Icon(Icons.check, size: 12, color: Colors.black),
                                     ),
                                   ),
                                 ),
@@ -295,55 +326,51 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                         ),
                             const SizedBox(width: 16),
                             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                              Text(
-                                kitchen.chefName.isNotEmpty
-                                    ? 'CHEF ${kitchen.formattedChefName.toUpperCase()}'
-                                    : (kitchen.description.contains('created by')
-                                        ? 'CHEF ${kitchen.description.split('created by')[1].split(',')[0].trim().toUpperCase()}'
-                                        : (kitchen.cuisineType.isNotEmpty ? kitchen.cuisineType.toUpperCase() : 'CHEF')),
-                                style: AppTextStyles.labelMono(color: AppColors.primary).copyWith(letterSpacing: 1, fontSize: 11, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 2),
                               Row(
                                 children: [
-                                  Flexible(
-                                    child: Text(kitchen.name, style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface).copyWith(height: 1.15), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  Text(
+                                    kitchen.chefName.isNotEmpty
+                                        ? 'CHEF ${kitchen.formattedChefName.toUpperCase()}'
+                                        : (kitchen.description.contains('created by')
+                                            ? 'CHEF ${kitchen.description.split('created by')[1].split(',')[0].trim().toUpperCase()}'
+                                            : (kitchen.cuisineType.isNotEmpty ? kitchen.cuisineType.toUpperCase() : 'CHEF')),
+                                    style: AppTextStyles.labelMono(color: AppColors.primary).copyWith(letterSpacing: 1, fontSize: 11, fontWeight: FontWeight.bold),
                                   ),
-                                  const SizedBox(width: 8),
-                                  _buildPaperworkButton(context, kitchen),
-                                  if (kitchen.certificates.isNotEmpty || kitchen.isVerified) ...[
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.greenAccent.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Container(
-                                            width: 7,
-                                            height: 7,
-                                            decoration: BoxDecoration(
-                                              color: Colors.greenAccent,
-                                              shape: BoxShape.circle,
-                                              boxShadow: [
-                                                BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.9), blurRadius: 4),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          const Text(
-                                            'Verified',
-                                            style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
+                                  const SizedBox(width: 6),
+                                  // SUPER CHEF Badge (Purple Label with Yellow Text)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF6B21A8),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: const Color(0xFFFACC15), width: 1),
+                                      boxShadow: [
+                                        BoxShadow(color: const Color(0xFF6B21A8).withValues(alpha: 0.5), blurRadius: 4),
+                                      ],
                                     ),
-                                  ],
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.star, color: Color(0xFFFACC15), size: 10),
+                                        SizedBox(width: 3),
+                                        Text(
+                                          'SUPER CHEF',
+                                          style: TextStyle(color: Color(0xFFFACC15), fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  _buildPaperworkButton(context, kitchen),
                                 ],
+                              ),
+                              const SizedBox(height: 4),
+                              // Full Kitchen Name - unclipped visibility
+                              Text(
+                                kitchen.name,
+                                style: AppTextStyles.headlineLgMobile(color: AppColors.onSurface).copyWith(height: 1.15),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               if (kitchen.location.isNotEmpty) ...[
                                 const SizedBox(height: 4),
@@ -625,8 +652,30 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                     ],
                   ]),
                 ),
+                // Atmosphere Gallery
+                if (kitchen.atmosphereImages.isNotEmpty) ...[
+                  Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Text('Atmosphere', style: AppTextStyles.headlineMd(color: AppColors.onSurface))),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 140,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: kitchen.atmosphereImages.map((img) => _buildPhotoItem(context, img)).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+                // Signature Menu
+                Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Text('Signature Menu', style: AppTextStyles.headlineMd(color: AppColors.onSurface))),
+                const SizedBox(height: 16),
+                if (kitchen.menuItems != null)
+                  ...kitchen.menuItems!.map((item) => Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
+                    child: _buildMenuCard(context: context, menuItem: item, kitchenName: kitchen.name),
+                  )),
                 const SizedBox(height: 32),
-                // Verified Credentials & Safety Standards (Green Dot / Grey Dot Checklist)
+                // Verified Credentials & Safety Standards (Moved under menu items at the bottom)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -693,29 +742,6 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
-                // Atmosphere Gallery
-                if (kitchen.atmosphereImages.isNotEmpty) ...[
-                  Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Text('Atmosphere', style: AppTextStyles.headlineMd(color: AppColors.onSurface))),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 140,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      children: kitchen.atmosphereImages.map((img) => _buildPhotoItem(context, img)).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                ],
-                // Menu
-                Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Text('Signature Menu', style: AppTextStyles.headlineMd(color: AppColors.onSurface))),
-                const SizedBox(height: 16),
-                if (kitchen.menuItems != null)
-                  ...kitchen.menuItems!.map((item) => Padding(
-                    padding: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
-                    child: _buildMenuCard(context: context, menuItem: item, kitchenName: kitchen.name),
-                  )),
                 const SizedBox(height: 80), // Extra space for floating cart bar
               ]),
             ),
@@ -1470,17 +1496,68 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                       )).toList(),
                     ),
                   ],
-                  if (menuItem.isLowStock) ...[
-                    const SizedBox(height: 4),
+                  // 1. Portion left indicator
+                  const SizedBox(height: 6),
+                  if (menuItem.remainingPortions <= 0 || !menuItem.isAvailable)
                     Row(
                       children: [
-                        const Icon(Icons.bolt, color: Colors.amber, size: 12),
-                        const SizedBox(width: 2),
-                        Text(
-                          'Only ${menuItem.remainingPortions} left today!',
-                          style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+                          ),
+                          child: const Text('Sold Out For Today', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                         ),
                       ],
+                    )
+                  else
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: (menuItem.isLowStock ? Colors.amber : Colors.greenAccent).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: (menuItem.isLowStock ? Colors.amber : Colors.greenAccent).withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(menuItem.isLowStock ? Icons.bolt : Icons.inventory_2_outlined, color: menuItem.isLowStock ? Colors.amber : Colors.greenAccent, size: 11),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${menuItem.remainingPortions} left today',
+                                style: TextStyle(color: menuItem.isLowStock ? Colors.amber : Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                  // 2. Allergen conflict badge (if foodie has allergy for this meal)
+                  if (_getAllergenConflict(menuItem) != null) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Contains ${_getAllergenConflict(menuItem)!} (Allergy Alert)',
+                            style: const TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                   const SizedBox(height: 10),
@@ -1539,8 +1616,21 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                               ),
                             ),
                           ),
-                          // Add to cart button or Out of stock badge
-                          if (!menuItem.isAvailable)
+                          // Add to cart button or Out of stock / Allergy blocked badge
+                          if (_getAllergenConflict(menuItem) != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                              ),
+                              child: const Text(
+                                'Allergy Restricted',
+                                style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            )
+                          else if (!menuItem.isAvailable || menuItem.remainingPortions <= 0)
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
@@ -1549,7 +1639,7 @@ class _KitchenProfileScreenState extends State<KitchenProfileScreen> {
                                 border: Border.all(color: Colors.white24),
                               ),
                               child: Text(
-                                'Out of stock',
+                                'Sold Out',
                                 style: AppTextStyles.labelSm(color: Colors.white54).copyWith(fontSize: 11, fontWeight: FontWeight.w600),
                               ),
                             )

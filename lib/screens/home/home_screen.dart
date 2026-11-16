@@ -34,6 +34,16 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _selectedDietaryTag;
   double? _maxPriceFilter;
   double _dummyDistance = 5.0; // km
+  String _selectedChefRole = 'All Chefs';
+
+  final List<String> _chefRoles = const [
+    'All Chefs',
+    'Certified Chef',
+    'Vetted Cook',
+    'Caterer',
+    'Street Vendor',
+    'Food Truck - Birthdays/Events',
+  ];
 
   final List<Map<String, String>> _dietaryFilters = const [
     {'label': 'All Diets', 'tag': ''},
@@ -289,6 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -307,17 +318,60 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
+                            // Everyone is a Chef: Role Filters
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(
-                                children: featuredKitchens.map((k) {
-                                  return _buildFeaturedKitchen(
-                                    context: context,
-                                    kitchen: k,
+                                children: _chefRoles.map((role) {
+                                  final isSel = _selectedChefRole == role;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedChefRole = role;
+                                        });
+                                      },
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: isSel ? AppColors.primary : const Color(0xFF1E232E),
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(color: isSel ? AppColors.primary : Colors.white12),
+                                        ),
+                                        child: Text(
+                                          role,
+                                          style: TextStyle(
+                                            color: isSel ? Colors.white : Colors.white70,
+                                            fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                                            fontSize: 11.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   );
                                 }).toList(),
                               ),
+                            ),
+                            const SizedBox(height: 16),
+                            Builder(
+                              builder: (context) {
+                                final filtered = featuredKitchens.where((k) => k.matchesRole(_selectedChefRole)).toList();
+                                final displayList = filtered.isNotEmpty ? filtered : featuredKitchens;
+                                return SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: displayList.map((k) {
+                                      return _buildFeaturedKitchen(
+                                        context: context,
+                                        kitchen: k,
+                                      );
+                                    }).toList(),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -512,6 +566,42 @@ class _HomeScreenState extends State<HomeScreen> {
                       fit: BoxFit.cover,
                     ),
                   ),
+                  if (kitchen.isSuperChef)
+                    Positioned(
+                      top: 14,
+                      left: 14,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6B21A8),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFFACC15), width: 1.2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF6B21A8).withValues(alpha: 0.5),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.stars, color: Color(0xFFFACC15), size: 12),
+                            SizedBox(width: 4),
+                            Text(
+                              'SUPER CHEF',
+                              style: TextStyle(
+                                color: Color(0xFFFACC15),
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   Positioned(
                     top: 16,
                     right: 16,

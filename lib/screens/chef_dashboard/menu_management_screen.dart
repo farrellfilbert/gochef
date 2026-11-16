@@ -93,6 +93,46 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
     }
   }
 
+  Future<void> _adjustItemQuantity(MenuItemModel item, int delta) async {
+    final currentQuota = item.dailyQuota;
+    final newQuota = (currentQuota + delta).clamp(0, 999);
+    if (newQuota == currentQuota) return;
+    final int kId = _kitchenId ?? item.kitchenId;
+    final bool willBeAvailable = newQuota > 0 ? item.isAvailable : false;
+
+    setState(() {
+      final idx = _menuItems.indexWhere((m) => m.id == item.id);
+      if (idx != -1) {
+        _menuItems[idx] = MenuItemModel(
+          id: item.id,
+          kitchenId: item.kitchenId,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          image: item.image,
+          rating: item.rating,
+          totalReviews: item.totalReviews,
+          prepTime: item.prepTime,
+          isAvailable: willBeAvailable,
+          isPopular: item.isPopular,
+          kitchenName: item.kitchenName,
+          kitchenAvatar: item.kitchenAvatar,
+          categoryId: item.categoryId,
+          calories: item.calories,
+          createdAt: item.createdAt,
+          categoryName: item.categoryName,
+          reviews: item.reviews,
+          addons: item.addons,
+          addonCategories: item.addonCategories,
+          dailyQuota: newQuota,
+          portionsSoldToday: item.portionsSoldToday,
+        );
+      }
+    });
+
+    await ApiService.updateMenuItemQuantity(item.id, kId, newQuota);
+  }
+
   InputDecoration _buildInputDecoration(String label, {IconData? prefixIcon}) {
     return InputDecoration(
       labelText: label,
@@ -118,6 +158,7 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
     final priceController = TextEditingController(text: item.price.toString());
     final caloriesController = TextEditingController(text: item.calories.toString());
     final prepTimeController = TextEditingController(text: item.prepTime.isNotEmpty ? item.prepTime : '15-20 min');
+    final quantityController = TextEditingController(text: item.dailyQuota.toString());
     XFile? selectedImage;
     bool isUploading = false;
     int? selectedCategoryId = item.categoryId > 0 ? item.categoryId : (_categories.isNotEmpty ? _categories.first.id : null);
@@ -248,10 +289,25 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: prepTimeController,
-                      style: const TextStyle(color: AppColors.onSurface),
-                      decoration: _buildInputDecoration('Prep & Delivery Time (e.g. 15-20 min)', prefixIcon: Icons.timer_outlined),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: prepTimeController,
+                            style: const TextStyle(color: AppColors.onSurface),
+                            decoration: _buildInputDecoration('Prep Time', prefixIcon: Icons.timer_outlined),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: quantityController,
+                            style: const TextStyle(color: AppColors.onSurface),
+                            keyboardType: TextInputType.number,
+                            decoration: _buildInputDecoration('Daily Quantity', prefixIcon: Icons.inventory_2_outlined),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     AddonCategoryManager(
@@ -311,6 +367,7 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                                   'price': double.parse(priceController.text),
                                   'calories': int.tryParse(caloriesController.text) ?? 650,
                                   'prep_time': prepTimeController.text.trim().isNotEmpty ? prepTimeController.text.trim() : '15-20 min',
+                                  'daily_quota': int.tryParse(quantityController.text) ?? item.dailyQuota,
                                   'image': selectedImage != null ? imageUrl : '',
                                   'addon_categories': addonCategories.map((c) => c.toJson()).toList(),
                                 });
@@ -358,6 +415,7 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
     final priceController = TextEditingController();
     final caloriesController = TextEditingController(text: '650');
     final prepTimeController = TextEditingController(text: '15-20 min');
+    final quantityController = TextEditingController(text: '20');
     XFile? selectedImage;
     bool isUploading = false;
     int? selectedCategoryId = _categories.isNotEmpty ? _categories.first.id : null;
@@ -495,10 +553,25 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: prepTimeController,
-                      style: const TextStyle(color: AppColors.onSurface),
-                      decoration: _buildInputDecoration('Prep & Delivery Time (e.g. 15-20 min)', prefixIcon: Icons.timer_outlined),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: prepTimeController,
+                            style: const TextStyle(color: AppColors.onSurface),
+                            decoration: _buildInputDecoration('Prep Time', prefixIcon: Icons.timer_outlined),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: quantityController,
+                            style: const TextStyle(color: AppColors.onSurface),
+                            keyboardType: TextInputType.number,
+                            decoration: _buildInputDecoration('Daily Quantity', prefixIcon: Icons.inventory_2_outlined),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     AddonCategoryManager(
@@ -553,6 +626,7 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                                       'price': double.parse(priceController.text),
                                       'calories': int.tryParse(caloriesController.text) ?? 650,
                                       'prep_time': prepTimeController.text.trim().isNotEmpty ? prepTimeController.text.trim() : '15-20 min',
+                                      'daily_quota': int.tryParse(quantityController.text) ?? 20,
                                       'image': imageUrl,
                                       'is_popular': 0,
                                       'addon_categories': addonCategories.map((a) => a.toJson()).toList(),
@@ -929,12 +1003,55 @@ class ChefMenuScreenState extends State<ChefMenuScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('INVENTORY', style: AppTextStyles.labelSm(color: AppColors.onSurfaceVariant)),
-                          Text(inventory, style: AppTextStyles.bodyMd(color: inventoryColor ?? Colors.white)),
-                        ],
+                      // Quantity Stepper (Increase / Decrease)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Portions: ', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                            InkWell(
+                              onTap: () => _adjustItemQuantity(item, -1),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white10,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.remove, size: 14, color: AppColors.primary),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Text(
+                                '${item.remainingPortions}',
+                                style: TextStyle(
+                                  color: item.remainingPortions <= 0 ? Colors.redAccent : (item.isLowStock ? Colors.amber : Colors.greenAccent),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () => _adjustItemQuantity(item, 1),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white10,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.add, size: 14, color: Colors.greenAccent),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       Row(
                         children: [

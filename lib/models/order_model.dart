@@ -79,6 +79,9 @@ class OrderModel {
     required this.items,
   });
 
+  String get orderNumber => id;
+  String get createdAt => date;
+
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     var itemsList = json['items'] as List? ?? [];
     List<OrderItemModel> parsedItems = itemsList.map((i) => OrderItemModel.fromJson(i)).toList();
