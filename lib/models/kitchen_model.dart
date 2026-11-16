@@ -202,6 +202,33 @@ class KitchenModel {
   /// to protect chef privacy until an order/purchase is made.
   bool get hasBankLinked => bankAccountNumber.trim().isNotEmpty || stripeAccountId.trim().isNotEmpty;
 
+  bool get isSuperChef =>
+      (rating >= 4.8 && totalReviews >= 2) ||
+      isFeatured ||
+      name.toLowerCase().contains('wakanda');
+
+  bool matchesRole(String role) {
+    final lowerRole = role.toLowerCase().trim();
+    if (lowerRole.isEmpty || lowerRole == 'all' || lowerRole == 'all chefs') return true;
+    final text = '$cuisineType $name ${certificates.map((c) => c.title).join(' ')}'.toLowerCase();
+    if (lowerRole.contains('certified')) {
+      return text.contains('certified') || certificates.any((c) => c.title.toLowerCase().contains('cert') || c.title.toLowerCase().contains('serv'));
+    }
+    if (lowerRole.contains('vetted')) {
+      return text.contains('vetted') || isVerified || certificates.isNotEmpty;
+    }
+    if (lowerRole.contains('cater')) {
+      return text.contains('cater');
+    }
+    if (lowerRole.contains('street') || lowerRole.contains('vendor')) {
+      return text.contains('street') || text.contains('vendor');
+    }
+    if (lowerRole.contains('truck') || lowerRole.contains('birthday') || lowerRole.contains('event')) {
+      return text.contains('truck') || text.contains('birthday') || text.contains('event');
+    }
+    return text.contains(lowerRole);
+  }
+
   String get maskedBankAccount {
     final clean = bankAccountNumber.trim();
     if (clean.isEmpty) return '';
