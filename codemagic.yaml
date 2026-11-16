@@ -11,6 +11,7 @@ workflows:
       cocoapods: default
       vars:
         BUNDLE_ID: "com.app.gochef"
+        APP_STORE_APPLE_ID: "1095615610"
         P12_PASSWORD: "123456"
     scripts:
       - name: Set up code signing settings on Xcode project
@@ -37,5 +38,6 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
+        app_id: 1095615610
         submit_to_testflight: true
         submit_to_app_store: false
