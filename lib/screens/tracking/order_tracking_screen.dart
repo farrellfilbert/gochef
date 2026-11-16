@@ -519,7 +519,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         userAgentPackageName: 'com.astroboomin.gochef',
                       ),
                       TileLayer(
-                        urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',
+                        urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}&apistyle=s.t:33|p.v:off,s.t:49|p.v:off,s.e:l.i|p.v:off',
                         subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
                         userAgentPackageName: 'com.astroboomin.gochef',
                       ),

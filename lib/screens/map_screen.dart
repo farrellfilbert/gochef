@@ -620,10 +620,10 @@ class _MapScreenState extends State<MapScreen> {
                     },
                   ),
                   children: [
-                    // Dynamic Map Tiles: Clean Roadmap vs Google Satellite
+                    // Dynamic Map Tiles: Clean Roadmap vs Google Satellite (Only City & Street Names, No POI Clutter)
                     if (_isCleanRoadmap)
                       TileLayer(
-                        urlTemplate: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+                        urlTemplate: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&apistyle=s.t:33|p.v:off,s.t:49|p.v:off,s.e:l.i|p.v:off',
                         subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
                         userAgentPackageName: 'com.astroboomin.gochef',
                       )
@@ -634,7 +634,7 @@ class _MapScreenState extends State<MapScreen> {
                         userAgentPackageName: 'com.astroboomin.gochef',
                       ),
                       TileLayer(
-                        urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',
+                        urlTemplate: 'https://{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}&apistyle=s.t:33|p.v:off,s.t:49|p.v:off,s.e:l.i|p.v:off',
                         subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
                         userAgentPackageName: 'com.astroboomin.gochef',
                       ),
