@@ -1299,7 +1299,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: AppTextStyles.bodyMd(color: isDark ? Colors.white : const Color(0xFF1E232E))),
+              Expanded(child: Text(title, style: AppTextStyles.bodyMd(color: isDark ? Colors.white : const Color(0xFF1E232E)))),
               Icon(trailingIcon, color: isDark ? Colors.white70 : const Color(0xFF4B5563)),
             ],
           ),

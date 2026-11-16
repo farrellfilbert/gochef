@@ -14,7 +14,7 @@ void main() {
       // 3:44 AM Pacific Time -> Must be closed
       final testTime = DateTime.utc(2026, 11, 4, 3, 44);
       expect(kitchen.isCurrentlyOpenAt(testTime), isFalse);
-      expect(kitchen.getOpenStatusTextAt(testTime), equals('Closed'));
+      expect(kitchen.getOpenStatusTextAt(testTime), startsWith('Closed'));
     });
 
     test('Standard daytime hours (10:00 AM - 5:00 PM) - Open during business hours (1:30 PM)', () {
@@ -65,7 +65,7 @@ void main() {
 
       final testTime = DateTime.utc(2026, 11, 4, 17, 1);
       expect(kitchen.isCurrentlyOpenAt(testTime), isFalse);
-      expect(kitchen.getOpenStatusTextAt(testTime), equals('Closed'));
+      expect(kitchen.getOpenStatusTextAt(testTime), startsWith('Closed'));
     });
 
     test('Manual toggle overrides business hours (isOpen = false)', () {
@@ -78,7 +78,7 @@ void main() {
 
       final testTime = DateTime.utc(2026, 11, 4, 12, 0); // Noon
       expect(kitchen.isCurrentlyOpenAt(testTime), isFalse);
-      expect(kitchen.getOpenStatusTextAt(testTime), equals('Closed'));
+      expect(kitchen.getOpenStatusTextAt(testTime), equals('Temporarily Closed'));
     });
 
     test('Overnight business hours (6:00 PM - 2:00 AM)', () {

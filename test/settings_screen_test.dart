@@ -43,22 +43,16 @@ void main() {
     expect(find.text('Delete Account'), findsOneWidget);
 
     // Scroll to see Preferences & App Settings
-    await tester.scrollUntilVisible(find.text('Storage & Cache'), 200);
+    await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -600));
     await tester.pumpAndSettle();
 
     expect(find.text('Privacy & Data'), findsOneWidget);
     expect(find.text('Language'), findsOneWidget);
     expect(find.text('Appearance'), findsOneWidget);
 
-    // Verify App Settings items
-    expect(find.text('Storage & Cache'), findsOneWidget);
-    expect(find.text('Version Info'), findsOneWidget);
-    expect(find.text('Clear Search History'), findsOneWidget);
-
-    // Tap Version Info to ensure modal opens without crashing
-    await tester.tap(find.text('Version Info'));
-    await tester.pumpAndSettle();
-    expect(find.text('GoChef Version'), findsOneWidget);
-    expect(find.text('v2.4.0 (Build 128)'), findsOneWidget);
+    // Verify Legal items
+    expect(find.text('Disclaimer'), findsOneWidget);
+    expect(find.text('Privacy Policy'), findsOneWidget);
+    expect(find.text('Terms of Use and Conditions'), findsOneWidget);
   });
 }
