@@ -15,7 +15,6 @@ import 'payment_methods_screen.dart';
 import 'security_password_screen.dart';
 import 'help_center_screen.dart';
 import 'referral_screen.dart';
-import 'contact_support_screen.dart';
 import 'about_screen.dart';
 import 'become_chef_screen.dart';
 import '../chef_dashboard/chef_main_navigation.dart';
@@ -25,7 +24,6 @@ import '../../widgets/chat_icon_button.dart';
 import '../../widgets/notification_bell.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'personal_information_screen.dart';
-import '../../services/support_helper.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
